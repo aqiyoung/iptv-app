@@ -71,55 +71,49 @@ jobs:
           p = 'android/app/build.gradle'
           with open(p) as f:
               src = f.read()
-          # Insert loadKeyProperties def block BEFORE "android {" line
+          # Add ext.* properties and helper BEFORE "android {" line.
+          # Use ext.* (project extension) so child closures can resolve it.
           inject = '''
-          def loadKeyProperties() {
-              def kp = new Properties()
-              def f = file('key.properties')
-              if (f.exists()) {
-                  kp.load(new FileInputStream(f))
-              }
-              return kp
+          // Load signing key from android/key.properties (gitignored)
+          def keyPropsFile = rootProject.file('key.properties')
+          def keyProps = new Properties()
+          if (keyPropsFile.exists()) {
+              keyProps.load(new FileInputStream(keyPropsFile))
           }
-          def keyProps = loadKeyProperties()
-          def storeFilePath = keyProps['storeFile'] ?: null
-          def storePassword = keyProps['storePassword'] ?: null
-          def keyAlias = keyProps['keyAlias'] ?: null
-          def keyPassword = keyProps['keyPassword'] ?: null
+          ext.iptvStoreFile = keyProps['storeFile'] ?: ''
+          ext.iptvStorePassword = keyProps['storePassword'] ?: ''
+          ext.iptvKeyAlias = keyProps['keyAlias'] ?: ''
+          ext.iptvKeyPassword = keyProps['keyPassword'] ?: ''
+
           '''
-          src = re.sub(r'(\n\s*android\s*\{)', inject + r'\1', src, count=1)
-          # Add signingConfigs block right after "android {"
+          src = inject + src
+          # Add signingConfigs.release block right after "android {" (line)
           signing = '''
               signingConfigs {
                   release {
-                      if (storeFilePath && storePassword && keyAlias && keyPassword) {
-                          storeFile file(storeFilePath)
-                          storePassword storePassword
-                          keyAlias keyAlias
-                          keyPassword keyPassword
+                      if (project.ext.iptvStoreFile) {
+                          storeFile file(project.ext.iptvStoreFile)
+                          storePassword project.ext.iptvStorePassword
+                          keyAlias project.ext.iptvKeyAlias
+                          keyPassword project.ext.iptvKeyPassword
                       }
                   }
               }
           '''
           src = re.sub(r'(\n\s*android\s*\{\n)', r'\1' + signing, src, count=1)
-          # Replace any existing signingConfig = ... line in buildTypes.release
-          # with signingConfig signingConfigs.release
-          # Match: buildTypes { ... release { ... signingConfig ... } ... }
-          def replace_signing(match):
-              block = match.group(0)
-              # Strip any existing signingConfig = ...
-              block = re.sub(r'\n\s*signingConfig\s*=?\s*\S+', '', block)
-              # Inject our signingConfig before the final closing brace of release {}
-              block = re.sub(
-                  r'(release\s*\{[^{}]*?)(\n\s*\})',
-                  r'\1\n        signingConfig signingConfigs.release\n\2',
-                  block,
-                  count=1
-              )
-              return block
+          # Replace any existing buildTypes.release.signingConfig line
           src = re.sub(
               r'buildTypes\s*\{[^{}]*?release\s*\{[^{}]*?\}',
-              replace_signing,
+              lambda m: re.sub(
+                  r'signingConfig\s*=?\s*\S+',
+                  'signingConfig signingConfigs.release',
+                  m.group(0)
+              ) if 'signingConfig' in m.group(0) else re.sub(
+                  r'(release\s*\{[^{}]*?)(\n\s*\})',
+                  r'\1\n        signingConfig signingConfigs.release\n\2',
+                  m.group(0),
+                  count=1
+              ),
               src,
               count=1
           )
@@ -128,10 +122,10 @@ jobs:
           print('Patched', p)
           PYEOF
           fi
-          echo "--- build.gradle (signing parts) ---"
-          grep -nE "signingConfig|storeFile|signingConfigs" android/app/build.gradle || echo "(no signing config found!)"
-          echo "--- full build.gradle ---"
-          cat android/app/build.gradle
+          echo "--- signing-related lines ---"
+          grep -nE "iptvStoreFile|signingConfigs|signingConfig" android/app/build.gradle
+          echo "--- buildTypes section ---"
+          awk '/buildTypes \{/,/^    \}/' android/app/build.gradle | head -20
 
       - name: Get dependencies
         run: flutter pub get
@@ -145,7 +139,6 @@ jobs:
           APK=build/app/outputs/flutter-apk/app-release.apk
           ls -la $APK
           sha256sum $APK
-          # Find apksigner from any installed Android SDK on the runner
           APKSIGNER=$(find /opt -name 'apksigner' 2>/dev/null | head -1)
           if [ -n "$APKSIGNER" ]; then
             echo "Using apksigner: $APKSIGNER"
