@@ -33,7 +33,6 @@ jobs:
           mkdir -p android
           echo "$KEYSTORE_BASE64" | base64 -d > android/iptv-release.jks
           ls -la android/iptv-release.jks
-          # Verify keystore is valid
           keytool -list -keystore android/iptv-release.jks \
             -storepass "${{ secrets.IPTV_KEYSTORE_PASSWORD }}" 2>&1 | head -10
 
@@ -66,15 +65,13 @@ jobs:
       - name: Patch android/app/build.gradle for signing
         run: |
           set -e
-          # Inject signing config and load key.properties.
-          # Only patch if not already patched.
           if ! grep -q "loadKeyProperties" android/app/build.gradle; then
             python3 << 'PYEOF'
           import re
           p = 'android/app/build.gradle'
           with open(p) as f:
               src = f.read()
-          # Insert def loadKeyProperties + signingConfigs block before "android {" or "flutter {" block
+          # Insert loadKeyProperties def block BEFORE "android {" line
           inject = '''
           def loadKeyProperties() {
               def kp = new Properties()
@@ -90,9 +87,8 @@ jobs:
           def keyAlias = keyProps['keyAlias'] ?: null
           def keyPassword = keyProps['keyPassword'] ?: null
           '''
-          # Insert before the first "android {" line
           src = re.sub(r'(\n\s*android\s*\{)', inject + r'\1', src, count=1)
-          # Add signingConfigs block after "android {"
+          # Add signingConfigs block right after "android {"
           signing = '''
               signingConfigs {
                   release {
@@ -106,18 +102,35 @@ jobs:
               }
           '''
           src = re.sub(r'(\n\s*android\s*\{\n)', r'\1' + signing, src, count=1)
-          # Replace buildTypes.release.signingConfig
+          # Replace any existing signingConfig = ... line in buildTypes.release
+          # with signingConfig signingConfigs.release
+          # Match: buildTypes { ... release { ... signingConfig ... } ... }
+          def replace_signing(match):
+              block = match.group(0)
+              # Strip any existing signingConfig = ...
+              block = re.sub(r'\n\s*signingConfig\s*=?\s*\S+', '', block)
+              # Inject our signingConfig before the final closing brace of release {}
+              block = re.sub(
+                  r'(release\s*\{[^{}]*?)(\n\s*\})',
+                  r'\1\n        signingConfig signingConfigs.release\n\2',
+                  block,
+                  count=1
+              )
+              return block
           src = re.sub(
-              r'(buildTypes\s*\{[^}]*?release\s*\{)([^}]*?)(\})',
-              lambda m: m.group(1) + (m.group(2) if 'signingConfig' in m.group(2) else m.group(2) + '\n        signingConfig signingConfigs.release\n') + m.group(3),
-              src, count=1, flags=re.DOTALL
+              r'buildTypes\s*\{[^{}]*?release\s*\{[^{}]*?\}',
+              replace_signing,
+              src,
+              count=1
           )
           with open(p, 'w') as f:
               f.write(src)
           print('Patched', p)
           PYEOF
           fi
-          echo "--- build.gradle ---"
+          echo "--- build.gradle (signing parts) ---"
+          grep -nE "signingConfig|storeFile|signingConfigs" android/app/build.gradle || echo "(no signing config found!)"
+          echo "--- full build.gradle ---"
           cat android/app/build.gradle
 
       - name: Get dependencies
@@ -131,17 +144,16 @@ jobs:
           set -e
           APK=build/app/outputs/flutter-apk/app-release.apk
           ls -la $APK
-          # apksigner is in build-tools of Android SDK
-          APKSIGNER=$(find /opt/hostedtoolcache -name 'apksigner' 2>/dev/null | head -1)
-          if [ -z "$APKSIGNER" ]; then
-            # Fallback: install build-tools via sdkmanager (we only have flutter-sdk, no android-sdk)
-            # Use apksigner from sdkmanager-installed
-            which apksigner || echo "apksigner not found; trying alternative"
-            # apksigner jar lives inside the SDK; for now just print SHA
-            sha256sum $APK
-          else
+          sha256sum $APK
+          # Find apksigner from any installed Android SDK on the runner
+          APKSIGNER=$(find /opt -name 'apksigner' 2>/dev/null | head -1)
+          if [ -n "$APKSIGNER" ]; then
             echo "Using apksigner: $APKSIGNER"
             $APKSIGNER verify --verbose $APK
+            $APKSIGNER verify --print-certs $APK
+          else
+            echo "apksigner not on PATH; falling back to jarsigner"
+            jarsigner -verify -verbose:summary -certs $APK 2>&1 | head -10
           fi
 
       - name: Upload APK
