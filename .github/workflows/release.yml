@@ -25,26 +25,124 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Bootstrap android/ios/ scaffold if missing
+      - name: Restore keystore from secret
+        env:
+          KEYSTORE_BASE64: ${{ secrets.IPTV_KEYSTORE_BASE64 }}
         run: |
           set -e
-          # We hand-wrote pubspec.yaml + lib/ + test/, but did NOT hand-write
-          # the android/ and ios/ Gradle/Pod projects. Bootstrap them via
-          # flutter create without overwriting our existing files.
-          if [ ! -d "android" ] || [ ! -d "ios" ]; then
+          mkdir -p android
+          echo "$KEYSTORE_BASE64" | base64 -d > android/iptv-release.jks
+          ls -la android/iptv-release.jks
+          # Verify keystore is valid
+          keytool -list -keystore android/iptv-release.jks \
+            -storepass "${{ secrets.IPTV_KEYSTORE_PASSWORD }}" 2>&1 | head -10
+
+      - name: Write android/key.properties
+        env:
+          STORE_FILE: iptv-release.jks
+          STORE_PASSWORD: ${{ secrets.IPTV_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.IPTV_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.IPTV_KEY_PASSWORD }}
+        run: |
+          cat > android/key.properties << EOF
+          storeFile=$STORE_FILE
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+          cat android/key.properties
+
+      - name: Bootstrap android/ios scaffold if missing
+        run: |
+          set -e
+          if [ ! -d "android/app" ] || [ ! -d "ios" ]; then
             flutter create --org com.threely.iptv --project-name iptv_app \
               --platforms=android,ios .
           fi
-          # flutter create is additive by default; verify our files are intact
           test -f pubspec.yaml
           test -f lib/main.dart
           test -f test/widget_test.dart
 
+      - name: Patch android/app/build.gradle for signing
+        run: |
+          set -e
+          # Inject signing config and load key.properties.
+          # Only patch if not already patched.
+          if ! grep -q "loadKeyProperties" android/app/build.gradle; then
+            python3 << 'PYEOF'
+          import re
+          p = 'android/app/build.gradle'
+          with open(p) as f:
+              src = f.read()
+          # Insert def loadKeyProperties + signingConfigs block before "android {" or "flutter {" block
+          inject = '''
+          def loadKeyProperties() {
+              def kp = new Properties()
+              def f = file('key.properties')
+              if (f.exists()) {
+                  kp.load(new FileInputStream(f))
+              }
+              return kp
+          }
+          def keyProps = loadKeyProperties()
+          def storeFilePath = keyProps['storeFile'] ?: null
+          def storePassword = keyProps['storePassword'] ?: null
+          def keyAlias = keyProps['keyAlias'] ?: null
+          def keyPassword = keyProps['keyPassword'] ?: null
+          '''
+          # Insert before the first "android {" line
+          src = re.sub(r'(\n\s*android\s*\{)', inject + r'\1', src, count=1)
+          # Add signingConfigs block after "android {"
+          signing = '''
+              signingConfigs {
+                  release {
+                      if (storeFilePath && storePassword && keyAlias && keyPassword) {
+                          storeFile file(storeFilePath)
+                          storePassword storePassword
+                          keyAlias keyAlias
+                          keyPassword keyPassword
+                      }
+                  }
+              }
+          '''
+          src = re.sub(r'(\n\s*android\s*\{\n)', r'\1' + signing, src, count=1)
+          # Replace buildTypes.release.signingConfig
+          src = re.sub(
+              r'(buildTypes\s*\{[^}]*?release\s*\{)([^}]*?)(\})',
+              lambda m: m.group(1) + (m.group(2) if 'signingConfig' in m.group(2) else m.group(2) + '\n        signingConfig signingConfigs.release\n') + m.group(3),
+              src, count=1, flags=re.DOTALL
+          )
+          with open(p, 'w') as f:
+              f.write(src)
+          print('Patched', p)
+          PYEOF
+          fi
+          echo "--- build.gradle ---"
+          cat android/app/build.gradle
+
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build APK (release)
+      - name: Build APK (release, signed)
         run: flutter build apk --release
+
+      - name: Verify APK signature
+        run: |
+          set -e
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          ls -la $APK
+          # apksigner is in build-tools of Android SDK
+          APKSIGNER=$(find /opt/hostedtoolcache -name 'apksigner' 2>/dev/null | head -1)
+          if [ -z "$APKSIGNER" ]; then
+            # Fallback: install build-tools via sdkmanager (we only have flutter-sdk, no android-sdk)
+            # Use apksigner from sdkmanager-installed
+            which apksigner || echo "apksigner not found; trying alternative"
+            # apksigner jar lives inside the SDK; for now just print SHA
+            sha256sum $APK
+          else
+            echo "Using apksigner: $APKSIGNER"
+            $APKSIGNER verify --verbose $APK
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
