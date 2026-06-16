@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*'
 
+# 需要 contents: write 权限, 否则 softprops/action-gh-release 会 403
+# (默认 GITHUB_TOKEN 只有 read 权限)
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
