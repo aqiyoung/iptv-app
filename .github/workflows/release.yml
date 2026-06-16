@@ -54,13 +54,52 @@ jobs:
       - name: Bootstrap android/ios scaffold if missing
         run: |
           set -e
-          if [ ! -d "android/app" ] || [ ! -d "ios" ]; then
+          # 卡 6 修复: 只在 ios 缺时创建, 不要再 regenerate android (会覆盖老板提交的
+          # android/settings.gradle + android/app/build.gradle 修改)
+          if [ ! -d "ios" ]; then
             flutter create --org com.threely.iptv --project-name iptv_app \
-              --platforms=android,ios .
+              --platforms=ios .
           fi
+          # android 在 git 里有, 不要重建
           test -f pubspec.yaml
           test -f lib/main.dart
           test -f test/widget_test.dart
+
+          test -f test/widget_test.dart
+
+      - name: Patch screen_brightness_android for Kotlin 1.x compat
+        run: |
+          # screen_brightness_android 2.x 用 Kotlin 2.0+ 的 compilerOptions DSL
+          # 跟 Flutter 3.24 默认 Kotlin 1.9.22 不兼容. 注释掉 + 改 compileOptions 1.8 -> 17
+          # 跟 Kotlin 默认 jvmTarget=17 一致.
+          python3 << 'PYEOF'
+          import glob
+          for f in glob.glob('/home/runner/.pub-cache/hosted/pub.dev/screen_brightness_android-*/android/build.gradle.kts'):
+              with open(f) as fp:
+                  src = fp.read()
+              marker = 'project.extensions.configure(org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension::class.java) {'
+              if marker in src:
+                  # 找到匹配的 }
+                  depth = 0
+                  start = src.find(marker)
+                  for i in range(start, len(src)):
+                      if src[i] == '{':
+                          depth += 1
+                      elif src[i] == '}':
+                          depth -= 1
+                          if depth == 0:
+                              end = i
+                              break
+                  block = src[start:end+1]
+                  commented = '\n'.join('// ' + l for l in block.split('\n'))
+                  src = src[:start] + commented + src[end+1:]
+              # 把 sourceCompatibility/targetCompatibility 1_8 -> 17 跟 Kotlin 一致
+              src = src.replace('JavaVersion.VERSION_1_8', 'JavaVersion.VERSION_17')
+              with open(f, 'w') as fp:
+                  fp.write(src)
+              print(f'Patched {f}')
+          PYEOF
+
 
       - name: Patch android/app/build.gradle for signing
         run: |
@@ -168,10 +207,3 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
-          fail_on_unmatched_files: true
