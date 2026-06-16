@@ -2,10 +2,14 @@
     <!-- 卡 6: HLS 拉流要联网; iptv-org 的 CN 源很多走 HTTP (cleartext),
          需要 cleartextTrafficPermitted=true -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 卡 6: TV 端焦点/遥控器支持 -->
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <application
-        android:label="iptv_app"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:banner="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
         <activity
@@ -28,6 +32,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <!-- 卡 6: TV 端 Launcher 入口 (Android TV/盒子) -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
