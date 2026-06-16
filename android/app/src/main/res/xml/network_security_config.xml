@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+卡 6: HLS 源很多走 HTTP (iptv-org CN 源常见 http://端口82)
+media_kit 需 cleartext 才能拉. Android 9+ 默认禁明文,
+这里 base config = cleartext-permitted 全开 (家用 IPTV 场景可接受).
+将来如果要更严, 可以把 base config 改 default 走 HTTPS,
+再单独给特定 host 加 cleartextTrafficPermitted=true 域配置.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

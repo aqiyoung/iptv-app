@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -31,9 +32,18 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   @override
   void initState() {
     super.initState();
+    // 卡 6: 进入播放页 → 沉浸式状态栏
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _channelsFuture = ref.read(channelRepositoryProvider).loadBundled();
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
+  }
+
+  @override
+  void dispose() {
+    // 卡 6: 退出播放页 → 还原状态栏
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
   }
 
   Future<void> _tryAutoPlay() async {
