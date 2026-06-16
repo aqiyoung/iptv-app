@@ -26,6 +26,12 @@ dependencies:
   # 卡 6: 启动恢复 (lastChannelId)
   shared_preferences: ^2.3.3
 
+
+dependency_overrides:
+  # package_info_plus 9.x 跟 Flutter 3.24 Gradle 不兼容 (用 flutter.versionCode 已移除 API)
+  # 锁 5.0.0 兼容
+  package_info_plus: 5.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
