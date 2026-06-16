@@ -45,8 +45,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,  // Android: 白图标
-        statusBarBrightness: Brightness.dark,       // iOS: 黑背景 -> 白文字
+        statusBarIconBrightness: Brightness.light, // Android: 白图标
+        statusBarBrightness: Brightness.dark, // iOS: 黑背景 -> 白文字
         systemNavigationBarColor: Colors.black,
         systemNavigationBarIconBrightness: Brightness.light,
       ),

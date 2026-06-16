@@ -22,10 +22,18 @@ class SerifHeadline extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(text, style: IptvTypography.serifHeadline.copyWith(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                Text(text,
+                    style: IptvTypography.serifHeadline.copyWith(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5)),
                 if (subtitle != null && subtitle!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(subtitle!, style: IptvTypography.caption.copyWith(fontSize: 11, color: IptvColors.textSecondary, letterSpacing: 0.2)),
+                  Text(subtitle!,
+                      style: IptvTypography.caption.copyWith(
+                          fontSize: 11,
+                          color: IptvColors.textSecondary,
+                          letterSpacing: 0.2)),
                 ],
               ],
             ),
