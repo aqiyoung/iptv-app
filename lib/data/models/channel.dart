@@ -28,7 +28,10 @@ class Channel {
 
   /// 中文 channel 筛选
   bool get isChinese {
-    if (country == 'CN' || country == 'TW' || country == 'HK' || country == 'MO') {
+    if (country == 'CN' ||
+        country == 'TW' ||
+        country == 'HK' ||
+        country == 'MO') {
       return true;
     }
     if (_hasChinese(name)) return true;
@@ -46,10 +49,9 @@ class Channel {
       id: j['id'] as String,
       name: (j['name'] as String?) ?? (j['id'] as String),
       country: (j['country'] as String?) ?? '',
-      categories: ((j['categories'] as List?)?.cast<String>()) ??
-          const <String>[],
-      altNames:
-          ((j['alt_names'] as List?)?.cast<String>()) ?? const <String>[],
+      categories:
+          ((j['categories'] as List?)?.cast<String>()) ?? const <String>[],
+      altNames: ((j['alt_names'] as List?)?.cast<String>()) ?? const <String>[],
       website: j['website'] as String?,
       logoUrl: j['logo'] as String?,
       sources: ((j['sources'] as List?)?.cast<String>()) ?? const <String>[],
