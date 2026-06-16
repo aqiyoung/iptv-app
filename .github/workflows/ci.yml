@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.IPTV_CI_TOKEN }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -39,13 +39,13 @@ jobs:
             dart format .
             git config user.email "openclaw@threel.site"
             git config user.name "小七 (OpenClaw)"
+            git remote set-url origin https://x-access-token:${{ secrets.IPTV_CI_TOKEN }}@github.com/aqiyoung/iptv-app.git
             git add -A
             if ! git diff --staged --quiet; then
               git commit -m "style: auto-fix dart format"
               git push
               echo "Committed and pushed dart format fixes"
             fi
-            # Now should pass on re-check (but we exit anyway)
           fi
 
       - name: Analyze
