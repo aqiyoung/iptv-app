@@ -1,25 +1,32 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+/// EPG 节目单条目
+class EpgEntry {
+  const EpgEntry({
+    required this.channelId,
+    required this.title,
+    required this.start,
+    required this.end,
+  });
 
-part 'epg.freezed.dart';
-part 'epg.g.dart';
+  final String channelId;
+  final String title;
+  final DateTime start;
+  final DateTime end;
 
-/// EPG (Electronic Program Guide) 单条节目单
-@freezed
-class EpgEntry with _$EpgEntry {
-  const factory EpgEntry({
-    /// 关联的 iptv-org channel id
-    required String channelId,
+  Duration get duration => end.difference(start);
 
-    /// 节目名
-    required String title,
+  factory EpgEntry.fromJson(Map<String, dynamic> j) {
+    return EpgEntry(
+      channelId: (j['channel_id'] as String?) ?? '',
+      title: (j['title'] as String?) ?? '',
+      start: DateTime.parse(j['start'] as String),
+      end: DateTime.parse(j['end'] as String),
+    );
+  }
 
-    /// 开始时间 (UTC ISO 8601)
-    required DateTime start,
-
-    /// 结束时间 (UTC ISO 8601)
-    required DateTime end,
-  }) = _EpgEntry;
-
-  factory EpgEntry.fromJson(Map<String, dynamic> json) =>
-      _$EpgEntryFromJson(json);
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'channel_id': channelId,
+        'title': title,
+        'start': start.toIso8601String(),
+        'end': end.toIso8601String(),
+      };
 }
