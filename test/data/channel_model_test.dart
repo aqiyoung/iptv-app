@@ -79,7 +79,7 @@ void main() {
       id: 'A.cn',
       name: 'A',
       country: 'CN',
-      categories: const <String>['news'],
+      categories: <String>['news'],
     );
     final j = c.toJson();
     final c2 = Channel.fromJson(j);
