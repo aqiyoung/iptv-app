@@ -136,16 +136,6 @@ class _HomePageState extends ConsumerState<HomePage> {
             },
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              '设计系统: 新中式 · 暖米 · 衬线标题',
-              style: IptvTypography.caption,
-            ),
-          ),
-        ),
         const SliverToBoxAdapter(child: SizedBox(height: 32)),
       ],
     );

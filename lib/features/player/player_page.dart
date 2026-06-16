@@ -36,15 +36,17 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   @override
   void initState() {
     super.initState();
-    // 卡 6: 进入播放页 → 沉浸式状态栏 (隐藏状态栏 + 导航栏, 拉上去才出)
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    // 卡 7 (6/17 老板需求): 播放页背景黑, 如果状态栏没隐藏 (拉下来时) 也要
-    // 保证白字可见.  退出时 dispose 还原.
+    // 6/17 (UI 优化): 不再用 immersiveSticky (完全隐藏状态栏) — 老板反馈
+    // immersive 时状态栏被隐, 拉下来也看不到频道名.  改成 edgeToEdge 保留
+    // 状态栏可见, 但用浅色文字 + 黑色背景.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // 卡 7 (6/17 老板需求): 播放页背景黑, 状态栏文字用白图标.
+    // 退出时 dispose 还原.
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light, // 白图标
-        statusBarBrightness: Brightness.dark, // iOS: 暗背景 -> 白文字
+        statusBarIconBrightness: Brightness.light,  // Android: 白图标
+        statusBarBrightness: Brightness.dark,       // iOS: 黑背景 -> 白文字
         systemNavigationBarColor: Colors.black,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
@@ -56,7 +58,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
   @override
   void dispose() {
-    // 卡 6: 退出播放页 → 还原状态栏
+    // 6/17: 退出时还原 edgeToEdge (不是 immersiveSticky).
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // 卡 7: 还原成全 APP 默认 (黑图标, 跟浅米色页面配套)
     SystemChrome.setSystemUIOverlayStyle(
@@ -188,7 +190,7 @@ class _TopBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  channel?.name ?? '加载中…',
+                  channel?.displayName ?? '加载中…',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: IptvTypography.serifTitle

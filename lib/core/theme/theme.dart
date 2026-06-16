@@ -25,12 +25,20 @@ class IptvTheme {
         bodyMedium: IptvTypography.body,
         labelSmall: IptvTypography.caption,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: IptvColors.bgParchment,
         foregroundColor: IptvColors.textPrimary,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: IptvTypography.serifTitle,
+        // 6/17 (UI 优化): 顶层 AppBar 状态栏用黑图标 (跟浅米色页面背景配套)
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: IptvColors.bgParchment,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
       ),
       dividerColor: IptvColors.dividerWarm,
     );

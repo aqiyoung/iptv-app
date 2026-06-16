@@ -128,76 +128,49 @@ class ContinueWatchingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 6/17 (UI 优化) 原 1/6 屏高, 厊 logo 56 + padding 20 + 3 行文字
+    // 显得太抢眼.  厊到 1/8 屏高: logo 40, padding 14,
+    // 删掉 subtitle 文字, 'continue watching' label 和 channelName 合并到
+    // 一行 (用 ' · ' 分隔).
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Material(
         color: IptvColors.accentTerracotta,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
             child: Row(
               children: [
-                // 左侧 logo / 播放图标
                 SizedBox(
-                  width: 56,
-                  height: 56,
+                  width: 40,
+                  height: 40,
                   child: channelLogo != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          // FIX 容器超出: 限定 logo 最大尺寸, 防止上游传超大 URL
-                          // 撑爆布局.  Fit cover + 固定 box.
+                          borderRadius: BorderRadius.circular(10),
                           child: Image.network(
                             channelLogo!,
-                            width: 56,
-                            height: 56,
+                            width: 40,
+                            height: 40,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _defaultIcon(),
                           ),
                         )
                       : _defaultIcon(),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '继续观看',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                          letterSpacing: 1.0,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        channelName,
-                        style: IptvTypography.serifTitle.copyWith(
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Flexible(
-                          child: Text(
-                            subtitle!,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.white70,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    '继续观看  ·  $channelName',
+                    style: IptvTypography.sansTitle.copyWith(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (onClear != null)
@@ -205,17 +178,16 @@ class ContinueWatchingCard extends StatelessWidget {
                     icon: const Icon(
                       Icons.close,
                       color: Colors.white70,
-                      size: 20,
+                      size: 18,
                     ),
                     onPressed: onClear,
                     tooltip: '清除记录',
-                    // FIX 容器超出: 限定 IconButton padding, 默认 48dp
-                    // 会挤压文字.  用 visualDensity 缩减, 保留可点击区.
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
+                      minWidth: 32,
+                      minHeight: 32,
                     ),
+                    padding: EdgeInsets.zero,
                   ),
               ],
             ),
@@ -227,16 +199,16 @@ class ContinueWatchingCard extends StatelessWidget {
 
   Widget _defaultIcon() {
     return Container(
-      width: 56,
-      height: 56,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: const Icon(
         Icons.play_arrow_rounded,
         color: Colors.white,
-        size: 32,
+        size: 22,
       ),
     );
   }
