@@ -75,8 +75,7 @@ void main() {
       for (final c in list) {
         final cats = (c['categories'] as List?)?.cast<String>() ?? const [];
         expect(cats, isNotEmpty, reason: '${c['id']} 没 categories');
-        expect(cats.first, isA<String>(),
-            reason: '${c['id']} 首项不是字符串: $cats');
+        expect(cats.first, isA<String>(), reason: '${c['id']} 首项不是字符串: $cats');
       }
     });
   });
