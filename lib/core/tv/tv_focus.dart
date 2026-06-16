@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/colors.dart';
-
 /// TV 端焦点环颜色 — 朱砂 (Cinnabar)
 const Color kTvFocusColor = Color(0xFFE24A1A);
 

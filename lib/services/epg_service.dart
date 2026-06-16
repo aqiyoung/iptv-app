@@ -10,6 +10,7 @@ import '../data/models/epg.dart';
 class EpgService {
   EpgService({http.Client? client}) : _client = client ?? http.Client();
 
+  // ignore: unused_field
   final http.Client _client;
 
   static const String _cachePrefix = 'epg_cache_';
