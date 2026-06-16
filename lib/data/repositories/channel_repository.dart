@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/channel.dart';
 
+/// Channel Repository — 从编译时内嵌的 JSON 加载
 class ChannelRepository {
   const ChannelRepository();
 
