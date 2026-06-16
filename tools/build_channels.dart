@@ -46,8 +46,7 @@ final RegExp _chineseRe = RegExp(r'[\u4e00-\u9fff]');
 
 int scoreChannel(Map<String, dynamic> c) {
   var s = 0;
-  final cats = (c['categories'] as List? ?? const <String>[])
-      .cast<String>();
+  final cats = (c['categories'] as List? ?? const <String>[]).cast<String>();
   for (final cat in cats) {
     s += _catPriority[cat] ?? 0;
   }
