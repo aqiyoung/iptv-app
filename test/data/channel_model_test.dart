@@ -75,7 +75,7 @@ void main() {
   });
 
   test('Channel.toJson roundtrips', () {
-    final c = Channel(
+    const c = Channel(
       id: 'A.cn',
       name: 'A',
       country: 'CN',
