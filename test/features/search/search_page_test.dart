@@ -67,8 +67,8 @@ GoRouter _buildRouter() => GoRouter(
         ),
         GoRoute(
           path: '/player/:channelId',
-          builder: (_, state) =>
-              Scaffold(body: Text('player: ${state.pathParameters['channelId']}')),
+          builder: (_, state) => Scaffold(
+              body: Text('player: ${state.pathParameters['channelId']}')),
         ),
       ],
     );

@@ -24,8 +24,7 @@ void main() {
       expect(entries, isEmpty);
     });
 
-    test('fetch 写入缓存: 缓存里有值且未过期 → 第二次直接走缓存',
-        () async {
+    test('fetch 写入缓存: 缓存里有值且未过期 → 第二次直接走缓存', () async {
       // 第一次 fetch 失败 (不会写缓存, 因为我们用 _fetchRemote 返回空)
       // 改为手工注入缓存值, 验证读取路径
       final ts = DateTime.now().millisecondsSinceEpoch;
@@ -37,7 +36,8 @@ void main() {
         ]''',
       });
       // 重新 build service 让它读新的 mock values
-      final svc = EpgService(client: MockClient((_) async => http.Response('', 500)));
+      final svc =
+          EpgService(client: MockClient((_) async => http.Response('', 500)));
       final entries = await svc.fetch('CCTV1.cn');
       expect(entries.length, 1);
       expect(entries.first.title, '新闻联播');
@@ -49,7 +49,8 @@ void main() {
           .millisecondsSinceEpoch;
       SharedPreferences.setMockInitialValues({
         'epg_meta_CCTV1.cn': '{"ts": $old}',
-        'epg_cache_CCTV1.cn': '[{"channel_id": "CCTV1.cn", "title": "STALE", "start": "2024-01-01T18:00:00.000Z", "end": "2024-01-01T19:00:00.000Z"}]',
+        'epg_cache_CCTV1.cn':
+            '[{"channel_id": "CCTV1.cn", "title": "STALE", "start": "2024-01-01T18:00:00.000Z", "end": "2024-01-01T19:00:00.000Z"}]',
       });
       final svc =
           EpgService(client: MockClient((_) async => http.Response('', 500)));
@@ -59,7 +60,8 @@ void main() {
     });
 
     test('currentProgram 在 EPG 空时 → 返回 null (UI 走空态)', () async {
-      final svc = EpgService(client: MockClient((_) async => http.Response('', 500)));
+      final svc =
+          EpgService(client: MockClient((_) async => http.Response('', 500)));
       expect(await svc.currentProgram('X.cn'), isNull);
       expect(await svc.nextProgram('X.cn'), isNull);
     });

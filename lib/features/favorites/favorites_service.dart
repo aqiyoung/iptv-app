@@ -114,7 +114,8 @@ class InMemoryFavoritesStore implements FavoritesStore {
   }
 
   @override
-  Future<bool> isFavorite(String channelId) async => _map.containsKey(channelId);
+  Future<bool> isFavorite(String channelId) async =>
+      _map.containsKey(channelId);
 
   @override
   Future<void> add(String channelId, String channelName) async {
@@ -142,8 +143,7 @@ class FavoritesService {
   Future<List<String>> getAll() => _store.getAll();
 
   /// 判断是否已收藏
-  Future<bool> isFavorite(String channelId) =>
-      _store.isFavorite(channelId);
+  Future<bool> isFavorite(String channelId) => _store.isFavorite(channelId);
 
   /// 添加收藏
   Future<void> add(String channelId, String channelName) =>

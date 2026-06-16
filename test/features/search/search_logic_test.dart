@@ -99,7 +99,8 @@ void main() {
       expect(results.length, 4);
       // 全部以 "CCTV" 开头, 但 name 完全相同 -1 的会优先 (实际: 4 个都是 startsWith
       // 'cctv', 排第一的应该是 name 最先匹配到的)
-      expect(results.first.id, anyOf('CCTV1.cn', 'CCTV2.cn', 'CCTV3.cn', 'CCTV4.cn'));
+      expect(results.first.id,
+          anyOf('CCTV1.cn', 'CCTV2.cn', 'CCTV3.cn', 'CCTV4.cn'));
     });
 
     test('"CCTV1" 精确匹配 → CCTV1.cn 排第一', () {
