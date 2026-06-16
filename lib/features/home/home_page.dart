@@ -125,7 +125,9 @@ class HomePage extends ConsumerWidget {
 
   // 央视: id 以 CCTV 开头 (CCTV1.cn, CCTVPlus1.cn, CCTVBilliards.cn 等)
   static List<Channel> _filterCctv(List<Channel> all) {
-    return all.where((c) => c.id.startsWith(RegExp(r'CCTV', caseSensitive: false))).toList();
+    return all
+        .where((c) => c.id.startsWith(RegExp(r'CCTV', caseSensitive: false)))
+        .toList();
   }
 
   // 卫视: id 以 SatelliteTV 结尾 或常见卫视名

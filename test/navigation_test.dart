@@ -41,6 +41,7 @@ class _RealRepo implements ChannelRepository {
   List<Channel> parseFromString(String raw) {
     return const ChannelRepository().parseFromString(raw);
   }
+
   @override
   void close() {}
 }
