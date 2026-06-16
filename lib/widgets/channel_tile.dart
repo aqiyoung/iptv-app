@@ -26,6 +26,14 @@ class ChannelTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 老板 6/17 需求: 频道名优先用中文, 原名 (英文) 作为副标题.
+    // 上层传的 channelName 可能是旧 name, 这里从 channel 重新取
+    // displayName + displaySubtitle 兑底.
+    final primaryName = channel?.displayName ?? channelName;
+    final subtitle = channel?.displaySubtitle;
+    // favorite icon 仍然要 iptv org 原名 (作 channelName)
+    final favName = channel?.name ?? channelName;
+
     return Material(
       color: IptvColors.bgElevated,
       child: InkWell(
@@ -53,8 +61,24 @@ class ChannelTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(channelName, style: IptvTypography.sansTitle),
-                    if (country != null && country!.isNotEmpty) ...[
+                    Text(
+                      primaryName,
+                      style: IptvTypography.sansTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // 原名作为副标题 (有差异才显示)
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: IptvTypography.caption.copyWith(
+                          color: IptvColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ] else if (country != null && country!.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(country!, style: IptvTypography.caption),
                     ],
@@ -64,7 +88,7 @@ class ChannelTile extends StatelessWidget {
               if (channel != null)
                 FavoriteIcon(
                   channelId: channel!.id,
-                  channelName: channel!.name,
+                  channelName: favName,
                   size: 20,
                 ),
               if (isLive)

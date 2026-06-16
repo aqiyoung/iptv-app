@@ -296,7 +296,7 @@ class _SearchResultTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        channel.name,
+                        channel.displayName,
                         style: IptvTypography.sansTitle.copyWith(
                           color: isSelected
                               ? IptvColors.textPrimary
@@ -315,7 +315,7 @@ class _SearchResultTile extends StatelessWidget {
                 ),
                 FavoriteIcon(
                   channelId: channel.id,
-                  channelName: channel.name,
+                  channelName: channel.displayName,
                 ),
                 if (channel.sources.isNotEmpty)
                   Container(

@@ -103,7 +103,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               // 上次观看 (有记录才显示)
               if (lastChannel != null) ...[
                 ContinueWatchingCard(
-                  channelName: lastChannel.name,
+                  channelName: lastChannel.displayName,
                   channelLogo: lastChannel.logoUrl,
                   subtitle: '继续播放',
                   onTap: () => context.push('/player/${lastChannel.id}'),

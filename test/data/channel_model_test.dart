@@ -136,4 +136,82 @@ void main() {
       expect(j['sources'], <String>['http://a.com/1.m3u8']);
     });
   });
+
+  // 卡 7 (6/17 老板需求): 频道名自动优先中文, 手工映射兑底.
+  group('displayName / displaySubtitle (中文化)', () {
+    test('中文 alt_names 优先 (CCTV-13 → 央视新闻)', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'CCTV13.cn',
+        'name': 'CCTV-13',
+        'country': 'CN',
+        'alt_names': <String>['CCTV-13 新闻', '中国中央电视台新闻频道'],
+      });
+      expect(c.displayName, 'CCTV-13 新闻');
+    });
+
+    test('CGTN 手工映射: 原始 name 英文没中文 alt, 从映射表取', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'CGTNArabic.cn',
+        'name': 'CGTN Arabic',
+        'country': 'CN',
+        'alt_names': <String>['CGTN العربية'],
+      });
+      // 第一个 alt 包含 Arabic 字符, 但这个含中文 (没), 所以走手工表
+      // 手工表 'CGTNArabic.cn' → 'CGTN 阿语'
+      expect(c.displayName, 'CGTN 阿语');
+    });
+
+    test('中国频道, 手工表里有 id → 用映射名', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'CCTVPlus1.cn',
+        'name': 'CCTV+ 1',
+        'country': 'CN',
+        'alt_names': <String>[],
+      });
+      expect(c.displayName, 'CCTV+ 1 (海外版)');
+    });
+
+    test('displaySubtitle: 中文化后, 原名作为副标题', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'CCTV13.cn',
+        'name': 'CCTV-13',
+        'country': 'CN',
+        'alt_names': <String>['CCTV-13 新闻'],
+      });
+      expect(c.displayName, 'CCTV-13 新闻');
+      expect(c.displaySubtitle, 'CCTV-13');
+    });
+
+    test('displaySubtitle: 已经是原名 (没中文化) → null', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'CNN.us',
+        'name': 'CNN',
+        'country': 'US',
+        'alt_names': <String>[],
+      });
+      expect(c.displayName, 'CNN');
+      expect(c.displaySubtitle, isNull);
+    });
+
+    test('非中国频道, 纯英文 → displayName 就是 name', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'CNN.us',
+        'name': 'CNN',
+        'country': 'US',
+        'alt_names': <String>[],
+      });
+      expect(c.displayName, 'CNN');
+    });
+
+    test('手工映射用 name 兑底', () {
+      final c = Channel.fromJson(<String, dynamic>{
+        'id': 'unknown_id.cn',
+        'name': 'GTV Electronic Sports',
+        'country': 'CN',
+        'alt_names': <String>[],
+      });
+      // id 不在映射表, name 也不在
+      expect(c.displayName, 'GTV Electronic Sports');
+    });
+  });
 }

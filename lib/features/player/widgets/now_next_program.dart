@@ -222,7 +222,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              isLoading ? '节目单加载中…' : '${channel.name} · 实时直播 (节目单待接入)',
+              isLoading ? '节目单加载中…' : '${channel.displayName} · 实时直播 (节目单待接入)',
               style:
                   IptvTypography.body.copyWith(color: IptvColors.textSecondary),
             ),

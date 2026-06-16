@@ -1,4 +1,6 @@
 /// iptv-org 频道模型
+import '../channel_name_zh.dart';
+
 class Channel {
   const Channel({
     required this.id,
@@ -41,8 +43,36 @@ class Channel {
     return false;
   }
 
+  /// UI 实际显示名称 — 优先中文 (alt_names 第一个含中文的),
+  /// 兑底手工中文表 (channel_name_zh.dart), 最后原始 name.
+  String get displayName {
+    if (isChinese) {
+      // 优先 alt_names 里第一个含中文的
+      for (final a in altNames) {
+        if (_hasChinese(a)) return a;
+      }
+    }
+    // 兑底手工中文表
+    final mapped = _manualZhMap[id] ?? _manualZhMap[name];
+    if (mapped != null) return mapped;
+    return name;
+  }
+
+  /// 中英对照的副标题 — 原名跟 displayName 不同时才返, 否则 null
+  String? get displaySubtitle {
+    final dn = displayName;
+    if (dn == name) return null; // 已经是原名了
+    // 中文名字 + 英文原名
+    if (_hasChinese(dn) && !_hasChinese(name)) return name;
+    return null;
+  }
+
   static final RegExp _chineseRe = RegExp(r'[\u4e00-\u9fff]');
   static bool _hasChinese(String s) => _chineseRe.hasMatch(s);
+
+  /// 手工中文映射表 — 兑底用, 避免循环引用.
+  /// 实际定义在 lib/data/channel_name_zh.dart, 运行时通过 import 注入.
+  static const Map<String, String> _manualZhMap = kChannelNameZh;
 
   factory Channel.fromJson(Map<String, dynamic> j) {
     return Channel(

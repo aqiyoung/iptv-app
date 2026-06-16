@@ -128,7 +128,7 @@ class _ChannelChip extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    channel.name,
+                    channel.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: IptvTypography.body.copyWith(
