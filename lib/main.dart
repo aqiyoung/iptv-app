@@ -7,47 +7,33 @@ import 'package:media_kit/media_kit.dart';
 import 'core/router/router.dart';
 import 'core/theme/theme.dart';
 
-void main() {
-  // 卡 5: 拆分 bootstrap, 让 test 可以跳过 native MediaKit 初始化
-  // (flutter_test 在 Linux 跑时 libmpv 不可用)
-  bootstrap(skipMediaKit: _shouldSkipMediaKit);
+void main() async {
+  // 卡 7 (6/17 修复): 之前 v0.2.0 启动崩
+  // 'MediaKit.ensureInitialized must be called', 因为 bootstrap 是 async
+  // 跳到 runApp 才走完 await, 期间某个 widget build 触发了 Player() 构造.
+  // 现在改成 main 同步等 init 完成再 runApp. WidgetsFlutterBinding
+  // 也必须 await, 因为 ensureInitialized 要用到 binding.
+  WidgetsFlutterBinding.ensureInitialized();
+  await _ensureMediaKitOrLog();
+  runApp(const ProviderScope(child: IptvApp()));
+}
+
+Future<void> _ensureMediaKitOrLog() async {
+  if (_shouldSkipMediaKit) return;
+  try {
+    await Future<void>.sync(MediaKit.ensureInitialized)
+        .timeout(const Duration(seconds: 5));
+  } catch (e, st) {
+    debugPrint('=== MediaKit init FAILED, 降级启动 ===');
+    debugPrint('$e');
+    debugPrint('$st');
+    // 不 throw, 继续 runApp
+  }
 }
 
 bool get _shouldSkipMediaKit {
   // dart.vm.arguments 在 flutter_test 中包含 'flutter:test'
   return const bool.fromEnvironment('FLUTTER_TEST') == true;
-}
-
-/// 启动 APP, [skipMediaKit]=true 时跳过 media_kit native init (供 test 使用)
-/// [forceSkipMediaKit]=true 时也跳 (供设备上不兼容时降级)
-void bootstrap({bool skipMediaKit = false}) async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // 卡 7: 全局错误处理 → logcat 打印 + 红屏 fallback
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.dumpErrorToConsole(details);
-    debugPrint('=== FLUTTER ERROR ===');
-    debugPrint(details.exceptionAsString());
-    debugPrint(details.stack?.toString() ?? '(no stack)');
-    debugPrint('=====================');
-  };
-
-  // 卡 7: MediaKit 初始化失败降级 (仍可以起 app, 只是 player 打不开)
-  if (!skipMediaKit) {
-    try {
-      // MediaKit.ensureInitialized() 返回 void, 不能直接 .timeout().
-      // 用 Future.sync 包一层 + .timeout() 给整个 init 加 5s 上限.
-      await Future<void>.sync(MediaKit.ensureInitialized)
-          .timeout(const Duration(seconds: 5));
-    } catch (e, st) {
-      debugPrint('=== MediaKit init FAILED, 降级启动 ===');
-      debugPrint('$e');
-      debugPrint('$st');
-      // 不 throw, 继续 runApp, 详情页会另报
-    }
-  }
-
-  runApp(const ProviderScope(child: IptvApp()));
 }
 
 class IptvApp extends StatelessWidget {

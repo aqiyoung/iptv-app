@@ -190,10 +190,12 @@ class PlayerService extends ChangeNotifier {
 // ───────────────────────────── Riverpod ─────────────────────────────
 
 /// 共享的 [Player] 实例 (整个 APP 一个 native player)
+///
+/// 6/17 修复合并到 main.dart: 之前 v0.2.0 启动崩
+/// 'MediaKit.ensureInitialized must be called', 现在 main 里 await
+/// ensureInitialized 同步完成才 runApp, 这里 Player() 不会报这个错.
 final mediaKitPlayerProvider = Provider<Player>((ref) {
-  final player = Player();
-  ref.onDispose(player.dispose);
-  return player;
+  return Player();
 });
 
 /// media_kit 的 video controller (用于 Video widget)
@@ -209,18 +211,12 @@ final streamOpenerProvider = Provider<StreamOpener>((ref) {
 });
 
 /// [PlayerService] — 全局单例
-///
-/// 注意: [ChangeNotifierProvider] 会自动 dispose ChangeNotifier,
-/// 不要重复加 [ref.onDispose] 否则会 double dispose
 final playerServiceProvider = ChangeNotifierProvider<PlayerService>((ref) {
   final opener = ref.watch(streamOpenerProvider);
   return PlayerService(opener: opener);
 });
 
-/// 当前播放状态 (从 [PlayerService.state] 读)
-///
-/// 注意: 直接 `ref.watch(playerServiceProvider)` 会自动 rebuild
-/// 因为 [ChangeNotifierProvider] 监听 ChangeNotifier 的变化
+/// 当前播放状态
 final currentPlayerStateProvider = Provider<PlayerState>((ref) {
   final service = ref.watch(playerServiceProvider);
   return service.state;
