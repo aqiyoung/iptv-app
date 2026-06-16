@@ -57,7 +57,8 @@ class IptvApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
       routerConfig: buildRouter(),
-      builder: (context, child) => _ErrorBoundary(child: child ?? const SizedBox()),
+      builder: (context, child) =>
+          _ErrorBoundary(child: child ?? const SizedBox()),
     );
   }
 }
@@ -69,8 +70,8 @@ class _ErrorBoundary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ErrorWidget.builder = (FlutterErrorDetails details) =>
-        _CrashScreen(details: details);
+    ErrorWidget.builder =
+        (FlutterErrorDetails details) => _CrashScreen(details: details);
     return child;
   }
 }
