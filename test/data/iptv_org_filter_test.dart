@@ -3,8 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iptv_app/data/models/channel.dart';
 import 'package:iptv_app/data/sources/iptv_org_filter.dart';
 
-Channel _c(String id, String name, String country, List<String> cats,
-    {bool nsfw = false}) {
+Channel _c(
+  String id,
+  String name,
+  String country,
+  List<String> cats, {
+  bool nsfw = false,
+}) {
   return Channel(
     id: id,
     name: name,
