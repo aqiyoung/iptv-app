@@ -35,7 +35,10 @@ void bootstrap({bool skipMediaKit = false}) async {
   // 卡 7: MediaKit 初始化失败降级 (仍可以起 app, 只是 player 打不开)
   if (!skipMediaKit) {
     try {
-      await MediaKit.ensureInitialized().timeout(const Duration(seconds: 5));
+      // MediaKit.ensureInitialized() 返回 void, 不能直接 .timeout().
+      // 用 Future.sync 包一层 + .timeout() 给整个 init 加 5s 上限.
+      await Future<void>.sync(MediaKit.ensureInitialized)
+          .timeout(const Duration(seconds: 5));
     } catch (e, st) {
       debugPrint('=== MediaKit init FAILED, 降级启动 ===');
       debugPrint('$e');

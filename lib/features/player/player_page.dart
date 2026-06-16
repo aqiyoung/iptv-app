@@ -209,8 +209,8 @@ class _TopBar extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: FavoriteIcon(
-                channelId: channel.id,
-                channelName: channel.name,
+                channelId: channel!.id,
+                channelName: channel!.name,
                 size: 24,
                 onChanged: (isFav) {
                   // 收藏状态变化不需要额外动作, sqflite 已持久化
