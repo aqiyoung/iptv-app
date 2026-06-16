@@ -8,6 +8,7 @@ class Channel {
     this.altNames = const <String>[],
     this.website,
     this.logoUrl,
+    this.sources = const <String>[],
     this.isNsfw = false,
   });
 
@@ -18,18 +19,16 @@ class Channel {
   final List<String> altNames;
   final String? website;
   final String? logoUrl;
+  final List<String> sources;
   final bool isNsfw;
 
   /// 主分类（取第一个）
   String get primaryCategory =>
       categories.isNotEmpty ? categories.first : 'general';
 
-  /// 中文 channel 筛选（中文字符 OR country=CN/TW/HK/MO）
+  /// 中文 channel 筛选
   bool get isChinese {
-    if (country == 'CN' ||
-        country == 'TW' ||
-        country == 'HK' ||
-        country == 'MO') {
+    if (country == 'CN' || country == 'TW' || country == 'HK' || country == 'MO') {
       return true;
     }
     if (_hasChinese(name)) return true;
@@ -47,11 +46,13 @@ class Channel {
       id: j['id'] as String,
       name: (j['name'] as String?) ?? (j['id'] as String),
       country: (j['country'] as String?) ?? '',
-      categories:
-          ((j['categories'] as List?)?.cast<String>()) ?? const <String>[],
-      altNames: ((j['alt_names'] as List?)?.cast<String>()) ?? const <String>[],
+      categories: ((j['categories'] as List?)?.cast<String>()) ??
+          const <String>[],
+      altNames:
+          ((j['alt_names'] as List?)?.cast<String>()) ?? const <String>[],
       website: j['website'] as String?,
       logoUrl: j['logo'] as String?,
+      sources: ((j['sources'] as List?)?.cast<String>()) ?? const <String>[],
       isNsfw: (j['is_nsfw'] as bool?) ?? false,
     );
   }
@@ -64,6 +65,7 @@ class Channel {
         'alt_names': altNames,
         'website': website,
         'logo': logoUrl,
+        'sources': sources,
         'is_nsfw': isNsfw,
       };
 }
