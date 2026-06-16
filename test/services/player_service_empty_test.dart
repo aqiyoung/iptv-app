@@ -2,6 +2,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iptv_app/data/models/channel.dart';
 import 'package:iptv_app/services/player_service.dart';
+import 'package:iptv_app/services/source_failover.dart';
 
 void main() {
   group('PlayerService.play 空 sources', () {
