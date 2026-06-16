@@ -6,16 +6,15 @@ class StartupService {
   /// 抽象的存储层 — test 可注入 [InMemoryStartupStore] 避免 SharedPreferences
   /// 默认实现用 SharedPreferences (生产环境)
   ///
-  /// prefsLoader 外层可空 (允许传 null 表示用默认). SharedPreferences.getInstance
-  /// 返回 Future<SharedPreferences> (非空).  字段类型匹配 prefsLoader 的可空 function
-  /// 签名, 运行时会过滤 null 用 getInstance 替.
-  StartupService({Future<SharedPreferences>? Function()? prefsLoader})
+  /// prefsLoader 可空 (允许传 null 表示用默认). 默认是
+  /// SharedPreferences.getInstance (返回 Future<SharedPreferences>, 非空).
+  StartupService({Future<SharedPreferences> Function()? prefsLoader})
       : _prefsLoader = prefsLoader;
 
   static Future<SharedPreferences> _defaultPrefsLoader() =>
       SharedPreferences.getInstance();
 
-  final Future<SharedPreferences>? Function()? _prefsLoader;
+  final Future<SharedPreferences> Function()? _prefsLoader;
 
   SharedPreferences? _prefs;
   Future<SharedPreferences> _getPrefs() async {
