@@ -6,7 +6,9 @@ class StartupService {
   /// 抽象的存储层 — test 可注入 [InMemoryStartupStore] 避免 SharedPreferences
   /// 默认实现用 SharedPreferences (生产环境)
   StartupService({Future<SharedPreferences>? Function()? prefsLoader})
-          : _prefsLoader = prefsLoader ?? () =>
+      : _prefsLoader = prefsLoader ?? _defaultPrefsLoader;
+
+  static Future<SharedPreferences> _defaultPrefsLoader() =>
       SharedPreferences.getInstance();
 
   final Future<SharedPreferences> Function() _prefsLoader;
