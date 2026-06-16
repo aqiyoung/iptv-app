@@ -44,3 +44,6 @@ coverage/
 # Misc
 *.log
 .env
+
+# CI keystore backup (NEVER commit)
+android/*.jks.b64

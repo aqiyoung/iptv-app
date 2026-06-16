@@ -1,7 +1,7 @@
 name: iptv_app
 description: "IPTV 直播 APP - 极简新中式设计 - 家用电视/盒子场景"
 publish_to: "none"
-version: 0.1.4+5
+version: 0.1.5+6
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -13,16 +13,26 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.2.0
   flutter_riverpod: ^2.5.1
+  go_router: ^14.6.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
+  # 卡 5: 视频播放 (libmpv based)
+  media_kit: ^1.1.10
+  # 卡 5: Video 渲染层 (Android/iOS/macOS/Windows/Linux)
+  media_kit_video: ^1.0.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  # 卡 3: freezed 代码生成
   build_runner: ^2.4.13
   freezed: ^2.5.7
   json_serializable: ^6.8.0
+  # 卡 5: SourceFailover 单元测试 (mock 异步)
+  fake_async: ^1.3.1
+  # 卡 5: StreamOpener 抽象注入到 SourceFailover
+  mocktail: ^1.0.4
 
 flutter:
   uses-material-design: true
