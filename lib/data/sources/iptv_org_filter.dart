@@ -1,8 +1,10 @@
 import '../models/channel.dart';
 
+/// 国内常用频道筛选器
 class IptvOrgFilter {
   const IptvOrgFilter();
 
+  /// 中文 channel 筛选
   List<Channel> chineseChannels(List<Channel> all) {
     final out = <Channel>[];
     for (final c in all) {
@@ -13,8 +15,9 @@ class IptvOrgFilter {
     return out;
   }
 
+  /// 进一步筛选: 保留有主流 categories
   List<Channel> curated(List<Channel> all) {
-    const wanted = {
+    const wanted = <String>{
       'general',
       'news',
       'sports',
@@ -25,6 +28,7 @@ class IptvOrgFilter {
       'documentary',
       'education',
       'animation',
+      'culture',
     };
     final seen = <String>{};
     final out = <Channel>[];
@@ -32,7 +36,7 @@ class IptvOrgFilter {
       if (seen.contains(c.id)) continue;
       seen.add(c.id);
       if (c.categories.isEmpty) continue;
-      if (!c.categories.any((k) => wanted.contains(k))) continue;
+      if (!c.categories.any(wanted.contains)) continue;
       out.add(c);
     }
     return out;
