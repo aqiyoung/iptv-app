@@ -46,7 +46,9 @@ final RegExp _chineseRe = RegExp(r'[\u4e00-\u9fff]');
 
 int scoreChannel(Map<String, dynamic> c) {
   var s = 0;
-  for (final cat in (c['categories'] as List? ?? const <String>[]).cast<String>()) {
+  final cats = (c['categories'] as List? ?? const <String>[])
+      .cast<String>();
+  for (final cat in cats) {
     s += _catPriority[cat] ?? 0;
   }
   if (c['logo'] != null) s += 5;
@@ -92,21 +94,23 @@ Future<void> main() async {
       if (id == null || seen.contains(id)) continue;
       if (c['is_nsfw'] == true) continue;
       if (!isChinese(c)) continue;
-      final cats = (c['categories'] as List? ?? const <String>[]).cast<String>();
+      final cats =
+          (c['categories'] as List? ?? const <String>[]).cast<String>();
       if (cats.isEmpty) continue;
       if (!cats.any(_wantedCats.contains)) continue;
       seen.add(id);
-      out.add(<String, dynamic>{
-        ...toChannel(c),
-        '_score': scoreChannel(c),
-      });
+      final ch = toChannel(c);
+      ch['_score'] = scoreChannel(c);
+      out.add(ch);
     }
 
-    out.sort((a, b) => (b['_score'] as int).compareTo(a['_score'] as int));
-    final top = out.take(500).map((m) {
-      final c = Map<String, dynamic>.from(m)..remove('_score');
-      return c;
-    }).toList();
+    out.sort(
+      (a, b) => (b['_score'] as int).compareTo(a['_score'] as int),
+    );
+    final top = out
+        .take(500)
+        .map((m) => Map<String, dynamic>.from(m)..remove('_score'))
+        .toList();
     top.sort((a, b) {
       final c = (a['country'] as String).compareTo(b['country'] as String);
       if (c != 0) return c;
