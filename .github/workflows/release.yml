@@ -5,9 +5,17 @@ on:
     tags:
       - 'v*'
 
+# GITHUB_TOKEN 默认是 read-only，softprops/action-gh-release 拿不到
+# contents:write 会 403。这里显式给整个 job 写权限，并优先用 IPTV_CI_TOKEN
+# (repo scope PAT) 作为 fallback 保险。
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      GH_RELEASE_TOKEN: ${{ secrets.IPTV_CI_TOKEN || secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -172,6 +180,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ env.GH_RELEASE_TOKEN }}
           files: build/app/outputs/flutter-apk/app-release.apk
           generate_release_notes: true
           fail_on_unmatched_files: true
