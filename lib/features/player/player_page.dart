@@ -22,6 +22,11 @@ import 'widgets/source_picker_sheet.dart';
 ///   - 中部: media_kit 视频区 (16:9)
 ///   - 底部: 当前/下一档节目卡 (NowNextProgram)
 ///   - 底部: 下一频道横滑条 (NextChannelsStrip)
+///
+/// P2-2 (6/18 老板反馈): 手机端 (shortestSide < 600) 用 v0.1.7 嵌入布局 —
+/// 视频 16:9 在顶 + 下面是节目卡 + 频道横滑.  右下角全屏按钮点一下进真
+/// 全屏 (immersiveSticky + landscape).  TV 端 (shortestSide >= 600) 保持
+/// v0.3.0 Stack 全屏覆盖模式, 因为 TV 整个屏幕就是视频区.
 class PlayerPage extends ConsumerStatefulWidget {
   const PlayerPage({super.key, required this.channelId});
 
@@ -37,6 +42,16 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   bool _controlsVisible = true;
   Timer? _hideControlsTimer;
   static const _hideAfter = Duration(seconds: 3);
+
+  // P2-2 (6/18): 移动端嵌入布局 ↔ 全屏覆盖 之间的状态机.
+  bool _isFullscreen = false;
+
+  /// P2-2: 移动端判断 — shortestSide < 600 走嵌入布局, TV / 平板走现状
+  /// Stack 全屏覆盖.  mounted 检查避免 dispose 后访问 context.
+  bool get _isMobile {
+    if (!mounted) return true;
+    return MediaQuery.of(context).size.shortestSide < 600;
+  }
 
   @override
   void initState() {
@@ -66,6 +81,14 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   void dispose() {
     // P0-1: 取消隐身计时器
     _hideControlsTimer?.cancel();
+    // P2-2: 离开页面时如果还在全屏, 还原 system chrome.
+    if (_isFullscreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      // empty list = "use whatever the platform default is" (portrait on
+      // phones, landscape on TVs, etc.).  Passing null breaks the
+      // argument_type_not_assignable analyzer check on Flutter 3.29.3.
+      SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
+    }
     // 6/17: 退出时还原 edgeToEdge (不是 immersiveSticky).
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // 卡 7: 还原成全 APP 默认 (黑图标, 跟浅米色页面配套)
@@ -90,6 +113,25 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       if (!mounted) return;
       setState(() => _controlsVisible = false);
     });
+  }
+
+  /// P2-2: 切真全屏 ↔ 退出.  全屏: immersiveSticky + landscape, 让视频占满
+  /// 整个屏幕并隐藏状态栏/导航栏.  退出: edgeToEdge + portrait (默认).
+  void _toggleFullscreen() {
+    setState(() => _isFullscreen = !_isFullscreen);
+    if (_isFullscreen) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      SystemChrome.setPreferredOrientations(const [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      // empty list = "use whatever the platform default is" (portrait on
+      // phones, landscape on TVs, etc.).  Passing null breaks the
+      // argument_type_not_assignable analyzer check on Flutter 3.29.3.
+      SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
+    }
   }
 
   Future<void> _tryAutoPlay() async {
@@ -124,6 +166,16 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
   @override
   Widget build(BuildContext context) {
+    // P2-2: TV 端 / 全屏时走 v0.3.0 Stack 全屏覆盖.  移动端默认走嵌入布局.
+    if (_isFullscreen || !_isMobile) {
+      return _buildFullscreenOverlay(context);
+    }
+    return _buildMobile(context);
+  }
+
+  /// P2-2: 移动端嵌入布局 (v0.1.7 风格) — 视频 16:9 在顶, 下面是 TopBar +
+  /// 节目卡 + 频道横滑.  视频区右下角有全屏按钮.
+  Widget _buildMobile(BuildContext context) {
     final state = ref.watch(currentPlayerStateProvider);
     final controller = ref.watch(mediaKitVideoControllerProvider);
     final asyncChannels = ref.watch(channelsProvider);
@@ -136,8 +188,97 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
             child: CircularProgressIndicator(color: Colors.white54),
           ),
           error: (e, _) => Center(
-            child:
-                Text('加载失败: $e', style: const TextStyle(color: Colors.white54)),
+            child: Text(
+              '加载失败: $e',
+              style: const TextStyle(color: Colors.white54),
+            ),
+          ),
+          data: (channels) {
+            final channel = _findChannel(channels, widget.channelId);
+            return Column(
+              children: [
+                // 视频区 (16:9) + 右下角全屏按钮
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _VideoArea(
+                        controller: controller,
+                        state: state,
+                        channel: channel,
+                      ),
+                      Positioned(
+                        right: 8,
+                        bottom: 8,
+                        child: Material(
+                          color: Colors.black54,
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.fullscreen,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                            tooltip: '全屏',
+                            onPressed: _toggleFullscreen,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // 顶栏 (返回 / 频道名 / 收藏等)
+                _TopBar(
+                  channel: channel,
+                  state: state,
+                  onBack: () => context.pop(),
+                ),
+                // 节目卡 + 频道横滑 (可滚动)
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (channel != null) NowNextProgram(channel: channel),
+                        if (channel != null)
+                          NextChannelsStrip(
+                            currentChannelId: channel.id,
+                            allChannels: channels,
+                            onChannelTap: _switchTo,
+                          ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// P2-2: 全屏覆盖布局 (v0.3.0 行为保留) — 视频填满全屏, 控件盖在上面,
+  /// 3s 后自动隐身.  TV 端直接走这条.  移动端点右下角全屏按钮进入.
+  Widget _buildFullscreenOverlay(BuildContext context) {
+    final state = ref.watch(currentPlayerStateProvider);
+    final controller = ref.watch(mediaKitVideoControllerProvider);
+    final asyncChannels = ref.watch(channelsProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: asyncChannels.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Colors.white54),
+          ),
+          error: (e, _) => Center(
+            child: Text(
+              '加载失败: $e',
+              style: const TextStyle(color: Colors.white54),
+            ),
           ),
           data: (channels) {
             final channel = _findChannel(channels, widget.channelId);
@@ -178,13 +319,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       AnimatedOpacity(
                         opacity: _controlsVisible ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 250),
-                        // 6/17 fix: outer if (channel != null) already
-                        // narrows channel to non-null for this subtree, so
-                        // children use ch directly without redundant
-                        // channel != null checks (which Dart 3 promotes and
-                        // emits unnecessary_null_comparison warnings on).
-                        // Use withValues for alpha to avoid deprecated
-                        // withOpacity lint on Flutter 3.27+; CI runs 3.29.3.
                         child: Container(
                           color: Colors.black.withValues(alpha: 0.55),
                           child: Builder(builder: (context) {
@@ -224,6 +358,25 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                           color: Colors.white24,
                           shape: BoxShape.circle,
                         ),
+                      ),
+                    ),
+                  ),
+                // P2-2: 移动端用户主动全屏时, 给个"退出全屏"按钮 (TV 端没有)
+                if (_isFullscreen)
+                  Positioned(
+                    right: 12,
+                    top: 12,
+                    child: Material(
+                      color: Colors.black54,
+                      shape: const CircleBorder(),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.fullscreen_exit,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                        tooltip: '退出全屏',
+                        onPressed: _toggleFullscreen,
                       ),
                     ),
                   ),
