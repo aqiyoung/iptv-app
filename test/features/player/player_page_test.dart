@@ -97,13 +97,15 @@ void main() {
         channelId: 'CCTV1.cn',
       );
       await tester.pump();
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
 
       // 初始: 频道名可见
       expect(find.text('CCTV-1 综合'), findsOneWidget);
 
       // 等 3.1s 让 timer 触发
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
       await tester.pump(const Duration(milliseconds: 300));
 
       // 控件应该已隐藏 (opacity=0)
@@ -123,7 +125,8 @@ void main() {
         channelId: 'CCTV1.cn',
       );
       await tester.pump();
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
 
       // 初始: 控件可见
       var opacityWidgets =
@@ -131,7 +134,8 @@ void main() {
       expect(opacityWidgets.first.opacity, 1.0);
 
       // 等 3.1s 让控件自动隐藏
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
       await tester.pump(const Duration(milliseconds: 300));
       opacityWidgets =
           tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));

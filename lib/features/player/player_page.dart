@@ -183,7 +183,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (channel != null) NowNextProgram(channel: channel),
+                              if (channel != null)
+                                NowNextProgram(channel: channel),
                               if (channel != null)
                                 NextChannelsStrip(
                                   currentChannelId: channel.id,
