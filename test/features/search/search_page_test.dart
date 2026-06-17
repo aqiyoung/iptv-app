@@ -83,22 +83,17 @@ void main() {
     });
 
     testWidgets('输入 "CCTV" → 列出 CCTV-1/2', (tester) async {
-      // 6/17 fix: 移除原 1s timing 检查 — pump(400ms) 在 fake clock 下需要
-      // 真实时间 1s+, 1s 期望在测试里总失败.  fake clock 只验文本足够.
+      // 6/17 fix: 用 pumpAndSettle(duration) 等 channelsProvider FutureProvider
+      // 解析 + 300ms debounce 触发 _search + setState 重建.
+      // ⚠️ pumpAndSettle() 不传 duration 默认 Duration.zero,  不推进 fake clock,
+      // debounce timer 永远不触发. 必须传 Duration(milliseconds: 100) 之类的间隔.
       await _pump(tester, router: _buildRouter());
-      // 多 pump 几次让 channelsProvider FutureProvider 解析
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
+      // 先 pumpAndSettle 让 channelsProvider 的 Future 解析
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
-      // 输入 "CCTV"
       await tester.enterText(find.byType(TextField), 'CCTV');
-      // 触发 listen + 重建
-      await tester.pump();
-      // 6/17 fix: search_page.dart:71 debounce 是 300ms, 之前 pump(50ms) 不够.
-      await tester.pump(const Duration(milliseconds: 350));
-      // 6/17 fix: 还要再 pump 一次让 _search() 的 setState 重建生效
-      await tester.pump();
+      // debounce 300ms, 每次 pump 推进 100ms, 3 次后 timer 触发
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
       expect(find.text('CCTV-1 综合'), findsOneWidget);
       expect(find.text('CCTV-2 财经'), findsOneWidget);
@@ -106,30 +101,22 @@ void main() {
     });
 
     testWidgets('输入 "湖南" → 湖南卫视命中', (tester) async {
-      // 6/17 fix: 多 pump 让 channelsProvider 解析, 末尾多 pump 让 setState 重建.
       await _pump(tester, router: _buildRouter());
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
       await tester.enterText(find.byType(TextField), '湖南');
-      await tester.pump();
-      // 6/17 fix: 等 300ms debounce (search_page.dart:71)
-      await tester.pump(const Duration(milliseconds: 350));
-      await tester.pump();
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
       expect(find.text('湖南卫视'), findsOneWidget);
     });
 
     testWidgets('输入 "XxxNotFound" → 显示空态', (tester) async {
-      // 6/17 fix: 多 pump 让 channelsProvider 解析, 末尾多 pump 让 setState 重建.
       await _pump(tester, router: _buildRouter());
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
       await tester.enterText(find.byType(TextField), 'XxxNotFound');
-      await tester.pump();
-      // 6/17 fix: 等 300ms debounce (search_page.dart:71)
-      await tester.pump(const Duration(milliseconds: 350));
-      await tester.pump();
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
       expect(find.textContaining('未找到匹配'), findsOneWidget);
     });
   });
