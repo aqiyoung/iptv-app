@@ -136,8 +136,9 @@ class TvFocusCap extends StatelessWidget {
       '(P2-1: ChatGPT 6/17 建议, 老板拍板)',
     );
     // 截断超出上限的项
-    final visible =
-        children.length <= maxFocusable ? children : children.sublist(0, maxFocusable);
+    final visible = children.length <= maxFocusable
+        ? children
+        : children.sublist(0, maxFocusable);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,

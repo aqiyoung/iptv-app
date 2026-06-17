@@ -80,8 +80,7 @@ class _ProgramCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionLabel(
-                text: '正在直播', accent: IptvColors.accentTerracotta),
+            _SectionLabel(text: '正在直播', accent: IptvColors.accentTerracotta),
             const SizedBox(height: 6),
             Text(
               current?.title ?? '暂无节目信息',

@@ -46,7 +46,8 @@ class CategoryCard extends StatelessWidget {
                     color: IptvColors.accentTerracotta.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: IptvColors.accentTerracotta, size: 22),
+                  child:
+                      Icon(icon, color: IptvColors.accentTerracotta, size: 22),
                 ),
                 const SizedBox(height: 12),
                 Text(title, style: IptvTypography.serifTitle),

@@ -69,10 +69,12 @@ class _GlassContainerState extends State<GlassContainer>
           padding: widget.padding,
           decoration: BoxDecoration(
             // 半透明白底 — 让 blur 效果可见
-            color: Colors.white.withOpacity(0.06), // ignore: deprecated_member_use
+            color:
+                Colors.white.withOpacity(0.06), // ignore: deprecated_member_use
             borderRadius: BorderRadius.circular(widget.borderRadius),
             border: Border.all(
-              color: Colors.white.withOpacity(0.12), // ignore: deprecated_member_use
+              color: Colors.white
+                  .withOpacity(0.12), // ignore: deprecated_member_use
               width: 1,
             ),
           ),
@@ -149,7 +151,8 @@ class _GlassCardBorderState extends State<GlassCardBorder>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(widget.borderRadius),
             border: Border.all(
-              color: Colors.white.withOpacity(0.12), // ignore: deprecated_member_use
+              color: Colors.white
+                  .withOpacity(0.12), // ignore: deprecated_member_use
               width: 1,
             ),
           ),
