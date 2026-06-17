@@ -21,7 +21,7 @@ class SqfliteFavoritesStore implements FavoritesStore {
   static const String _table = 'favorites';
 
   Future<Database> get _database async {
-    if (_injectedDb != null) return _injectedDb!;
+    if (_injectedDb != null) return _injectedDb!; // ignore: unnecessary_non_null_assertion
     if (_db != null) return _db!;
     _db = await _initDb();
     return _db!;
