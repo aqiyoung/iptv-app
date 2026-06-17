@@ -1,4 +1,4 @@
-package com.aqiyoung.iptv_app
+package com.threelive.iptv
 
 import io.flutter.embedding.android.FlutterActivity
 
