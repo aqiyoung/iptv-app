@@ -5,7 +5,7 @@ publish_to: "none"
 # 0.2.1+10: 包名 com.aqiyoung.iptv_app → com.threelive.iptv
 # 0.2.2+11: 修切频道声音残留 + 底部频道条横滑
 # 0.2.3+12: 重试/换源按钮 + 收藏页 + 文案实事求是 + TV 焦点环铺全屏
-version: 0.2.3+12
+version: 0.2.4+13
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
