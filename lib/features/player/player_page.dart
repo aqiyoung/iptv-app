@@ -84,7 +84,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     // P2-2: 离开页面时如果还在全屏, 还原 system chrome.
     if (_isFullscreen) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setPreferredOrientations(null);
+      // empty list = "use whatever the platform default is" (portrait on
+      // phones, landscape on TVs, etc.).  Passing null breaks the
+      // argument_type_not_assignable analyzer check on Flutter 3.29.3.
+      SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
     }
     // 6/17: 退出时还原 edgeToEdge (不是 immersiveSticky).
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -124,7 +127,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       ]);
     } else {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      SystemChrome.setPreferredOrientations(null); // 还原默认
+      // empty list = "use whatever the platform default is" (portrait on
+      // phones, landscape on TVs, etc.).  Passing null breaks the
+      // argument_type_not_assignable analyzer check on Flutter 3.29.3.
+      SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
     }
   }
 
