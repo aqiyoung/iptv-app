@@ -114,7 +114,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
             child: CircularProgressIndicator(color: Colors.white54),
           ),
           error: (e, _) => Center(
-            child: Text('加载失败: $e', style: const TextStyle(color: Colors.white54)),
+            child:
+                Text('加载失败: $e', style: const TextStyle(color: Colors.white54)),
           ),
           data: (channels) {
             final channel = _findChannel(channels, widget.channelId);
