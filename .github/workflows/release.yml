@@ -189,7 +189,26 @@ jobs:
         # flutter build apk 默认是 fat APK (arm + arm64 + x64), 体积接近 60MB;
         # 限定 arm64 后可控制在 20MB 以内.
         run: flutter build apk --release --target-platform android-arm64 --split-per-abi
-
+- name: Rename APK with threelive + version
+        run: |
+          set -e
+          VERSION=$(grep 'version:' pubspec.yaml | head -1 | awk '{print $2}')
+          echo "APK_VERSION=$VERSION" >> $GITHUB_ENV
+          for f in build/app/outputs/flutter-apk/app-*-release.apk; do
+            if [ -f "$f" ]; then
+              ABI=$(basename "$f" | sed 's/app-//' | sed 's/-release.apk//')
+              NEWNAME="build/app/outputs/flutter-apk/threelive-v${VERSION}-${ABI}.apk"
+              mv "$f" "$NEWNAME"
+              echo "Renamed: $(basename $f) → $(basename $NEWNAME)"
+            fi
+          done
+          for f in build/app/outputs/flutter-apk/app-*-release.apk.sha256; do
+            if [ -f "$f" ]; then
+              ABI=$(basename "$f" | sed 's/app-//' | sed 's/-release.apk.sha256//')
+              NEWNAME="build/app/outputs/flutter-apk/threelive-v${VERSION}-${ABI}.apk.sha256"
+              mv "$f" "$NEWNAME"
+            fi
+          done
       - name: Verify APK signature
         run: |
           set -e
