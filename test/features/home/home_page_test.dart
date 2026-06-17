@@ -150,7 +150,7 @@ void main() {
 
       // "继续观看" 标签 + 频道名都在 (文本格式: "继续观看  ·  CCTV-1")
       expect(find.textContaining('继续观看'), findsOneWidget);
-      expect(find.text('CCTV-1'), findsWidgets);
+      expect(find.textContaining('CCTV-1'), findsWidgets);
       // 关闭按钮 (清除上次观看)
       expect(find.byIcon(Icons.close), findsOneWidget);
     });

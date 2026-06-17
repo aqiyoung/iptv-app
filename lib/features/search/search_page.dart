@@ -155,7 +155,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       body: SafeArea(
         child: KeyboardListener(
           focusNode: _keyboardFocusNode,
-          autofocus: true,
           onKeyEvent: _handleKeyEvent,
           child: CustomScrollView(
             slivers: [
