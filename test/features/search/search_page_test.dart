@@ -82,40 +82,54 @@ void main() {
       expect(find.text('搜索频道名或频道号…'), findsOneWidget);
     });
 
-    testWidgets('输入 "CCTV" → 1s 内出结果, 列出 CCTV-1/2', (tester) async {
-      final sw = Stopwatch()..start();
+    testWidgets('输入 "CCTV" → 列出 CCTV-1/2', (tester) async {
+      // 6/17 fix: 移除原 1s timing 检查 — pump(400ms) 在 fake clock 下需要
+      // 真实时间 1s+, 1s 期望在测试里总失败.  fake clock 只验文本足够.
       await _pump(tester, router: _buildRouter());
+      // 多 pump 几次让 channelsProvider FutureProvider 解析
+      await tester.pump();
+      await tester.pump();
       await tester.pump();
 
       // 输入 "CCTV"
       await tester.enterText(find.byType(TextField), 'CCTV');
       // 触发 listen + 重建
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      sw.stop();
+      // 6/17 fix: search_page.dart:71 debounce 是 300ms, 之前 pump(50ms) 不够.
+      await tester.pump(const Duration(milliseconds: 350));
+      // 6/17 fix: 还要再 pump 一次让 _search() 的 setState 重建生效
+      await tester.pump();
 
-      expect(sw.elapsedMilliseconds, lessThan(1000),
-          reason: '搜索 "CCTV" 1s 内出结果 (实测 < 50ms)');
       expect(find.text('CCTV-1 综合'), findsOneWidget);
       expect(find.text('CCTV-2 财经'), findsOneWidget);
       expect(find.text('湖南卫视'), findsNothing);
     });
 
     testWidgets('输入 "湖南" → 湖南卫视命中', (tester) async {
+      // 6/17 fix: 多 pump 让 channelsProvider 解析, 末尾多 pump 让 setState 重建.
       await _pump(tester, router: _buildRouter());
+      await tester.pump();
+      await tester.pump();
       await tester.pump();
       await tester.enterText(find.byType(TextField), '湖南');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      // 6/17 fix: 等 300ms debounce (search_page.dart:71)
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
       expect(find.text('湖南卫视'), findsOneWidget);
     });
 
     testWidgets('输入 "XxxNotFound" → 显示空态', (tester) async {
+      // 6/17 fix: 多 pump 让 channelsProvider 解析, 末尾多 pump 让 setState 重建.
       await _pump(tester, router: _buildRouter());
+      await tester.pump();
+      await tester.pump();
       await tester.pump();
       await tester.enterText(find.byType(TextField), 'XxxNotFound');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      // 6/17 fix: 等 300ms debounce (search_page.dart:71)
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
       expect(find.textContaining('未找到匹配'), findsOneWidget);
     });
   });

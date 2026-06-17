@@ -32,6 +32,12 @@ class PlayerPage extends ConsumerStatefulWidget {
 }
 
 class _PlayerPageState extends ConsumerState<PlayerPage> {
+  // P0-1 (6/17 ChatGPT 建议): 播放页 UI 3s 隐身 — 视频是唯一视觉中心,
+  // 重度 IPTV 用户 90% 时间只看视频, 不需要控件抢眼球.
+  bool _controlsVisible = true;
+  Timer? _hideControlsTimer;
+  static const _hideAfter = Duration(seconds: 3);
+
   @override
   void initState() {
     super.initState();
@@ -52,10 +58,14 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     );
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
+    // P0-1: 首帧后启动控件隐身计时器
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resetHideTimer());
   }
 
   @override
   void dispose() {
+    // P0-1: 取消隐身计时器
+    _hideControlsTimer?.cancel();
     // 6/17: 退出时还原 edgeToEdge (不是 immersiveSticky).
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // 卡 7: 还原成全 APP 默认 (黑图标, 跟浅米色页面配套)
@@ -67,6 +77,19 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       ),
     );
     super.dispose();
+  }
+
+  /// P0-1: 重置隐身计时器 — 用户任何输入 (D-pad / 触屏) 都调这个.
+  void _resetHideTimer() {
+    if (!mounted) return;
+    _hideControlsTimer?.cancel();
+    if (!_controlsVisible) {
+      setState(() => _controlsVisible = true);
+    }
+    _hideControlsTimer = Timer(_hideAfter, () {
+      if (!mounted) return;
+      setState(() => _controlsVisible = false);
+    });
   }
 
   Future<void> _tryAutoPlay() async {
@@ -118,36 +141,78 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           ),
           data: (channels) {
             final channel = _findChannel(channels, widget.channelId);
-            return Column(
+            // P0-1: 视频区点一下切控件可见性 (原本不可见 -> 显示, 显示中 -> 立即隐藏)
+            return Stack(
               children: [
-                _TopBar(
-                  channel: channel,
-                  state: state,
-                  onBack: () => context.pop(),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _VideoArea(
-                          controller: controller,
-                          state: state,
-                          channel: channel,
-                        ),
-                        const SizedBox(height: 12),
-                        if (channel != null) NowNextProgram(channel: channel),
-                        if (channel != null)
-                          NextChannelsStrip(
-                            currentChannelId: channel.id,
-                            allChannels: channels,
-                            onChannelTap: _switchTo,
-                          ),
-                        const SizedBox(height: 24),
-                      ],
+                // 视频区填满全屏 (控件盖在上面, 隐身时露出视频)
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      if (_controlsVisible) {
+                        // 显示中: 立即隐藏, 不重置计时器
+                        _hideControlsTimer?.cancel();
+                        setState(() => _controlsVisible = false);
+                      } else {
+                        // 隐藏中: 显示并重置计时器
+                        _resetHideTimer();
+                      }
+                    },
+                    child: _VideoArea(
+                      controller: controller,
+                      state: state,
+                      channel: channel,
                     ),
                   ),
                 ),
+                // 控件层: 顶部 + 底部, 统一控制可见性
+                Column(
+                  children: [
+                    _TopBar(
+                      channel: channel,
+                      state: state,
+                      onBack: () => context.pop(),
+                    ),
+                    const Spacer(),
+                    if (channel != null)
+                      AnimatedOpacity(
+                        opacity: _controlsVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 250),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (channel != null) NowNextProgram(channel: channel),
+                              if (channel != null)
+                                NextChannelsStrip(
+                                  currentChannelId: channel.id,
+                                  allChannels: channels,
+                                  onChannelTap: _switchTo,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+                // 隐藏中提示: 右下角小点 (随时点一下又可以看控件)
+                if (!_controlsVisible)
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: IgnorePointer(
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             );
           },

@@ -10,9 +10,11 @@ void main() {
       expect(kTvFocusColor, isA<Color>());
       // 红色主导, 不是纯红 (朱砂有暖色调)
       final c = kTvFocusColor;
-      expect(c.r, greaterThan(0.5));
-      expect(c.g, lessThan(0.4));
-      expect(c.b, lessThan(0.2));
+      // 6/17 fix: Flutter 3.24.5 没有 c.r/g/b (3.27+ 才有), 改 int 0-255.
+      // 1847e58 改过, 5f8e668 误回退, 这次写清楚别再动.
+      expect(c.red, greaterThan(128));
+      expect(c.green, lessThan(102));
+      expect(c.blue, lessThan(51));
     });
 
     testWidgets('TvFocus widget 渲染时给子节点套焦点环', (tester) async {

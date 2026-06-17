@@ -312,11 +312,12 @@ final streamOpenerProvider = Provider<StreamOpener>((ref) {
 final playerServiceProvider = ChangeNotifierProvider<PlayerService>((ref) {
   final opener = ref.watch(streamOpenerProvider);
   final player = ref.watch(mediaKitPlayerProvider);
-  final svc = PlayerService(opener: opener, player: player);
-  // 6/17: APP 退出 / provider 销毁时, 走 PlayerService.dispose()
-  // 释放 native player (libmpv 实例)
-  ref.onDispose(svc.dispose);
-  return svc;
+  // 6/17 fix: 之前 ref.onDispose(svc.dispose) 跟 ChangeNotifierProvider
+  // auto-dispose 重复,  ProviderContainer 销毁时 svc.dispose() 被调两次,
+  // 第二次 super.dispose() 触发 "ChangeNotifier used after being disposed".
+  // ChangeNotifierProvider 会自动调 notifier.dispose(),  这里只创建.
+  // PlayerService.dispose() 仍然会跑, 负责释放 native player (libmpv 实例).
+  return PlayerService(opener: opener, player: player);
 });
 
 /// 当前播放状态

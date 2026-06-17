@@ -86,6 +86,68 @@ void main() {
       expect(find.text('CCTV-2 财经'), findsOneWidget);
     });
   });
+// P0-1 (6/17): 播放页 UI 3s 隐身
+  group('PlayerPage P0-1 控件隐身', () {
+    testWidgets('初始控件可见, 3s 后变隐藏 (timer 触发)', (tester) async {
+      final opener = _ScriptedOpener([_ScriptedResult.failure()]);
+      await _pumpPlayerPage(
+        tester,
+        opener: opener,
+        channels: _channels,
+        channelId: 'CCTV1.cn',
+      );
+      await tester.pump();
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+
+      // 初始: 频道名可见
+      expect(find.text('CCTV-1 综合'), findsOneWidget);
+
+      // 等 3.1s 让 timer 触发
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // 控件应该已隐藏 (opacity=0)
+      final opacityWidgets =
+          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      expect(opacityWidgets, isNotEmpty);
+      final animatedOpacity = opacityWidgets.first;
+      expect(animatedOpacity.opacity, 0.0, reason: '3s 后控件应该隐藏');
+    });
+
+    testWidgets('点击视频区: 隐藏中点一下 -> 显示 + 重置 timer', (tester) async {
+      final opener = _ScriptedOpener([_ScriptedResult.failure()]);
+      await _pumpPlayerPage(
+        tester,
+        opener: opener,
+        channels: _channels,
+        channelId: 'CCTV1.cn',
+      );
+      await tester.pump();
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+
+      // 初始: 控件可见
+      var opacityWidgets =
+          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      expect(opacityWidgets.first.opacity, 1.0);
+
+      // 等 3.1s 让控件自动隐藏
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
+      await tester.pump(const Duration(milliseconds: 300));
+      opacityWidgets =
+          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      expect(opacityWidgets.first.opacity, 0.0);
+
+      // 点视频区
+      final videoArea = find.byType(GestureDetector);
+      await tester.tap(videoArea.first);
+      await tester.pump();
+
+      // 控件应该重新可见
+      opacityWidgets =
+          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      expect(opacityWidgets.first.opacity, 1.0, reason: '点击后控件应该重新可见');
+    });
+  });
 }
 
 // ───────────── Test helpers ─────────────
