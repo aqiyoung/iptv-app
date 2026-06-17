@@ -9,6 +9,7 @@ import 'package:iptv_app/data/models/channel.dart';
 // 把 SearchPage._fuzzySearch 复制一份独立实现 —
 // 实际生产代码改这里时, 测试会失败, 提醒同步
 List<Channel> _fuzzySearch(List<Channel> all, String q) {
+  if (q.isEmpty) return const [];
   final lower = q.toLowerCase();
   final scored = <({Channel ch, int score})>[];
 

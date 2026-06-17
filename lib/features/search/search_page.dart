@@ -78,6 +78,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   /// 模糊匹配: 频道名 或 channel id 包含 query (不区分大小写)
   List<Channel> _fuzzySearch(List<Channel> all, String q) {
+    if (q.isEmpty) return const [];
     final lower = q.toLowerCase();
     final scored = <({Channel ch, int score})>[];
 

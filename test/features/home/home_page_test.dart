@@ -129,7 +129,7 @@ void main() {
       );
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-      expect(find.text('继续观看'), findsNothing);
+      expect(find.textContaining('继续观看'), findsNothing);
     });
 
     testWidgets('有 lastChannelId → 显示「继续观看」卡片 + 清除按钮', (tester) async {
@@ -148,8 +148,8 @@ void main() {
       );
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-      // "继续观看" 标签 + 频道名都在
-      expect(find.text('继续观看'), findsOneWidget);
+      // "继续观看" 标签 + 频道名都在 (文本格式: "继续观看  ·  CCTV-1")
+      expect(find.textContaining('继续观看'), findsOneWidget);
       expect(find.text('CCTV-1'), findsWidgets);
       // 关闭按钮 (清除上次观看)
       expect(find.byIcon(Icons.close), findsOneWidget);
@@ -170,12 +170,12 @@ void main() {
       );
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
-      expect(find.text('继续观看'), findsOneWidget);
+      expect(find.textContaining('继续观看'), findsOneWidget);
 
       await tester.tap(find.byIcon(Icons.close));
       await tester.pumpAndSettle();
 
-      expect(find.text('继续观看'), findsNothing);
+      expect(find.textContaining('继续观看'), findsNothing);
       // SharedPreferences 已被清空
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('last_channel_id'), isNull);
