@@ -178,21 +178,34 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       AnimatedOpacity(
                         opacity: _controlsVisible ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 250),
+                        // 6/17 fix: outer if (channel != null) already
+                        // narrows channel to non-null for this subtree, so
+                        // children use ch directly without redundant
+                        // channel != null checks (which Dart 3 promotes and
+                        // emits unnecessary_null_comparison warnings on).
+                        // Use withValues for alpha to avoid deprecated
+                        // withOpacity lint on Flutter 3.27+; CI runs 3.29.3.
                         child: Container(
                           color: Colors.black.withValues(alpha: 0.55),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (channel != null)
+                          child: Builder(builder: (context) {
+                            // Outer if (channel != null) has already
+                            // promoted the local channel to non-null for
+                            // this subtree (Dart 3 propagates the
+                            // promotion into the nested Builder closure
+                            // for locals), so we can use it directly here
+                            // without re-checking or non-null asserting.
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
                                 NowNextProgram(channel: channel),
-                              if (channel != null)
                                 NextChannelsStrip(
                                   currentChannelId: channel.id,
                                   allChannels: channels,
                                   onChannelTap: _switchTo,
                                 ),
-                            ],
-                          ),
+                              ],
+                            );
+                          }),
                         ),
                       ),
                     const SizedBox(height: 24),
