@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../data/channel_filter.dart';
 import '../../data/models/channel.dart';
 import '../../data/repositories/channel_repository.dart';
 import '../../services/startup_service.dart';
@@ -61,8 +62,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildContent(BuildContext context, List<Channel> all) {
     // 派生 3 大分类 — 主页是「容器」, 分类页是「真实列表」
     // 卡 6 会做收藏/历史; 此处只读 lastChannelId
-    final cctv = _filterCctv(all).length;
-    final satellite = _filterSatellite(all).length;
+    final cctv = ChannelFilter.cctv(all).length;
+    final satellite = ChannelFilter.satellite(all).length;
     final local = all.length - cctv - satellite;
 
     const items = [
@@ -139,24 +140,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         const SliverToBoxAdapter(child: SizedBox(height: 32)),
       ],
     );
-  }
-
-  // 央视: id 以 CCTV 开头 (CCTV1.cn, CCTVPlus1.cn, CCTVBilliards.cn 等)
-  static List<Channel> _filterCctv(List<Channel> all) {
-    return all
-        .where((c) => c.id.startsWith(RegExp(r'CCTV', caseSensitive: false)))
-        .toList();
-  }
-
-  // 卫视: id 包含 SatelliteTV / TVInternational
-  static List<Channel> _filterSatellite(List<Channel> all) {
-    const patterns = ['SatelliteTV', 'TVInternational'];
-    return all.where((c) {
-      for (final p in patterns) {
-        if (c.id.contains(p)) return true;
-      }
-      return false;
-    }).toList();
   }
 }
 

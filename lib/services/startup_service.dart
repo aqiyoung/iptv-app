@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,8 +30,8 @@ class StartupService {
     try {
       final prefs = await _getPrefs();
       await prefs.setString(_keyLastChannelId, channelId);
-    } catch (_) {
-      // 写入失败不影响功能
+    } catch (e) {
+      debugPrint('StartupService.saveLastChannel failed: $e');
     }
   }
 
@@ -39,7 +40,8 @@ class StartupService {
     try {
       final prefs = await _getPrefs();
       return prefs.getString(_keyLastChannelId);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('StartupService.loadLastChannel failed: $e');
       return null;
     }
   }
@@ -49,7 +51,9 @@ class StartupService {
     try {
       final prefs = await _getPrefs();
       await prefs.remove(_keyLastChannelId);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('StartupService.clearLastChannel failed: $e');
+    }
   }
 }
 

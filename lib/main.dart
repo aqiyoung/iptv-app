@@ -20,6 +20,9 @@ void main() async {
   // 会在浅米色页面背景下看不清.  需求是浅色页面用黑状态栏文字, 深色页面
   // 反转为白文字.  PlayerPage 自己会主动改 (黑屏看视频用白文字).
   _applySystemUiOverlay();
+  // Global error widget builder - set once, not on every rebuild
+  ErrorWidget.builder =
+      (FlutterErrorDetails details) => _CrashScreen(details: details);
   await _ensureMediaKitOrLog();
   runApp(const ProviderScope(child: IptvApp()));
 }
@@ -70,17 +73,13 @@ class IptvApp extends StatelessWidget {
   }
 }
 
-/// 卡 7: 错误边界 — build 过程中抛错时显示报错界面 + 报告给 Riverpod/errorWidget
+/// Error boundary — catches build-phase errors and shows crash screen
 class _ErrorBoundary extends StatelessWidget {
   const _ErrorBoundary({required this.child});
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    ErrorWidget.builder =
-        (FlutterErrorDetails details) => _CrashScreen(details: details);
-    return child;
-  }
+  Widget build(BuildContext context) => child;
 }
 
 class _CrashScreen extends StatelessWidget {

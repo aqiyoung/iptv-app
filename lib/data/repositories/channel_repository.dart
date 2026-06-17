@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -60,7 +60,8 @@ class ChannelRepository {
           await rootBundle.loadString('assets/data/known_sources.json');
       final known = json.decode(knownRaw) as Map<String, dynamic>;
       return mergeKnownSources(channels, known);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('ChannelRepository.loadBundled known_sources failed: $e');
       // known_sources.json 读取失败, 返回原始 channels
       return channels;
     }

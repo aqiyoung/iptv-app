@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
@@ -50,7 +51,8 @@ class SqfliteFavoritesStore implements FavoritesStore {
       final db = await _database;
       final rows = await db.query(_table, orderBy: 'added_at DESC');
       return rows.map((r) => r['channel_id'] as String).toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('SqfliteFavoritesStore.getAll failed: $e');
       return const [];
     }
   }
@@ -66,7 +68,8 @@ class SqfliteFavoritesStore implements FavoritesStore {
         limit: 1,
       );
       return rows.isNotEmpty;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('SqfliteFavoritesStore.isFavorite failed: $e');
       return false;
     }
   }
@@ -84,8 +87,8 @@ class SqfliteFavoritesStore implements FavoritesStore {
         },
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
-    } catch (_) {
-      // 测试环境 / sqflite 不可用: 静默吞掉
+    } catch (e) {
+      debugPrint('SqfliteFavoritesStore.add failed: $e');
     }
   }
 
@@ -98,7 +101,9 @@ class SqfliteFavoritesStore implements FavoritesStore {
         where: 'channel_id = ?',
         whereArgs: [channelId],
       );
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('SqfliteFavoritesStore.remove failed: $e');
+    }
   }
 }
 

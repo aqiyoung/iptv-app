@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +30,8 @@ class EpgService {
       final entries = await _fetchRemote(channelId);
       await _writeCache(channelId, entries);
       return entries;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('EpgService.fetch remote failed: $e');
       // 拉取失败 → 返回空列表 (不阻塞 UI)
       return const [];
     }
@@ -80,7 +82,8 @@ class EpgService {
       return list
           .map((e) => EpgEntry.fromJson(e as Map<String, dynamic>))
           .toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('EpgService._readCache failed: $e');
       return null;
     }
   }
@@ -97,8 +100,8 @@ class EpgService {
         metaKey,
         json.encode({'ts': DateTime.now().millisecondsSinceEpoch}),
       );
-    } catch (_) {
-      // 缓存写入失败不影响功能
+    } catch (e) {
+      debugPrint('EpgService._writeCache failed: $e');
     }
   }
 

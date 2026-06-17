@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../data/channel_filter.dart';
 import '../../data/models/channel.dart';
 import '../../data/repositories/channel_repository.dart';
 import '../../widgets/channel_tile.dart';
@@ -82,11 +83,11 @@ class CategoryPage extends ConsumerWidget {
   List<Channel> _filter(List<Channel> all) {
     switch (categoryId) {
       case 'cctv':
-        return HomePageFilter.cctv(all);
+        return ChannelFilter.cctv(all);
       case 'satellite':
-        return HomePageFilter.satellite(all);
+        return ChannelFilter.satellite(all);
       case 'local':
-        return HomePageFilter.local(all);
+        return ChannelFilter.local(all);
       default:
         return all;
     }
@@ -103,38 +104,6 @@ class CategoryPage extends ConsumerWidget {
       default:
         return '频道';
     }
-  }
-}
-
-/// 把 HomePage 的私有 filter 暴露给 CategoryPage 用
-/// (避免循环 import: home → category_grid → home)
-class HomePageFilter {
-  HomePageFilter._();
-
-  static List<Channel> cctv(List<Channel> all) {
-    return all
-        .where((c) => c.id.startsWith(RegExp(r'CCTV', caseSensitive: false)))
-        .toList();
-  }
-
-  static List<Channel> satellite(List<Channel> all) {
-    // iptv-org 模式: 省级卫视的 id 都包含 SatelliteTV / TVInternational
-    // 例: BeijingSatelliteTV.cn, HunanTVInternational.cn
-    const patterns = ['SatelliteTV', 'TVInternational'];
-    return all.where((c) {
-      for (final p in patterns) {
-        if (c.id.contains(p)) return true;
-      }
-      return false;
-    }).toList();
-  }
-
-  static List<Channel> local(List<Channel> all) {
-    final sat = satellite(all).map((e) => e.id).toSet();
-    final cctvIds = cctv(all).map((e) => e.id).toSet();
-    return all
-        .where((c) => !sat.contains(c.id) && !cctvIds.contains(c.id))
-        .toList();
   }
 }
 

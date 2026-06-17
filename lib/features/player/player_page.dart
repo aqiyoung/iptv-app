@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,8 +32,6 @@ class PlayerPage extends ConsumerStatefulWidget {
 }
 
 class _PlayerPageState extends ConsumerState<PlayerPage> {
-  late Future<List<Channel>> _channelsFuture;
-
   @override
   void initState() {
     super.initState();
@@ -51,7 +50,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
         systemNavigationBarIconBrightness: Brightness.light,
       ),
     );
-    _channelsFuture = ref.read(channelRepositoryProvider).loadBundled();
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
   }
@@ -72,7 +70,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   Future<void> _tryAutoPlay() async {
-    final channels = await _channelsFuture;
+    final asyncChannels = ref.read(channelsProvider);
+    final channels = await asyncChannels.future;
     if (!mounted) return;
     final ch = _findChannel(channels, widget.channelId);
     if (ch == null) {
@@ -84,8 +83,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     unawaited(ref.read(startupServiceProvider).saveLastChannel(ch.id));
     try {
       await ref.read(playerServiceProvider).play(ch);
-    } catch (_) {
-      // 测试环境 / dispose 窗口期: 吞掉异常, 不影响测试
+    } catch (e) {
+      debugPrint('PlayerPage._tryAutoPlay failed: $e');
     }
   }
 
@@ -105,16 +104,20 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(currentPlayerStateProvider);
     final controller = ref.watch(mediaKitVideoControllerProvider);
+    final asyncChannels = ref.watch(channelsProvider);
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: FutureBuilder<List<Channel>>(
-          future: _channelsFuture,
-          builder: (context, snap) {
-            final channel = snap.data == null
-                ? null
-                : _findChannel(snap.data!, widget.channelId);
+        child: asyncChannels.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Colors.white54),
+          ),
+          error: (e, _) => Center(
+            child: Text('加载失败: $e', style: const TextStyle(color: Colors.white54)),
+          ),
+          data: (channels) {
+            final channel = _findChannel(channels, widget.channelId);
             return Column(
               children: [
                 _TopBar(
@@ -134,10 +137,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         ),
                         const SizedBox(height: 12),
                         if (channel != null) NowNextProgram(channel: channel),
-                        if (snap.data != null && channel != null)
+                        if (channel != null)
                           NextChannelsStrip(
                             currentChannelId: channel.id,
-                            allChannels: snap.data!,
+                            allChannels: channels,
                             onChannelTap: _switchTo,
                           ),
                         const SizedBox(height: 24),
@@ -154,7 +157,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 }
 
-class _TopBar extends StatelessWidget {
+class _TopBar extends StatefulWidget {
   const _TopBar({
     required this.channel,
     required this.state,
@@ -166,12 +169,39 @@ class _TopBar extends StatelessWidget {
   final VoidCallback onBack;
 
   @override
+  State<_TopBar> createState() => _TopBarState();
+}
+
+class _TopBarState extends State<_TopBar> {
+  late Timer _clockTimer;
+  String _clockText = _clockNow();
+
+  @override
+  void initState() {
+    super.initState();
+    _clockTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() => _clockText = _clockNow());
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer.cancel();
+    super.dispose();
+  }
+
+  static String _clockNow() {
+    final n = DateTime.now();
+    return '${n.hour.toString().padLeft(2, '0')}:${n.minute.toString().padLeft(2, '0')}';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final statusText = switch (state.status) {
+    final statusText = switch (widget.state.status) {
       PlayerStatus.idle => '准备中',
-      PlayerStatus.loading => state.attempt == null
+      PlayerStatus.loading => widget.state.attempt == null
           ? '正在尝试源…'
-          : '尝试源 ${state.attempt!.index}/${state.attempt!.total}',
+          : '尝试源 ${widget.state.attempt!.index}/${widget.state.attempt!.total}',
       PlayerStatus.playing => 'LIVE',
       PlayerStatus.error => '播放失败',
     };
@@ -190,7 +220,7 @@ class _TopBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  channel?.displayName ?? '加载中…',
+                  widget.channel?.displayName ?? '加载中…',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: IptvTypography.serifTitle
@@ -199,7 +229,7 @@ class _TopBar extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    _StatusDot(status: state.status),
+                    _StatusDot(status: widget.state.status),
                     const SizedBox(width: 4),
                     Text(
                       statusText,
@@ -210,7 +240,7 @@ class _TopBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _clockNow(),
+                      _clockText,
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 12,
@@ -225,13 +255,13 @@ class _TopBar extends StatelessWidget {
             icon: const Icon(Icons.more_vert, color: Colors.white),
             onPressed: () {},
           ),
-          if (channel != null) ...[
+          if (widget.channel != null) ...[
             const SizedBox(width: 4),
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: FavoriteIcon(
-                channelId: channel!.id,
-                channelName: channel!.name,
+                channelId: widget.channel!.id,
+                channelName: widget.channel!.name,
                 size: 24,
                 onChanged: (isFav) {
                   // 收藏状态变化不需要额外动作, sqflite 已持久化
@@ -242,11 +272,6 @@ class _TopBar extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _clockNow() {
-    final n = DateTime.now();
-    return '${n.hour.toString().padLeft(2, '0')}:${n.minute.toString().padLeft(2, '0')}';
   }
 }
 

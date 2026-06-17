@@ -30,10 +30,11 @@ class NextChannelsStrip extends StatelessWidget {
 
     // 如果后续不够 max, 拼上开头的循环 (避免空条)
     final List<Channel> next = [...after];
+    final seenIds = <String>{for (final c in next) c.id, currentChannelId};
     var i = 0;
     while (next.length < max && i < allChannels.length) {
       final c = allChannels[i];
-      if (c.id != currentChannelId && !next.contains(c)) {
+      if (seenIds.add(c.id)) {
         next.add(c);
       }
       i++;

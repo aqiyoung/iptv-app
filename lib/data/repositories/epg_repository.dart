@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/epg.dart';
-import '../sources/epg_source.dart';
+import '../../services/epg_service.dart';
 
-final epgSourceProvider = Provider<EpgSource>((ref) => EpgSource());
-
+/// EPG repository that delegates to EpgService for caching
 final epgForChannelProvider =
     FutureProvider.family<List<EpgEntry>, String>((ref, channelId) async {
-  return const [];
+  final svc = ref.watch(epgServiceProvider);
+  return svc.fetch(channelId);
 });

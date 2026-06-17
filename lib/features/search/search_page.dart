@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +26,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   List<Channel> _results = [];
   int _selectedIndex = 0;
   bool _hasSearched = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -33,6 +36,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -43,7 +47,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     if (q == _query) return;
     _query = q;
     _selectedIndex = 0;
-    _search(q);
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () => _search(q));
   }
 
   void _search(String q) {
@@ -269,7 +274,7 @@ class _SearchResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: isSelected
-          ? IptvColors.accentTerracotta.withOpacity(0.08)
+          ? IptvColors.accentTerracotta.withValues(alpha: 0.08)
           : Colors.transparent,
       child: Material(
         color: Colors.transparent,
@@ -286,7 +291,7 @@ class _SearchResultTile extends StatelessWidget {
                     style: IptvTypography.serifTitle.copyWith(
                       color: isSelected
                           ? IptvColors.accentTerracotta
-                          : IptvColors.accentTerracotta.withOpacity(0.5),
+                          : IptvColors.accentTerracotta.withValues(alpha: 0.5),
                     ),
                   ),
                 ),

@@ -94,7 +94,8 @@ class MediaKitStreamOpener implements StreamOpener {
 
       await _player.open(Media(url));
       return await completer.future;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('MediaKitStreamOpener.open failed: $e');
       return false;
     }
   }
