@@ -108,8 +108,12 @@ class PlayerService extends ChangeNotifier {
   PlayerService({
     required StreamOpener opener,
     SourceFailover? failover,
-  }) : _failover = failover ?? SourceFailover(opener: opener);
+    Player? player,
+  })  : _player = player,
+        _failover = failover ?? SourceFailover(opener: opener);
 
+  /// media_kit 的 native player. 测试环境不传 (== null), 跳过 stop/dispose.
+  final Player? _player;
   final SourceFailover _failover;
   bool _disposed = false;
 
@@ -129,6 +133,14 @@ class PlayerService extends ChangeNotifier {
         ),
       );
       return;
+    }
+
+    // 6/17 修声音残留: media_kit 的 Player.open() 不会自动停掉旧流,
+    // 切频道时上一路音频会跟着新流一起响.  这里先 stop() 旧 player,
+    // await (不 fire-and-forget):  stop 本身是 libmpv 命令,  < 50ms
+    // 返回.  必须在 open() 之前完成,  否则上一路 audio track 还在推 PCM.
+    if (_player != null) {
+      await _player.stop();
     }
 
     _set(
@@ -169,14 +181,27 @@ class PlayerService extends ChangeNotifier {
   }
 
   /// 停止播放
-  void stop() {
+  Future<void> stop() async {
     if (_disposed) return;
+    // 6/17: 同步停掉 native player, 不只是改 UI 状态
+    if (_player != null) {
+      await _player.stop();
+    }
     _set(const PlayerState.idle());
   }
 
   @override
   void dispose() {
     _disposed = true;
+    // 6/17: native player 必须显式 dispose 释放 libmpv 资源.
+    // ChangeNotifier.dispose() 同步返回, 但 media_kit 的 Player.stop/dispose
+    // 是 async — 这里 fire-and-forget,  native 端在 isolate 拆完 native
+    // handle 后自动释放.  测试环境 PlayerService 创建时 player 传 null,
+    // 这边不调.  实际使用 Player.stop() / dispose() 都是 libmpv 命令, < 50ms.
+    if (_player != null) {
+      unawaited(_player.stop());
+      unawaited(_player.dispose());
+    }
     super.dispose();
   }
 
@@ -194,6 +219,10 @@ class PlayerService extends ChangeNotifier {
 /// 6/17 修复合并到 main.dart: 之前 v0.2.0 启动崩
 /// 'MediaKit.ensureInitialized must be called', 现在 main 里 await
 /// ensureInitialized 同步完成才 runApp, 这里 Player() 不会报这个错.
+///
+/// 6/17 修声音残留: native player 的 dispose 由 [playerServiceProvider]
+/// 间接处理 (PlayerService.dispose() 调 _player.dispose()).  这里
+/// 只管创建,  不重复释放.
 final mediaKitPlayerProvider = Provider<Player>((ref) {
   return Player();
 });
@@ -213,7 +242,12 @@ final streamOpenerProvider = Provider<StreamOpener>((ref) {
 /// [PlayerService] — 全局单例
 final playerServiceProvider = ChangeNotifierProvider<PlayerService>((ref) {
   final opener = ref.watch(streamOpenerProvider);
-  return PlayerService(opener: opener);
+  final player = ref.watch(mediaKitPlayerProvider);
+  final svc = PlayerService(opener: opener, player: player);
+  // 6/17: APP 退出 / provider 销毁时, 走 PlayerService.dispose()
+  // 释放 native player (libmpv 实例)
+  ref.onDispose(svc.dispose);
+  return svc;
 });
 
 /// 当前播放状态

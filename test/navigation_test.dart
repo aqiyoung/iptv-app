@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import 'package:iptv_app/core/router/router.dart';
@@ -52,6 +53,21 @@ class _FakeVideoController implements VideoController {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
+/// 6/17 修声音残留: PlayerService 拿 Player 实例后, 测试环境需提供一个 fake.
+///  Player() 调 libmpv native, 测试 env 没有.  noSuchMethod 让大多数调用走
+///  default 路径, 但 stop() / dispose() 必须返回 Future<void>, 不然
+///  PlayerService.dispose() 里 unawaited() 会报 type error.
+class _FakePlayer implements Player {
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 /// 空的 StreamOpener — 让 player 页面顺利 mount (不实际 open)
 class _NoopOpener implements StreamOpener {
   @override
@@ -71,6 +87,9 @@ List<Override> _testOverrides() => <Override>[
       channelRepositoryProvider
           .overrideWithValue(const _FakeRepo(_kFixtureChannels)),
       mediaKitVideoControllerProvider.overrideWithValue(_FakeVideoController()),
+      // 6/17 修声音残留: PlayerService 现在会读 mediaKitPlayerProvider,
+      // 测试环境注入 fake,  避免 instantiate 真 native player.
+      mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
       streamOpenerProvider.overrideWithValue(_NoopOpener()),
       // 卡 6: HomePage 现在需要 StartupService + FavoritesService
       startupServiceProvider.overrideWithValue(StartupService()),

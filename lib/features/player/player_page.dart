@@ -283,27 +283,33 @@ class _VideoArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // 视频底层 (黑色)
-          ColoredBox(color: Colors.black),
-          // media_kit Video (播放时)
-          if (state.status == PlayerStatus.playing)
-            Video(controller: controller),
-          // 加载 / 错误 / 空 占位
-          switch (state.status) {
-            PlayerStatus.idle || PlayerStatus.loading => _LoadingOverlay(
-                text: state.attempt == null
-                    ? '正在打开…'
-                    : '尝试源 ${state.attempt!.index}/${state.attempt!.total}',
-              ),
-            PlayerStatus.error => _ErrorOverlay(message: state.error ?? '播放失败'),
-            PlayerStatus.playing => const SizedBox.shrink(),
-          },
-        ],
+    return ClipRect(
+      // 6/17 修容器超出: Wrap AspectRatio 16/9 + Stack in ClipRect, 防止在
+      // 某些比例 (e.g. 21:9 曲面屏, iPad 分屏) 上 video widget 算出意外高度
+      // 溢出顶/底栏.
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // 视频底层 (黑色)
+            ColoredBox(color: Colors.black),
+            // media_kit Video (播放时)
+            if (state.status == PlayerStatus.playing)
+              Video(controller: controller),
+            // 加载 / 错误 / 空 占位
+            switch (state.status) {
+              PlayerStatus.idle || PlayerStatus.loading => _LoadingOverlay(
+                  text: state.attempt == null
+                      ? '正在打开…'
+                      : '尝试源 ${state.attempt!.index}/${state.attempt!.total}',
+                ),
+              PlayerStatus.error =>
+                _ErrorOverlay(message: state.error ?? '播放失败'),
+              PlayerStatus.playing => const SizedBox.shrink(),
+            },
+          ],
+        ),
       ),
     );
   }

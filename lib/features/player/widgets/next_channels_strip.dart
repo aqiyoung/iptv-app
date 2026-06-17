@@ -57,22 +57,33 @@ class NextChannelsStrip extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: 78,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: visible.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, i) {
-              final ch = visible[i];
-              return _ChannelChip(
-                channel: ch,
-                index: i,
-                isNext: i == 0,
-                onTap: () => onChannelTap(ch),
-              );
-            },
+        // 6/17 修容器超出: 包一层 ClipRect + Material 防止 InkWell ripple
+        // 漏到 strip 外面 / chip 内部文字被截断时闪出 container 边界.
+        //  高度从 78 → 84 防止双行文字+padding 在某些字号下被压到.
+        ClipRect(
+          child: Material(
+            color: Colors.transparent,
+            child: SizedBox(
+              height: 84,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                // physics: BouncingScrollPhysics 让横滑手感跟 iOS 一致,
+                // 不被夹在 SingleChildScrollView 里变成无弹性的拖动
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: visible.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final ch = visible[i];
+                  return _ChannelChip(
+                    channel: ch,
+                    index: i,
+                    isNext: i == 0,
+                    onTap: () => onChannelTap(ch),
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ],
@@ -118,6 +129,10 @@ class _ChannelChip extends StatelessWidget {
               children: [
                 Text(
                   (index + 1).toString().padLeft(2, '0'),
+                  // 6/17 修: 软包禁 + maxLines=1, 防止 01 在某些字体下被
+                  // 截到 chip 边缘外造成“超出容器”错觉
+                  maxLines: 1,
+                  softWrap: false,
                   style: IptvTypography.caption.copyWith(
                     color: isNext
                         ? IptvColors.accentTerracotta

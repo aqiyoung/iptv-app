@@ -12,6 +12,7 @@ import 'package:iptv_app/features/player/player_page.dart';
 import 'package:iptv_app/services/player_service.dart';
 import 'package:iptv_app/services/source_failover.dart';
 import 'package:iptv_app/services/startup_service.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,6 +113,10 @@ Future<void> _pumpPlayerPage(
         // 卡 5: 测试环境无 libmpv, 覆盖 video controller 为空 fake
         mediaKitVideoControllerProvider
             .overrideWithValue(_FakeVideoController()),
+        // 6/17 修声音残留: PlayerService 现在拿 Player 实例, 测试环境不构造
+        // 真 native player,  注入 noSuchMethod fake.  play() 调 stop() 会
+        // 走到 noSuchMethod 返回 null,  不报错.
+        mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
         // 卡 6: PlayerPage 调 StartupService + FavoritesService
         startupServiceProvider.overrideWithValue(StartupService()),
         favoritesServiceProvider.overrideWithValue(
@@ -171,6 +176,21 @@ class _ScriptedOpener implements StreamOpener {
 /// VideoController fake — 测试环境不能 instantiate 真 Player
 /// 实际渲染中只要 state != playing 就不会用到 controller
 class _FakeVideoController implements VideoController {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+/// 6/17 修声音残留: PlayerService 拿 Player 实例后, 测试环境需提供一个 fake.
+///  Player() 调 libmpv native, 测试 env 没有.  noSuchMethod 让大多数调用走
+///  default 路径, 但 stop() / dispose() 必须返回 Future<void>, 不然
+///  PlayerService.dispose() 里 unawaited() 会报 type error.
+class _FakePlayer implements Player {
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
