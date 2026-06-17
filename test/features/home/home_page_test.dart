@@ -1,5 +1,7 @@
 // 卡 6 单元测试: HomePage 集成 — 上次观看 / 搜索入口 / 频道分类
 // 验收 (proof): 收藏 5 个频道, 重启 APP 仍在; 搜索 "CCTV" 1s 内出结果
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -214,6 +216,31 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('CATEGORY: cctv'), findsOneWidget);
+    });
+
+    // P0-2 (6/17): 冷启动 < 1.5s — 频道加载前应先出骨架 (3 个灰色 placeholder)
+    testWidgets('频道 loading 期间 → 骨架占位 (3 个 CategoryCard skeleton)',
+        (tester) async {
+      // 用一个永远 pending 的 Future, 模拟 channelsProvider 加载中
+      await _pump(
+        tester,
+        router: _router(),
+        overrides: [
+          ..._baseOverrides(),
+          channelsProvider
+              .overrideWith((ref) async => await Completer<List<Channel>>().future),
+        ],
+      );
+      // 只 pump 一次, 不等 settle (让 Future 保持 pending)
+      await tester.pump();
+
+      // 应该看到 3 个 _CategoryCardSkeleton 渲染的占位框
+      // 它们都是同样大小 16:16 半径的 Container, 颜色 dividerWarm
+      expect(find.byType(Container), findsWidgets);
+      // 不应该出现真实的 CategoryCard 文本
+      expect(find.text('央视'), findsNothing);
+      expect(find.text('卫视'), findsNothing);
+      expect(find.text('地方'), findsNothing);
     });
   });
 }
