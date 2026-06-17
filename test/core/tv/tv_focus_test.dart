@@ -2,7 +2,7 @@
 // 验收 (proof): 焦点环 4dp 朱砂
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/core/tv/tv_focus.dart';
+import 'package:sanyelive/core/tv/tv_focus.dart';
 
 void main() {
   group('TV focus tokens', () {

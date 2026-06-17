@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:threelive/data/models/channel.dart';
+import 'package:sanyelive/data/models/channel.dart';
 
 void main() {
   group('Channel.fromJson', () {

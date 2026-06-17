@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:threelive/features/favorites/favorites_service.dart';
-import 'package:threelive/widgets/channel_tile.dart';
+import 'package:sanyelive/features/favorites/favorites_service.dart';
+import 'package:sanyelive/widgets/channel_tile.dart';
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [

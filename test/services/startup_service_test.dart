@@ -3,7 +3,7 @@
 // 这里用真 SharedPreferences (setMockInitialValues) 验证持久化契约
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/services/startup_service.dart';
+import 'package:sanyelive/services/startup_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

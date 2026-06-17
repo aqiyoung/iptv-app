@@ -190,7 +190,7 @@ jobs:
         # flutter build apk 默认是 fat APK (arm + arm64 + x64), 体积接近 60MB;
         # 限定 arm64 后可控制在 20MB 以内.
         run: flutter build apk --release --target-platform android-arm64 --split-per-abi
-      - name: Rename APK with threelive + version
+      - name: Rename APK with sanyelive + version
         run: |
           set -e
           VERSION=$(grep 'version:' pubspec.yaml | head -1 | awk '{print $2}')
@@ -198,7 +198,7 @@ jobs:
           for f in build/app/outputs/flutter-apk/app-*-release.apk; do
             if [ -f "$f" ]; then
               ABI=$(basename "$f" | sed 's/app-//' | sed 's/-release.apk//')
-              NEWNAME="build/app/outputs/flutter-apk/threelive-v${VERSION}-${ABI}.apk"
+              NEWNAME="build/app/outputs/flutter-apk/sanyelive-v${VERSION}-${ABI}.apk"
               mv "$f" "$NEWNAME"
               echo "Renamed: $(basename $f) → $(basename $NEWNAME)"
             fi
@@ -206,16 +206,16 @@ jobs:
           for f in build/app/outputs/flutter-apk/app-*-release.apk.sha256; do
             if [ -f "$f" ]; then
               ABI=$(basename "$f" | sed 's/app-//' | sed 's/-release.apk.sha256//')
-              NEWNAME="build/app/outputs/flutter-apk/threelive-v${VERSION}-${ABI}.apk.sha256"
+              NEWNAME="build/app/outputs/flutter-apk/sanyelive-v${VERSION}-${ABI}.apk.sha256"
               mv "$f" "$NEWNAME"
             fi
           done
       - name: Verify APK signature
         run: |
           set -e
-          # v0.2.4 (6/17): Rename 步已将 app-arm64-v8a-release.apk 改名为 threelive-v*-arm64-v8a.apk
-          # ls 选 threelive-*.apk 优先, 兑底 app-release.apk
-          APK=$(ls build/app/outputs/flutter-apk/threelive-*.apk 2>/dev/null | head -1)
+          # v0.2.4 (6/17): Rename 步已将 app-arm64-v8a-release.apk 改名为 sanyelive-v*-arm64-v8a.apk
+          # ls 选 sanyelive-*.apk 优先, 兑底 app-release.apk
+          APK=$(ls build/app/outputs/flutter-apk/sanyelive-*.apk 2>/dev/null | head -1)
           if [ -z "$APK" ]; then
             APK=$(ls build/app/outputs/flutter-apk/app-*-release.apk 2>/dev/null | head -1)
           fi
@@ -254,11 +254,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: iptv-app-release
-          # v0.2.4 (6/17): Rename 步已改成 threelive-v${VERSION}-${ABI}.apk,
+          # v0.2.4 (6/17): Rename 步已改成 sanyelive-v${VERSION}-${ABI}.apk,
           # 跟 Verify 步一致.
           path: |
-            build/app/outputs/flutter-apk/threelive-*.apk
-            build/app/outputs/flutter-apk/threelive-*.apk.sha256
+            build/app/outputs/flutter-apk/sanyelive-*.apk
+            build/app/outputs/flutter-apk/sanyelive-*.apk.sha256
           if-no-files-found: error
 
       - name: Create GitHub Release
@@ -266,8 +266,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/app/outputs/flutter-apk/threelive-*.apk
-            build/app/outputs/flutter-apk/threelive-*.apk.sha256
+            build/app/outputs/flutter-apk/sanyelive-*.apk
+            build/app/outputs/flutter-apk/sanyelive-*.apk.sha256
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
@@ -279,7 +279,7 @@ jobs:
             - **SHA256**: `${{ env.APK_SHA256 }}`
 
             ### 下载
-            下载下方 `threelive-v${{ github.ref_name }}-arm64-v8a.apk` 即可在 Android 设备上安装。
+            下载下方 `sanyelive-v${{ github.ref_name }}-arm64-v8a.apk` 即可在 Android 设备上安装。
             `.sha256` 文件包含校验值, 可用 `sha256sum` 验证。
 
             ### 构建信息

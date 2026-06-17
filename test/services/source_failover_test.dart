@@ -3,9 +3,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/services/player_service.dart';
-import 'package:threelive/services/source_failover.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/services/player_service.dart';
+import 'package:sanyelive/services/source_failover.dart';
 
 void main() {
   group('SourceFailover.play', () {

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.threelive.iptv"
+    namespace = "com.threelive.tv"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,8 +20,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.threelive.iptv"
+        // v0.3.0 (6/17 老板拍): com.threelive.iptv → com.threelive.tv
+        // (品牌保留, 后缀 .tv 跟 IPTV 电视场景对齐, 跟 .iptv 重复了)
+        applicationId = "com.threelive.tv"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

@@ -1,8 +1,8 @@
 // 卡 6 验证: PlayerService.play 对空 sources 立即报 error, 不让 player 卡死
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/services/player_service.dart';
-import 'package:threelive/services/source_failover.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/services/player_service.dart';
+import 'package:sanyelive/services/source_failover.dart';
 
 void main() {
   group('PlayerService.play 空 sources', () {

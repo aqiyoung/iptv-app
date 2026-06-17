@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/data/repositories/channel_repository.dart';
-import 'package:threelive/features/favorites/favorites_service.dart';
-import 'package:threelive/features/search/search_page.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/data/repositories/channel_repository.dart';
+import 'package:sanyelive/features/favorites/favorites_service.dart';
+import 'package:sanyelive/features/search/search_page.dart';
 
 const _channels = <Channel>[
   Channel(
@@ -83,17 +83,16 @@ void main() {
     });
 
     testWidgets('输入 "CCTV" → 列出 CCTV-1/2', (tester) async {
-      // 6/17 fix: 用 pumpAndSettle(duration) 等 channelsProvider FutureProvider
-      // 解析 + 300ms debounce 触发 _search + setState 重建.
-      // ⚠️ pumpAndSettle() 不传 duration 默认 Duration.zero,  不推进 fake clock,
-      // debounce timer 永远不触发. 必须传 Duration(milliseconds: 100) 之类的间隔.
+      // 6/17 fix v4: FakeAsync 下 pump(duration) 不一定推进 Timer.
+      // 用 runAsync + 真实 Future.delayed 过 debounce, 再 pump 重建.
       await _pump(tester, router: _buildRouter());
-      // 先 pumpAndSettle 让 channelsProvider 的 Future 解析
       await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
       await tester.enterText(find.byType(TextField), 'CCTV');
-      // debounce 300ms, 每次 pump 推进 100ms, 3 次后 timer 触发
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      // 真实等待 350ms 让 300ms debounce timer 触发
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 350)));
+      await tester.pump();
 
       expect(find.text('CCTV-1 综合'), findsOneWidget);
       expect(find.text('CCTV-2 财经'), findsOneWidget);
@@ -105,7 +104,9 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
       await tester.enterText(find.byType(TextField), '湖南');
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 350)));
+      await tester.pump();
 
       expect(find.text('湖南卫视'), findsOneWidget);
     });
@@ -115,7 +116,9 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
       await tester.enterText(find.byType(TextField), 'XxxNotFound');
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await tester.runAsync(
+          () async => Future<void>.delayed(const Duration(milliseconds: 350)));
+      await tester.pump();
 
       expect(find.textContaining('未找到匹配'), findsOneWidget);
     });

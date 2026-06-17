@@ -1,7 +1,7 @@
 // 卡 6 单元测试: FavoritesService 用 InMemoryFavoritesStore (无 sqflite)
 // 验证 toggle / isFavorite / getAll 契约
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/features/favorites/favorites_service.dart';
+import 'package:sanyelive/features/favorites/favorites_service.dart';
 
 void main() {
   group('FavoritesService (InMemoryFavoritesStore)', () {

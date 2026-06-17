@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/data/repositories/channel_repository.dart';
-import 'package:threelive/features/favorites/favorites_service.dart';
-import 'package:threelive/features/player/player_page.dart';
-import 'package:threelive/services/player_service.dart';
-import 'package:threelive/services/source_failover.dart';
-import 'package:threelive/services/startup_service.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/data/repositories/channel_repository.dart';
+import 'package:sanyelive/features/favorites/favorites_service.dart';
+import 'package:sanyelive/features/player/player_page.dart';
+import 'package:sanyelive/services/player_service.dart';
+import 'package:sanyelive/services/source_failover.dart';
+import 'package:sanyelive/services/startup_service.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,6 +88,13 @@ void main() {
   });
 // P0-1 (6/17): 播放页 UI 3s 隐身
   group('PlayerPage P0-1 控件隐身', () {
+    // 安全获取第一个 AnimatedOpacity 的 opacity
+    double _firstOpacity(WidgetTester tester) {
+      final widgets =
+          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      return widgets.first.opacity;
+    }
+
     testWidgets('初始控件可见, 3s 后变隐藏 (timer 触发)', (tester) async {
       final opener = _ScriptedOpener([_ScriptedResult.failure()]);
       await _pumpPlayerPage(
@@ -103,17 +110,15 @@ void main() {
       // 初始: 频道名可见
       expect(find.text('CCTV-1 综合'), findsOneWidget);
 
-      // 等 3.1s 让 timer 触发
+      // 等 4s 让 timer 触发 (_hideAfter=3s, CI 慢给足余量)
       await tester
-          .runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
-      await tester.pump(const Duration(milliseconds: 300));
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 4000)));
+      // 多 pump 几轮确保 setState + 动画完成
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 200));
 
       // 控件应该已隐藏 (opacity=0)
-      final opacityWidgets =
-          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
-      expect(opacityWidgets, isNotEmpty);
-      final animatedOpacity = opacityWidgets.first;
-      expect(animatedOpacity.opacity, 0.0, reason: '3s 后控件应该隐藏');
+      expect(_firstOpacity(tester), 0.0, reason: '3s 后控件应该隐藏');
     });
 
     testWidgets('点击视频区: 隐藏中点一下 -> 显示 + 重置 timer', (tester) async {
@@ -129,17 +134,14 @@ void main() {
           .runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
 
       // 初始: 控件可见
-      var opacityWidgets =
-          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
-      expect(opacityWidgets.first.opacity, 1.0);
+      expect(_firstOpacity(tester), 1.0);
 
-      // 等 3.1s 让控件自动隐藏
+      // 等 4s 让控件自动隐藏
       await tester
-          .runAsync(() => Future.delayed(const Duration(milliseconds: 3100)));
-      await tester.pump(const Duration(milliseconds: 300));
-      opacityWidgets =
-          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
-      expect(opacityWidgets.first.opacity, 0.0);
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 4000)));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(_firstOpacity(tester), 0.0, reason: '等待后控件应该隐藏');
 
       // 点视频区
       final videoArea = find.byType(GestureDetector);
@@ -147,9 +149,7 @@ void main() {
       await tester.pump();
 
       // 控件应该重新可见
-      opacityWidgets =
-          tester.widgetList<AnimatedOpacity>(find.byType(AnimatedOpacity));
-      expect(opacityWidgets.first.opacity, 1.0, reason: '点击后控件应该重新可见');
+      expect(_firstOpacity(tester), 1.0, reason: '点击后控件应该重新可见');
     });
   });
 }

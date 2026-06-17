@@ -191,7 +191,7 @@ class _AppHeader extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Threelive',
+            '三页直播',
             style: IptvTypography.serifTitle,
           ),
           const Spacer(),

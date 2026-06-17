@@ -1,8 +1,8 @@
 // 卡 6 验证: mergeKnownSources 把 known_sources 追加到 channel.sources 后面,
 // 不覆盖.  iptv-org 高画质源 (channels_cn.json 已 bake) 必须保留在前面.
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/data/repositories/channel_repository.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/data/repositories/channel_repository.dart';
 
 void main() {
   group('mergeKnownSources', () {

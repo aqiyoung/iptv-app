@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:threelive/core/theme/theme.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/data/repositories/channel_repository.dart';
-import 'package:threelive/features/favorites/favorites_service.dart';
-import 'package:threelive/features/home/home_page.dart';
-import 'package:threelive/services/startup_service.dart';
+import 'package:sanyelive/core/theme/theme.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/data/repositories/channel_repository.dart';
+import 'package:sanyelive/features/favorites/favorites_service.dart';
+import 'package:sanyelive/features/home/home_page.dart';
+import 'package:sanyelive/services/startup_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _channels = <Channel>[

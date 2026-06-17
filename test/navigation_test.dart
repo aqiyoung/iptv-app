@@ -6,14 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
-import 'package:threelive/core/router/router.dart';
-import 'package:threelive/core/theme/theme.dart';
-import 'package:threelive/data/models/channel.dart';
-import 'package:threelive/data/repositories/channel_repository.dart';
-import 'package:threelive/features/favorites/favorites_service.dart';
-import 'package:threelive/services/player_service.dart';
-import 'package:threelive/services/source_failover.dart';
-import 'package:threelive/services/startup_service.dart';
+import 'package:sanyelive/core/router/router.dart';
+import 'package:sanyelive/core/theme/theme.dart';
+import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/data/repositories/channel_repository.dart';
+import 'package:sanyelive/features/favorites/favorites_service.dart';
+import 'package:sanyelive/services/player_service.dart';
+import 'package:sanyelive/services/source_failover.dart';
+import 'package:sanyelive/services/startup_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const List<Channel> _kFixtureChannels = <Channel>[

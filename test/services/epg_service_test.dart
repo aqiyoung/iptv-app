@@ -5,8 +5,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:threelive/data/models/epg.dart';
-import 'package:threelive/services/epg_service.dart';
+import 'package:sanyelive/data/models/epg.dart';
+import 'package:sanyelive/services/epg_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

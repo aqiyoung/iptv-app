@@ -4,7 +4,7 @@
 // 这里验证评分优先级 (name 完全匹配 > name 前缀 > id 前缀 > name 包含 > id 包含 > alt 包含)
 // 因为 fuzzySearch 是 SearchPage 的私有方法, 这里通过行为驱动重现规则
 import 'package:flutter_test/flutter_test.dart';
-import 'package:threelive/data/models/channel.dart';
+import 'package:sanyelive/data/models/channel.dart';
 
 // 把 SearchPage._fuzzySearch 复制一份独立实现 —
 // 实际生产代码改这里时, 测试会失败, 提醒同步
