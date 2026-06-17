@@ -190,7 +190,7 @@ jobs:
         # flutter build apk 默认是 fat APK (arm + arm64 + x64), 体积接近 60MB;
         # 限定 arm64 后可控制在 20MB 以内.
         run: flutter build apk --release --target-platform android-arm64 --split-per-abi
-- name: Rename APK with threelive + version
+      - name: Rename APK with threelive + version
         run: |
           set -e
           VERSION=$(grep 'version:' pubspec.yaml | head -1 | awk '{print $2}')
