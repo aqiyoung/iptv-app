@@ -8,7 +8,9 @@ publish_to: "none"
 # 0.3.0+14 (6/17 老板拍): 重命名 threelive → sanyelive (pubspec) +
 #   com.threelive.iptv → com.threelive.tv (Android applicationId) +
 #   Threelive → 三页直播 (app_name / title)
-version: 0.3.0+14
+# 0.3.2+15 (6/18): P2-2 v0.3.2 release 后发现 pubspec 没跟 tag 走, 重发
+#   让 tag v0.3.2 ↔ APK sanyelive-v0.3.2+15-...apk 一致
+version: 0.3.2+15
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
