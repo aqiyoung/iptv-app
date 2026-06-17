@@ -113,12 +113,17 @@ class _ChannelChip extends StatelessWidget {
         width: 116,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: isNext
-              ? IptvColors.accentTerracotta.withOpacity(0.12)
-              : IptvColors.bgElevated,
+          // 6/17 (反色看不清): 之前 isNext 用 terracotta.withOpacity(0.12)
+          // 配 textPrimary,  在 player 页 (黑底 Scaffold) 上实际渲染成
+          // 近黑底 + 深棕字,  对比度严重不足 (WCAG AA 需 4.5:1).
+          // 改为 bgElevated 暖米底 + 2dp 砖红边框 + 砖红数字/源点 +
+          // 文字保持 textPrimary,  整 chip 跟非选中态区分靠边框粗细 + 数字
+          // 颜色 + 字重,  选中态对比度 ≥ 4.5:1 (黑字 #2A2520 on 暖米 #FFFCF6
+          // ≈ 13:1).
+          color: IptvColors.bgElevated,
           borderRadius: BorderRadius.circular(10),
           border: isNext
-              ? Border.all(color: IptvColors.accentTerracotta, width: 1)
+              ? Border.all(color: IptvColors.accentTerracotta, width: 2)
               : Border.all(color: IptvColors.dividerWarm, width: 0.5),
         ),
         child: Column(
