@@ -70,13 +70,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       CategoryItem(
         id: 'cctv',
         title: '央视',
-        subtitle: 'CCTV-1 ~ CCTV-16',
+        subtitle: 'CCTV 频道',
         icon: Icons.tv,
       ),
       CategoryItem(
         id: 'satellite',
         title: '卫视',
-        subtitle: '省级卫视 + 上星频道',
+        subtitle: '省级卫视',
         icon: Icons.public,
       ),
       CategoryItem(
@@ -99,7 +99,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _AppHeader(
-                onSearchTap: () => context.push('/search'),
+                onSearchTap: () => context.go('/search'),
               ),
               // 上次观看 (有记录才显示)
               if (lastChannel != null) ...[

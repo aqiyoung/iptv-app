@@ -37,22 +37,22 @@ class CategoryCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   // ignore: deprecated_member_use
                   color: IptvColors.accentTerracotta.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: IptvColors.accentTerracotta, size: 24),
+                child: Icon(icon, color: IptvColors.accentTerracotta, size: 22),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(title, style: IptvTypography.serifTitle),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: IptvTypography.caption,
-                maxLines: 2,
+                style: IptvTypography.caption.copyWith(fontSize: 11),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
