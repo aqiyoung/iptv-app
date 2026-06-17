@@ -213,8 +213,12 @@ jobs:
       - name: Verify APK signature
         run: |
           set -e
-          # 卡 6: split-per-abi 后会生成 app-arm64-v8a-release.apk, 优先选这个
-          APK=$(ls build/app/outputs/flutter-apk/app-*-release.apk 2>/dev/null | head -1)
+          # v0.2.4 (6/17): Rename 步已将 app-arm64-v8a-release.apk 改名为 threelive-v*-arm64-v8a.apk
+          # ls 选 threelive-*.apk 优先, 兑底 app-release.apk
+          APK=$(ls build/app/outputs/flutter-apk/threelive-*.apk 2>/dev/null | head -1)
+          if [ -z "$APK" ]; then
+            APK=$(ls build/app/outputs/flutter-apk/app-*-release.apk 2>/dev/null | head -1)
+          fi
           if [ -z "$APK" ]; then
             APK=build/app/outputs/flutter-apk/app-release.apk
           fi
@@ -250,9 +254,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: iptv-app-release
+          # v0.2.4 (6/17): Rename 步已改成 threelive-v${VERSION}-${ABI}.apk,
+          # 跟 Verify 步一致.
           path: |
-            build/app/outputs/flutter-apk/app-*-release.apk
-            build/app/outputs/flutter-apk/app-*-release.apk.sha256
+            build/app/outputs/flutter-apk/threelive-*.apk
+            build/app/outputs/flutter-apk/threelive-*.apk.sha256
           if-no-files-found: error
 
       - name: Create GitHub Release
@@ -260,8 +266,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/app/outputs/flutter-apk/app-*-release.apk
-            build/app/outputs/flutter-apk/app-*-release.apk.sha256
+            build/app/outputs/flutter-apk/threelive-*.apk
+            build/app/outputs/flutter-apk/threelive-*.apk.sha256
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
@@ -273,7 +279,7 @@ jobs:
             - **SHA256**: `${{ env.APK_SHA256 }}`
 
             ### 下载
-            下载下方 `app-arm64-v8a-release.apk` 即可在 Android 设备上安装。
+            下载下方 `threelive-v${{ github.ref_name }}-arm64-v8a.apk` 即可在 Android 设备上安装。
             `.sha256` 文件包含校验值, 可用 `sha256sum` 验证。
 
             ### 构建信息
