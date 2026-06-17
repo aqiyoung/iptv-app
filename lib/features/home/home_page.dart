@@ -54,6 +54,18 @@ class _HomePageState extends ConsumerState<HomePage> {
       // ContinueWatchingCard 内部已经各自包了 TvFocus (deviceTier == tv
       // 才包),  这里是方向键导航容器.  手机端 child 就是原 CustomScrollView,
       //  零成本.
+      appBar: AppBar(
+        title: const Text(
+          '三页直播',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: SafeArea(
         child: TvFocusGroup(
           child: asyncChannels.when(

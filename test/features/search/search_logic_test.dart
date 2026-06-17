@@ -9,6 +9,8 @@ import 'package:threelive/data/models/channel.dart';
 // 把 SearchPage._fuzzySearch 复制一份独立实现 —
 // 实际生产代码改这里时, 测试会失败, 提醒同步
 List<Channel> _fuzzySearch(List<Channel> all, String q) {
+  // 空 query 返回空 (UI 层应已拦截, 这里再拦截一次, 防御性)
+  if (q.isEmpty) return <Channel>[];
   final lower = q.toLowerCase();
   final scored = <({Channel ch, int score})>[];
 
