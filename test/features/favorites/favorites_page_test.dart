@@ -50,8 +50,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // 只渲染 CCTV1.cn,  Missing.cn 被跳过
-      expect(find.text('共 1 个频道'), findsOneWidget);
+      // AppBar count = 原始 favIds.length = 2
+      // 列表只渲染过滤后存在的 (CCTV1.cn),  Missing.cn 被跳过
+      expect(find.text('共 2 个频道'), findsOneWidget);
+      expect(find.text('CCTV-1 综合'), findsOneWidget);
     });
   });
 }
