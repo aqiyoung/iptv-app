@@ -31,7 +31,7 @@ void main() {
         channelId: 'CCTV1.cn',
       );
       // 多次 pump 让 FutureBuilder + autoPlay 都完成
-      await tester.pumpAndSettle(const Duration(milliseconds: 200))
+      await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
       // 频道名 (在 _TopBar)
       expect(find.text('CCTV-1 综合'), findsOneWidget);
@@ -47,7 +47,7 @@ void main() {
         channels: _channels,
         channelId: 'NoSource.cn',
       );
-      await tester.pumpAndSettle(const Duration(milliseconds: 200))
+      await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
       expect(find.text('NoSource Channel'), findsOneWidget);
       expect(opener.calls, isEmpty);
@@ -68,7 +68,7 @@ void main() {
         channels: _channels,
         channelId: 'CCTV1.cn',
       );
-      await tester.pumpAndSettle(const Duration(milliseconds: 200))
+      await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
       // 下一频道 chip 中能看到 CCTV-2
       expect(find.text('CCTV-2 财经'), findsOneWidget);
