@@ -219,8 +219,7 @@ class ContinueWatchingCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _defaultIcon() {
