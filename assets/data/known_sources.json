@@ -332,7 +332,9 @@
     "http://39.134.115.163:8080/PLTV/88888910/224/3221225738/index.m3u8"
   ],
   "ShandongSatelliteTV.cn": [
-    "http://125.210.152.18:9090/live/SDWSHD_H265.m3u8"
+    "http://125.210.152.18:9090/live/SDWSHD_H265.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225697/index.m3u8",
+    "http://183.207.248.71/cntv/live1/HD-2500k-1080P-shandongstv/HD-2500k-1080P-shandongstv"
   ],
   "ShandongTVChildrensChannel.cn": [
     "http://livealone302.iqilu.com/iqilu/sepd.m3u8"
@@ -347,7 +349,40 @@
     "http://livealone302.iqilu.com/iqilu/qlpd.m3u8"
   ],
   "ShanxiTV.cn": [
-    "http://118.81.195.79:9003/hls/19/index.m3u8"
+    "http://118.81.195.79:9003/hls/19/index.m3u8",
+    "http://223.110.245.149/ott.js.chinamobile.com/PLTV/3/224/3221225804/index.m3u8"
+  ],
+  "GuangdongSatelliteTV.cn": [
+    "http://118.81.195.79:9003/hls/26/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225698/index.m3u8"
+  ],
+  "GuangxiTV.cn": [
+    "http://118.81.195.79:9003/hls/27/index.m3u8",
+    "http://183.207.248.71/gitv/live1/G_GUANGXI/G_GUANGXI"
+  ],
+  "HubeiSatelliteTV.cn": [
+    "http://118.81.195.79:9003/hls/32/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225704/index.m3u8"
+  ],
+  "HainanSatelliteTV.cn": [
+    "http://118.81.195.79:9003/hls/28/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225701/index.m3u8"
+  ],
+  "HenanTVSatellite.cn": [
+    "http://118.81.195.79:9003/hls/30/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225706/index.m3u8"
+  ],
+  "HebeiTV.cn": [
+    "http://118.81.195.79:9003/hls/29/index.m3u8",
+    "http://183.207.248.71/gitv/live1/G_HEBEI/G_HEBEI"
+  ],
+  "GansuTV.cn": [
+    "http://118.81.195.79:9003/hls/25/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225728/index.m3u8"
+  ],
+  "JilinSatelliteTV.cn": [
+    "http://118.81.195.79:9003/hls/34/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225730/index.m3u8"
   ],
   "GuangdongSatelliteTV.cn": [
     "http://118.81.195.79:9003/hls/26/index.m3u8"
