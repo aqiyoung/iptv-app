@@ -7,7 +7,7 @@ import 'package:threelive/widgets/channel_tile.dart';
 
 Widget _wrap(Widget child) => ProviderScope(
       overrides: [
-        // �?6: 用内�?store 避免 sqflite �?test env 报错
+        // 卡 6: 用内存 store 避免 sqflite 在 test env 报错
         favoritesServiceProvider.overrideWithValue(
           FavoritesService(store: InMemoryFavoritesStore()),
         ),
