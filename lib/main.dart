@@ -39,10 +39,10 @@ void main() async {
   // 编译期 const 来自 pubspec.yaml,  跟 release workflow 跑出来的 APK
   // tag +versionCode 一致.  也跟 services/version_checker.dart 里 parse
   // APK asset 名的 +N 格式对齐.
-  // 6/18 v0.3.5.2 hotfix 把 versionCode 从 20 bump 到 21,  这里同步.
+  // v0.3.5.9: versionCode 25 → 26 (pubspec 0.3.5+25 → 0.3.5+26), currentVersion 同步.
   // 下次 release 前要记得同步这两个 const.
-  const currentVersion = '0.3.7';
-  const currentVersionCode = 25;
+  const currentVersion = '0.3.5+26';
+  const currentVersionCode = 26;
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
