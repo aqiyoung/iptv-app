@@ -90,6 +90,13 @@ Future<void> _pumpApp(
   required GoRouter router,
   required List<Override> overrides,
 }) async {
+  // P2-3-A: 测试用 TV 尺寸 viewport (>= 1025dp 走 TV 分支,
+  //  才能看到 TvFocus 拿焦点环).  默认 800x600 是 tablet,  TvFocus
+  //  在 isTv=false 时不渲染.
+  tester.view.physicalSize = const Size(1920, 1080);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,
