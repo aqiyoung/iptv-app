@@ -80,8 +80,12 @@ dependencies:
   path: ^1.9.0
   # 卡 6: 启动恢复 (lastChannelId)
   shared_preferences: ^2.3.3
-
-
+  # v0.3.7+20 (6/18): 后台强制更新 — GitHub release API 拉版本
+  dio: ^5.7.0
+  # v0.3.7+20 (6/18): 后台强制更新 — APK 下载完调 Android installer
+  install_plugin: ^2.1.0
+  # v0.3.7+20 (6/18): 后台强制更新 — getTemporaryDirectory 存 APK
+  path_provider: ^2.1.0
 
 dependency_overrides:
   # 卡 6 修复: package_info_plus 9.x 跟 Flutter 3.24 Gradle plugin 不兼容
