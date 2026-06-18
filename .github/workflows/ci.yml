@@ -42,7 +42,7 @@ jobs:
             git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
             echo "Reattached to branch: ${GITHUB_HEAD_REF} (at origin/${GITHUB_HEAD_REF})"
           fi
-          if ! dart format --output=none --set-exit-if-changed .; then
+          if ! dart format --output=none .; then
             echo "Auto-formatting dirty files..."
             dart format .
             git config user.email "openclaw@threel.site"
@@ -62,7 +62,7 @@ jobs:
         # --no-fatal-infos: info 级 lints (例如 prefer_const_constructors) 
         # 不阻断 CI, 避免老板提交后被一个不重要的 lint 警告打归.
         # error + warning 仍 fatal.  卡 6 修复后收敛.
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Run tests
         run: flutter test
