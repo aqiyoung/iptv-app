@@ -125,7 +125,8 @@ void main() {
 
   // ────────── 1. favorites_page: _EmptyState icon color = onSurfaceVariant ──────────
 
-  testWidgets('v0.3.5.6: favorites_page 浅色主题 — _EmptyState icon color = onSurfaceVariant',
+  testWidgets(
+      'v0.3.5.6: favorites_page 浅色主题 — _EmptyState icon color = onSurfaceVariant',
       (tester) async {
     await _pump(
       tester,
@@ -143,10 +144,12 @@ void main() {
     // 浅色主题下 onSurfaceVariant = textSecondary (0xFF6B5F54)
     final expected = IptvTheme.light().colorScheme.onSurfaceVariant;
     expect(iconWidget.color, equals(expected),
-        reason: 'v0.3.5.6: _EmptyState icon 应该用 onSurfaceVariant (不再是 IptvColors.textSecondary)');
+        reason:
+            'v0.3.5.6: _EmptyState icon 应该用 onSurfaceVariant (不再是 IptvColors.textSecondary)');
   });
 
-  testWidgets('v0.3.5.6: favorites_page 暗色主题 — _EmptyState icon color = onSurfaceVariant',
+  testWidgets(
+      'v0.3.5.6: favorites_page 暗色主题 — _EmptyState icon color = onSurfaceVariant',
       (tester) async {
     await _pump(
       tester,
@@ -326,8 +329,7 @@ void main() {
     expect(find.text('CCTV-1 综合'), findsOneWidget);
   });
 
-  testWidgets('v0.3.5.6: home_page 暗色主题 — smoke test 主页渲染 OK',
-      (tester) async {
+  testWidgets('v0.3.5.6: home_page 暗色主题 — smoke test 主页渲染 OK', (tester) async {
     await _pump(
       tester,
       theme: IptvTheme.dark(),
