@@ -11,6 +11,7 @@ class Channel {
     this.website,
     this.logoUrl,
     this.sources = const <String>[],
+    this.cctvSource = const <String>[],
     this.isNsfw = false,
   });
 
@@ -22,6 +23,13 @@ class Channel {
   final String? website;
   final String? logoUrl;
   final List<String> sources;
+
+  /// v0.3.5.3 (6/18): CCTV 专属播放源 — 经过真机 fetch 验证的健康 CDN 列表.
+  /// 跟 [sources] 不冲突, 播放时优先级 cctvSource[0] > sources[0] > known_sources.
+  /// 存放位置: assets/data/channels_cn.json 18 个 CCTV entry 的 cctvSource 字段.
+  /// 优点: sources 字段保留 iptv-org / known_sources 历史兼容, 老的 release
+  /// 升级到 v0.3.5.3 不会丢源, 只是优先用 cctvSource.
+  final List<String> cctvSource;
   final bool isNsfw;
 
   /// 主分类（取第一个）
@@ -90,6 +98,19 @@ class Channel {
         if (url is String) sources.add(url);
       }
     }
+    // v0.3.5.3 (6/18): cctvSource 字段解析 (跟 sources 同格式, 优先用).
+    // 老 channels_cn.json 没有这字段, 走默认 const <String>[] (空数组).
+    // 跟 sources 字段一样容忍 string 和 {url, type} dict 两种格式.
+    final rawCctvSource = (j['cctvSource'] as List?) ?? const [];
+    final cctvSource = <String>[];
+    for (final s in rawCctvSource) {
+      if (s is String) {
+        cctvSource.add(s);
+      } else if (s is Map) {
+        final url = s['url'];
+        if (url is String) cctvSource.add(url);
+      }
+    }
     return Channel(
       id: j['id'] as String,
       name: (j['name'] as String?) ?? (j['id'] as String),
@@ -100,6 +121,7 @@ class Channel {
       website: j['website'] as String?,
       logoUrl: j['logo'] as String?,
       sources: sources,
+      cctvSource: cctvSource,
       isNsfw: (j['is_nsfw'] as bool?) ?? false,
     );
   }
@@ -113,6 +135,7 @@ class Channel {
         'website': website,
         'logo': logoUrl,
         'sources': sources,
+        'cctvSource': cctvSource,
         'is_nsfw': isNsfw,
       };
 }

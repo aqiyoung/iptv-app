@@ -342,6 +342,9 @@
       "http://69.30.245.50/live/cctv1.m3u8",
       "http://198.204.240.250:82/live/cctv1.m3u8",
       "http://74.91.26.218:82/live/cctv1hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8"
     ]
   },
   {
@@ -360,6 +363,9 @@
     "sources": [
       "http://74.91.26.218:82/live/cctv10hd.m3u8",
       "https://cdn4.skygo.mn/live/disk1/CCTV-10/HLSv3-FTA/CCTV-10.m3u8"
+    ],
+    "cctvSource": [
+      "https://cdn4.skygo.mn/live/disk1/CCTV-10/HLSv3-FTA/CCTV-10.m3u8"
     ]
   },
   {
@@ -377,6 +383,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv11hd.m3u8",
+      "https://xykt-fix.github.io/play/a02b/index.m3u8"
+    ],
+    "cctvSource": [
       "https://xykt-fix.github.io/play/a02b/index.m3u8"
     ]
   },
@@ -398,6 +407,9 @@
       "http://go.bkpcp.top/mg/cctv13",
       "https://cdn3.163189.xyz/163189/cctv13",
       "http://74.91.26.218:82/live/cctv13hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv13_1/index.m3u8"
     ]
   },
   {
@@ -415,6 +427,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv14hd.m3u8"
+    ],
+    "cctvSource": [
+      "https://cdn4.skygo.mn/live/disk1/CCTV-14/HLSv3-FTA/CCTV-14.m3u8"
     ]
   },
   {
@@ -433,6 +448,9 @@
     "sources": [
       "https://xykt-fix.github.io/play/a02e/index.m3u8",
       "http://74.91.26.218:82/live/cctv15hd.m3u8"
+    ],
+    "cctvSource": [
+      "https://xykt-fix.github.io/play/a02e/index.m3u8"
     ]
   },
   {
@@ -450,6 +468,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv16hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv16_1/index.m3u8"
     ]
   },
   {
@@ -468,6 +489,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv17hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv17_1/index.m3u8"
     ]
   },
   {
@@ -485,6 +509,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv3hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv3_1/index.m3u8"
     ]
   },
   {
@@ -553,6 +580,9 @@
     "is_nsfw": false,
     "sources": [
       "http://198.204.240.250:82/live/cctv4k.m3u8"
+    ],
+    "cctvSource": [
+      "http://198.204.240.250:82/live/cctv4k.m3u8"
     ]
   },
   {
@@ -585,6 +615,9 @@
         "url": "https://live.fanmingming.com/cctv5.m3u8",
         "type": "hls"
       }
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv5_1/index.m3u8"
     ]
   },
   {
@@ -617,6 +650,9 @@
         "url": "http://198.204.240.250:82/live/cctv5.m3u8",
         "type": "hls"
       }
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv51_1/index.m3u8"
     ]
   },
   {
@@ -635,6 +671,9 @@
     "sources": [
       "http://69.30.245.50/live/cctv6.m3u8",
       "http://198.204.240.250:82/live/cctv6.m3u8"
+    ],
+    "cctvSource": [
+      "http://198.204.240.250:82/live/cctv6.m3u8"
     ]
   },
   {
@@ -652,6 +691,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv7hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv7_1/index.m3u8"
     ]
   },
   {
@@ -669,6 +711,9 @@
     "is_nsfw": false,
     "sources": [
       "http://74.91.26.218:82/live/cctv8hd.m3u8"
+    ],
+    "cctvSource": [
+      "http://198.204.240.250:82/live/cctv8.m3u8"
     ]
   },
   {
@@ -685,6 +730,9 @@
     "logo": null,
     "is_nsfw": false,
     "sources": [
+      "https://xykt-fix.github.io/Y77.m3u8"
+    ],
+    "cctvSource": [
       "https://xykt-fix.github.io/Y77.m3u8"
     ]
   },
@@ -7480,6 +7528,9 @@
         "url": "http://ivi.bupt.edu.cn/hls/cctv2.m3u8",
         "type": "hls"
       }
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv2_1/index.m3u8"
     ]
   },
   {
@@ -7526,6 +7577,9 @@
         "url": "http://ivi.bupt.edu.cn/hls/cctv12.m3u8",
         "type": "hls"
       }
+    ],
+    "cctvSource": [
+      "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv12_1/index.m3u8"
     ]
   },
   {

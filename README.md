@@ -54,6 +54,66 @@
 
 ## 📦 数据源
 
+### v0.3.5.3 CCTV 源 (18 频道健康分矩阵, 2026-06-18 14:00 GMT+8 实测)
+
+老板 14:02 拍板 "去找央视的源" — v0.3.5 标 CCTV "全活" 实际主源
+`38.75.136.137` + 备源 `74.91.26.218` 多频道死了, iptv-org 6/18 已删
+CCTV-5 (版权), 公开 m3u 渠道失效. 6 方向调研后建表:
+
+| 频道 | 源 | 健康分 | RTT | 方法 |
+|---|---|---|---|---|
+| **CCTV-1** 综合 | `ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8` | 0.95 | 128ms | tencent_cloud (官方) |
+| **CCTV-1** 备 | `198.204.240.250:82/live/cctv1.m3u8` | 0.80 | 485ms | legacy_iptv |
+| **CCTV-2** 财经 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv2_1/index.m3u8` | 0.50 | 114ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-3** 综艺 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv3_1/index.m3u8` | 0.50 | 110ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-4** 国际 | `xykt-fix.github.io/play/a02a/index.m3u8` | 0.90 | 741ms | xykt_fix (cctvnews.cctv.com 官方) |
+| **CCTV-5** 体育 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv5_1/index.m3u8` | 0.50 | 132ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-5+** 体育赛事 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv51_1/index.m3u8` | 0.50 | 97ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-6** 电影 | `198.204.240.250:82/live/cctv6.m3u8` | 0.70 | 512ms | legacy_iptv |
+| **CCTV-7** 国防军事 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv7_1/index.m3u8` | 0.50 | 110ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-8** 电视剧 | `198.204.240.250:82/live/cctv8.m3u8` | 0.70 | 525ms | legacy_iptv |
+| **CCTV-9** 纪录 | `xykt-fix.github.io/Y77.m3u8` | 0.90 | 531ms | xykt_fix (kankanlive) |
+| **CCTV-10** 科教 | `cdn4.skygo.mn/.../CCTV-10/HLSv3-FTA/CCTV-10.m3u8` | 0.90 | 803ms | skygo (蒙古 CDN) |
+| **CCTV-11** 戏曲 | `xykt-fix.github.io/play/a02b/index.m3u8` | 0.90 | 569ms | cmcc (CMCC TV 跳转) |
+| **CCTV-12** | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv12_1/index.m3u8` | 0.50 | 101ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-13** 新闻 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv13_1/index.m3u8` | 0.95 | 105ms | tencent_cloud (官方) |
+| **CCTV-14** 少儿 | `cdn4.skygo.mn/.../CCTV-14/HLSv3-FTA/CCTV-14.m3u8` | 0.90 | 684ms | skygo (蒙古 CDN) |
+| **CCTV-15** 音乐 | `xykt-fix.github.io/play/a02e/index.m3u8` | 0.90 | 553ms | cmcc (CMCC TV 跳转) |
+| **CCTV-16** 奥林匹克 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv16_1/index.m3u8` | 0.50 | 103ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-17** 农业农村 | `ldncctvwbcdtxy.liveplay.myqcloud.com/.../cdrmldcctv17_1/index.m3u8` | 0.50 | 87ms | tencent_cloud (geo-blocked, master-only) |
+| **CCTV-4K** | `198.204.240.250:82/live/cctv4k.m3u8` | 0.60 | 1518ms | legacy_iptv |
+
+**已知问题**:
+- **CCTV-2/3/5/5+/7/12/16/17**: tencent_cloud master 200 OK 但 sub-stream 404
+  (央视官方 CDN 对国外 IP geo-blocked). 老板可以自建 nginx+ffmpeg
+  走 `ffmpeg -i rtsp://... -c:v copy -f hls /var/www/cctvN.m3u8`
+  拿到这些频道 (卡 6 终极 fallback, 留作 v0.3.5.4 PR).
+- **CCTV-9**: 走 kankanlive, 偶尔 session_id 过期. 自动重试即可.
+- **CMCC 跳转** (a02b/a02e): 每次 GET GitHub Pages 都换 token, 1h 内有效.
+
+**数据存放位置**:
+- `assets/data/cctv_candidates.json` — 30+ 候选源, 6 方向调研
+- `assets/data/cctv_sources.json` — 健康分排序 top 3/频道
+- `assets/data/channels_cn.json` — 18 个 CCTV 主频道的 `cctvSource` 字段
+- `lib/data/cctv_source.dart` — `CctvSourcePicker` (静态健康分表 + 选源)
+- `lib/data/source_dispatcher.dart` — `SourceDispatcher.dispatch` 调度
+- `scripts/discover_cctv_sources.py` — 30 并发 head+GET 健康分排序
+- `scripts/update_channels_cctv_source.py` — 写 cctvSource 到 channels_cn.json
+- `scripts/check_sources.py --require-cctv` — release CI 闸
+
+**健康分公式** (v0.3.5.3):
+```
+base = 0.5
++ 0.2 if HTTPS
++ 0.1 if rtt < 1000ms
++ 0.1 if rtt < 500ms
++ 0.1 if Content-Type is m3u8/mpegurl
+- 0.3 if master-only (sub-stream 404) — 央视官方 CDN 国外 IP 特征
+cap to [0, 1]
+```
+
+### 数据源历史 (历史 release)
+
 | 优先级 | 来源 | 覆盖 |
 |---|---|---|
 | **主** | `38.75.136.137:78` (公开 IPTV 平台) | CCTV 1-15 (12 hd) + 35 卫视 + 真实 HLS 流 |
@@ -99,7 +159,10 @@ sha256sum sanyelive-v0.3.6.1-arm64-v8a.apk
 
 | 版本 | 关键改动 | 发布日期 (Asia/Shanghai) |
 |---|---|---|
-| **v0.3.6.1** (Latest) | 暗色 widget 适配 (17 处) + P0 channel fix | 2026-06-18 13:31 |
+| **v0.3.5.3** (Latest) | CCTV 源 hotfix (18 频道) + cctvSource 字段 + 健康分矩阵 | 2026-06-18 14:30 |
+| v0.3.5.4 | 主题适配真修 (player_page chrome 浅+暗) | 2026-06-18 14:50 |
+| v0.3.5.2 | 全屏 status bar + TopBar 修复 (P1 hotfix) | 2026-06-18 13:00 |
+| v0.3.6.1 | 暗色 widget 适配 (17 处) + P0 channel fix | 2026-06-18 13:31 |
 | v0.3.5.1 | CCTV-5 fallback + 35 卫视全覆盖 + check_sources.py | 2026-06-18 13:22 |
 | v0.3.6 | 暗色主题 + 设置页 + 持久化 | 2026-06-18 12:00 |
 | v0.3.5 | 538 频道 + 35 卫视 + IPv4 + sports 中文 | 2026-06-18 11:00 |
