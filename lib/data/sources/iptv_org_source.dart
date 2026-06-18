@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/http/ipv4_client.dart';
 import '../models/channel.dart';
 
 /// iptv-org 数据源 — 抓 channels.json
 /// API: https://iptv-org.github.io/api/channels.json
 class IptvOrgSource {
   IptvOrgSource({http.Client? client, this.endpoint = _defaultEndpoint})
-      : _client = client ?? http.Client();
+      : _client = client ?? IPv4Client();
 
   static const String _defaultEndpoint =
       'https://iptv-org.github.io/api/channels.json';
