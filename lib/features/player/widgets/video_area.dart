@@ -114,7 +114,7 @@ class ErrorOverlay extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 color: scheme.error,
                 size: 48,
