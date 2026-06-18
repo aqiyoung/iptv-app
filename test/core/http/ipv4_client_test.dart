@@ -10,7 +10,8 @@ void main() {
       client.close();
     });
 
-    test('send 方法返回 StreamedResponse, GET 一个 IPv4 host (CI 可能无网, 跳过)', () async {
+    test('send 方法返回 StreamedResponse, GET 一个 IPv4 host (CI 可能无网, 跳过)',
+        () async {
       final client = IPv4Client(timeout: const Duration(seconds: 10));
       try {
         // GitHub API 是 IPv4, 不需要 token 也能 hit 到 rate-limit 200/403
