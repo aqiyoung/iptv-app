@@ -106,7 +106,7 @@ version: 0.3.5+29
 # 0.3.5+26 (6/18 18:18 v0.3.5.8 player_page theme rebase):
 #   player_page 18 处硬编码 Colors.white/black 改 colorScheme.
 #   跟 v0.3.5.4 chrome + v0.3.5.5 TopBar 分离 3 版本叠加, 无功能冲突.
-version: 0.3.5+26
+version: 0.3.5+29
 
 
 environment:

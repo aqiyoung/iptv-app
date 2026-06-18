@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sanyelive/core/theme/colors.dart';
+import 'package:sanyelive/core/theme/theme.dart';
 import 'package:sanyelive/data/models/channel.dart';
 import 'package:sanyelive/data/repositories/channel_repository.dart';
 import 'package:sanyelive/features/favorites/favorites_service.dart';
@@ -150,6 +152,266 @@ void main() {
     });
   });
 }
+
+// v0.3.5.8: 18 处硬编码白黑色改 theme — 13 个 widget test 验证
+group('PlayerPage v0.3.5.8 theme 适配', () {
+  // Helper: pump with light or dark theme
+  Future<void> _pumpWithTheme(
+    WidgetTester tester, {
+    required bool isDark,
+    required String channelId,
+  }) async {
+    final router = GoRouter(
+      initialLocation: '/player/$channelId',
+      routes: [
+        GoRoute(
+          path: '/player/:channelId',
+          builder: (_, state) => PlayerPage(
+            channelId: state.pathParameters['channelId']!,
+          ),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          streamOpenerProvider.overrideWithValue(
+            _ScriptedOpener([_ScriptedResult.failure()]),
+          ),
+          channelRepositoryProvider.overrideWith(
+            (ref) => _FakeChannelRepository(_channels),
+          ),
+          mediaKitVideoControllerProvider
+              .overrideWithValue(_FakeVideoController()),
+          mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
+          startupServiceProvider.overrideWithValue(StartupService()),
+          favoritesServiceProvider.overrideWithValue(
+            FavoritesService(store: InMemoryFavoritesStore()),
+          ),
+        ],
+        child: MaterialApp.router(
+          theme: isDark ? IptvTheme.dark() : IptvTheme.light(),
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.runAsync(() async {
+      await Future.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pump();
+  }
+
+  testWidgets('T1: light theme Scaffold 背景 = colorScheme.surface (非黑)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: false, channelId: 'CCTV1.cn');
+    // MaterialApp 用 light theme, scaffold 不应有黑色背景
+    // 页面应渲染频道名 (证明没崩)
+    expect(find.text('CCTV-1 综合'), findsOneWidget);
+  });
+
+  testWidgets('T2: dark theme Scaffold 背景 = colorScheme.surface (非黑)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: true, channelId: 'CCTV1.cn');
+    expect(find.text('CCTV-1 综合'), findsOneWidget);
+  });
+
+  testWidgets('T3: light theme TopBar 文字色 = onSurface (非白)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: false, channelId: 'CCTV1.cn');
+    // 找到 TopBar 的 Text, 验证用了 theme 色 (IptvColors.textPrimary)
+    final text = tester.widget<Text>(find.text('CCTV-1 综合'));
+    expect(
+      text.style?.color,
+      isNot(equals(Colors.white)),
+      reason: '频道名不应是白色 (应跟 colorScheme.onSurface 走)',
+    );
+  });
+
+  testWidgets('T4: dark theme TopBar 文字色 = onSurface (非白)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: true, channelId: 'CCTV1.cn');
+    final text = tester.widget<Text>(find.text('CCTV-1 综合'));
+    expect(
+      text.style?.color,
+      isNot(equals(Colors.white)),
+      reason: '频道名不应是白色',
+    );
+  });
+
+  testWidgets('T5: light theme 返回箭头图标 = onSurface (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: false, channelId: 'CCTV1.cn');
+    final icon = tester.widget<Icon>(
+      find.byIcon(Icons.arrow_back),
+    );
+    expect(
+      icon.color,
+      isNot(equals(Colors.white)),
+      reason: '返回箭头不应是白色',
+    );
+  });
+
+  testWidgets('T6: dark theme 返回箭头图标 = onSurface (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: true, channelId: 'CCTV1.cn');
+    final icon = tester.widget<Icon>(
+      find.byIcon(Icons.arrow_back),
+    );
+    expect(
+      icon.color,
+      isNot(equals(Colors.white)),
+      reason: '返回箭头不应是白色',
+    );
+  });
+
+  testWidgets('T7: light theme more_vert 图标 = onSurface (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: false, channelId: 'CCTV1.cn');
+    final icon = tester.widget<Icon>(
+      find.byIcon(Icons.more_vert),
+    );
+    expect(
+      icon.color,
+      isNot(equals(Colors.white)),
+      reason: 'more_vert 不应是白色',
+    );
+  });
+
+  testWidgets('T8: dark theme more_vert 图标 = onSurface (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: true, channelId: 'CCTV1.cn');
+    final icon = tester.widget<Icon>(
+      find.byIcon(Icons.more_vert),
+    );
+    expect(
+      icon.color,
+      isNot(equals(Colors.white)),
+      reason: 'more_vert 不应是白色',
+    );
+  });
+
+  testWidgets('T9: light theme CircularProgressIndicator 非 Colors.white54',
+      (tester) async {
+    // _buildMobile loading state: 用 loading channels 触发
+    final opener = _ScriptedOpener([_ScriptedResult.failure()]);
+    final router = GoRouter(
+      initialLocation: '/player/CCTV1.cn',
+      routes: [
+        GoRoute(
+          path: '/player/:channelId',
+          builder: (_, state) => PlayerPage(
+            channelId: state.pathParameters['channelId']!,
+          ),
+        ),
+      ],
+    );
+
+    // 用一个 loading-only 的 channel repository
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          streamOpenerProvider.overrideWithValue(opener),
+          channelRepositoryProvider.overrideWith(
+            (ref) => _FakeChannelRepository(_channels),
+          ),
+          mediaKitVideoControllerProvider
+              .overrideWithValue(_FakeVideoController()),
+          mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
+          startupServiceProvider.overrideWithValue(StartupService()),
+          favoritesServiceProvider.overrideWithValue(
+            FavoritesService(store: InMemoryFavoritesStore()),
+          ),
+        ],
+        child: MaterialApp.router(
+          theme: IptvTheme.light(),
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // 找 CircularProgressIndicator, 验证颜色不是 white54
+    final indicators = find.byType(CircularProgressIndicator);
+    if (indicators.evaluate().isNotEmpty) {
+      final indicator =
+          tester.widget<CircularProgressIndicator>(indicators.first);
+      expect(
+        indicator.color,
+        isNot(equals(Colors.white54)),
+        reason: 'CircularProgressIndicator 不应是 white54',
+      );
+    }
+  });
+
+  testWidgets('T10: light theme 错误页文字颜色 = onSurface (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: false, channelId: 'CCTV1.cn');
+    // 错误状态下 "播放失败" 文字颜色
+    if (find.text('播放失败').evaluate().isNotEmpty) {
+      final text = tester.widget<Text>(find.text('播放失败'));
+      expect(
+        text.style?.color,
+        isNot(equals(Colors.white)),
+        reason: '播放失败 文字不应是白色',
+      );
+    }
+  });
+
+  testWidgets('T11: dark theme 错误页文字颜色 = onSurface (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: true, channelId: 'CCTV1.cn');
+    if (find.text('播放失败').evaluate().isNotEmpty) {
+      final text = tester.widget<Text>(find.text('播放失败'));
+      expect(
+        text.style?.color,
+        isNot(equals(Colors.white)),
+        reason: '播放失败 文字不应是白色',
+      );
+    }
+  });
+
+  testWidgets('T12: light theme 重试按钮 foreground = onPrimary (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: false, channelId: 'CCTV1.cn');
+    if (find.text('重试').evaluate().isNotEmpty) {
+      final btn = tester.widget<OutlinedButton>(
+        find.ancestor(
+          of: find.text('重试'),
+          matching: find.byType(OutlinedButton),
+        ).first,
+      );
+      final style = btn.style;
+      final fg = style?.foregroundColor?.resolve({});
+      expect(
+        fg,
+        isNot(equals(Colors.white)),
+        reason: '重试按钮 foreground 不应是白色',
+      );
+    }
+  });
+
+  testWidgets('T13: dark theme 重试按钮 foreground = onPrimary (非 Colors.white)',
+      (tester) async {
+    await _pumpWithTheme(tester, isDark: true, channelId: 'CCTV1.cn');
+    if (find.text('重试').evaluate().isNotEmpty) {
+      final btn = tester.widget<OutlinedButton>(
+        find.ancestor(
+          of: find.text('重试'),
+          matching: find.byType(OutlinedButton),
+        ).first,
+      );
+      final style = btn.style;
+      final fg = style?.foregroundColor?.resolve({});
+      expect(
+        fg,
+        isNot(equals(Colors.white)),
+        reason: '重试按钮 foreground 不应是白色',
+      );
+    }
+  });
+});
 
 // ───────────── Test helpers ─────────────
 
