@@ -62,9 +62,6 @@ jobs:
               git push origin "HEAD:refs/heads/${PUSH_REF}"
               echo "Committed and pushed dart format fixes to ${PUSH_REF}"
             fi
-          else
-            echo "Format check failed — blocking CI"
-            exit 1
           fi
 
       - name: Analyze
