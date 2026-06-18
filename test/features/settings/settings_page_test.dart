@@ -30,11 +30,12 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(body: const SettingsPage()),
+          child: const MaterialApp(
+            home: Scaffold(body: SettingsPage()),
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('版本号'), findsOneWidget);
       expect(find.text(currentVersion), findsOneWidget);
@@ -49,18 +50,19 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(body: const SettingsPage()),
+          child: const MaterialApp(
+            home: Scaffold(body: SettingsPage()),
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('build $currentVersionCode'), findsOneWidget);
     });
 
     testWidgets('currentVersion 跟 pubspec 版本一致', (tester) async {
-      // pubspec.yaml version: 0.3.5+27 (v0.3.5.11 CI fix bump)
-      // main.dart currentVersion 必须匹配
+      // pubspec.yaml version: 0.3.5+27 (v0.3.5.11 CI fix bump +1 from 0.3.5.9)
+      // main.dart currentVersion 必须跟 pubspec 一致
       expect(currentVersion, equals('0.3.5+27'));
     });
 
@@ -78,11 +80,12 @@ void main() {
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: MaterialApp(
-            home: Scaffold(body: const SettingsPage()),
+          child: const MaterialApp(
+            home: Scaffold(body: SettingsPage()),
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('主题'), findsOneWidget);
       expect(find.text('版本号'), findsOneWidget);
