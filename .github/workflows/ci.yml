@@ -42,7 +42,7 @@ jobs:
             git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
             echo "Reattached to branch: ${GITHUB_HEAD_REF} (at origin/${GITHUB_HEAD_REF})"
           fi
-          if ! dart format --output=none .; then
+          if dart format --output=none .; then
             echo "Auto-formatting dirty files..."
             dart format .
             git config user.email "openclaw@threel.site"
