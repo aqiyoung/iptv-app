@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v0.3.7+20 (6/18): 后台强制更新 — FileProvider 共享路径配置.
+  getTemporaryDirectory() 路径在 cache/ 下,  对应 paths 里 cache-path.
+  external-cache-path 走 Environment.getExternalCacheDir() (备用).
+-->
+<paths>
+    <cache-path name="apk_cache" path="." />
+    <external-cache-path name="apk_ext_cache" path="." />
+</paths>

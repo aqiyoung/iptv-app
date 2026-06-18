@@ -24,8 +24,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:install_plugin/install_plugin.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:sanyelive/core/theme/colors.dart';
@@ -322,14 +322,17 @@ class _ForceUpdateDialogContentState
       if (!mounted) return;
       setState(() => _phase = _DownloadPhase.installing);
 
-      // install_plugin 2.1.0 的 install(filePath) 返回 Map 含 isSuccess /
-      // errorMessage.  Android 8+ (API 26+) 使用 application/vnd.android
-      // .package-archive  Intent + FileProvider,  manifest 加了
-      // REQUEST_INSTALL_PACKAGES 后会弹系统装包 UI.
-      final result = await InstallPlugin.install(savePath);
-      debugPrint('install_plugin result: $result');
+      // v0.3.7+20 (6/18): 用自定义 MethodChannel 调系统 installer.
+      // 不用 install_plugin 2.1.0 (缺 namespace + JVM target 不一致,
+      //  AGP 8+ 编译不过).  详见 MainActivity.kt.
+      // channel 名 'com.threelive.iptv/install' — 跟 MainActivity 里一致.
+      const channel = MethodChannel('com.threelive.iptv/install');
+      final ok = await channel.invokeMethod<bool>('installApk', {
+        'path': savePath,
+      });
+      debugPrint('install_method_channel result: $ok');
 
-      // install_plugin 调起系统 installer 后,  我们的进程会被切后台.
+      // invokeMethod 后,  我们的进程会被切后台 (系统 installer 弹起).
       // 如果回到 dialog,  说明用户取消了,  重置回 idle 状态.
       if (mounted) {
         setState(() => _phase = _DownloadPhase.idle);

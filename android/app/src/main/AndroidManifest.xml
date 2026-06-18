@@ -53,6 +53,19 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- v0.3.7+20 (6/18): 后台强制更新 — FileProvider 共享 APK 给系统
+             installer (Android 7+ 要求 content:// 而不是 file://).  authority
+             跟 MainActivity.kt 里 FileProvider.getUriForFile 用的
+             ${applicationId}.fileprovider 一致.  路径限制从 res/xml/file_paths.xml 读. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

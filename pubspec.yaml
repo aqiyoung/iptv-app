@@ -94,7 +94,11 @@ dependencies:
   # v0.3.7+20 (6/18): 后台强制更新 — GitHub release API 拉版本
   dio: ^5.7.0
   # v0.3.7+20 (6/18): 后台强制更新 — APK 下载完调 Android installer
-  install_plugin: ^2.1.0
+  # (不用 install_plugin 2.1.0 — package 缺 namespace + JVM target 不一致,
+  #  AGP 8+ 编译不过. 改用自定义 MethodChannel,  详见 MainActivity.kt.)
+  # v0.3.7+20 (6/18): 后台强制更新 — APK 下载完调 Android installer
+  # (不用 install_plugin 2.1.0 — package 缺 namespace + JVM target 不一致,
+  #  AGP 8+ 编译不过. 改用自定义 MethodChannel,  详见 MainActivity.kt.)
   # v0.3.7+20 (6/18): 后台强制更新 — getTemporaryDirectory 存 APK
   path_provider: ^2.1.0
 
