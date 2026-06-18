@@ -17,10 +17,10 @@ import 'package:sanyelive/data/models/channel.dart';
 import 'package:sanyelive/data/repositories/channel_repository.dart';
 import 'package:sanyelive/features/favorites/favorites_service.dart';
 import 'package:sanyelive/features/player/player_page.dart';
-import 'package:sanyelive/services/player_service.dart';
+import 'package:sanyelive/services/player_service.dart' as ps;
 import 'package:sanyelive/services/source_failover.dart';
 import 'package:sanyelive/services/startup_service.dart';
-import 'package:media_kit/media_kit.dart';
+import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -286,13 +286,13 @@ Future<void> _pumpPlayerPage(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        streamOpenerProvider.overrideWithValue(opener),
+        ps.streamOpenerProvider.overrideWithValue(opener),
         channelRepositoryProvider.overrideWith(
           (ref) => _FakeChannelRepository(channels),
         ),
-        mediaKitVideoControllerProvider
+        ps.mediaKitVideoControllerProvider
             .overrideWithValue(_FakeVideoController()),
-        mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
+        ps.mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
         startupServiceProvider.overrideWithValue(StartupService()),
         favoritesServiceProvider.overrideWithValue(
           FavoritesService(store: InMemoryFavoritesStore()),
@@ -300,9 +300,9 @@ Future<void> _pumpPlayerPage(
         // 6/18 fix: 覆盖 player state 为 loading, 避免 _ErrorOverlay 在
         // 小手机 16:9 区域溢出 (error overlay 套 Column, 需要 ~250px 高,
         // 手机 16:9 区域只有 ~200px 会触发 RenderFlex overflow 报黄黑条).
-        currentPlayerStateProvider.overrideWithValue(
-          const PlayerState(
-            status: PlayerStatus.loading,
+        ps.currentPlayerStateProvider.overrideWithValue(
+          const ps.PlayerState(
+            status: ps.PlayerStatus.loading,
             attempt: SourceAttemptEvent(index: 1, total: 2, url: 'http://1'),
           ),
         ),
@@ -355,7 +355,7 @@ class _FakeVideoController implements VideoController {
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-class _FakePlayer implements Player {
+class _FakePlayer implements mk.Player {
   @override
   Future<void> stop() async {}
 
