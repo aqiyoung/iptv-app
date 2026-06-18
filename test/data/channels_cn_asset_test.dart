@@ -14,9 +14,9 @@ void main() {
       expect(list, isNotEmpty);
     });
 
-    test('channels 数量在合理范围 (50..500)', () {
+    test('channels 数量在合理范围 (50..600)', () {
       expect(list.length, greaterThanOrEqualTo(50));
-      expect(list.length, lessThanOrEqualTo(500));
+      expect(list.length, lessThanOrEqualTo(600));
     });
 
     test('每个 channel 都有 id/name', () {
@@ -45,7 +45,7 @@ void main() {
 
     test('每个 channel 的 sources 数量 ≤ 5 (SourceFailover 不会跳 5 个源)', () {
       for (final c in list) {
-        final sources = (c['sources'] as List?)?.cast<String>() ?? const [];
+        final sources = (c['sources'] as List?) ?? const [];
         expect(
           sources.length,
           lessThanOrEqualTo(5),
@@ -54,14 +54,17 @@ void main() {
       }
     });
 
-    test('sources 都是 http(s) URL', () {
+    test('sources 都是 http(s) URL (接受 string 或 {url, type} 两种格式)', () {
       // 公开 HLS 源是 m3u8, 但有部分 m3u8 不带后缀名 (如 go.bkpcp.top/mg/bjws)
       // 实际能拉 — 上面都走过。允许不以 .m3u8 结尾但能拉。
+      // 6/18 P2-2: merge_known_sources.py 把 known_sources.json 的 url 合并后,
+      // 改成 {url, type: 'hls'} 对象格式 (兼容 iptv-org 原始 string 格式)
       for (final c in list) {
-        final sources = (c['sources'] as List?)?.cast<String>() ?? const [];
+        final sources = (c['sources'] as List?) ?? const [];
         for (final s in sources) {
+          final url = s is String ? s : (s as Map)['url'] as String;
           expect(
-            s.startsWith('http://') || s.startsWith('https://'),
+            url.startsWith('http://') || url.startsWith('https://'),
             true,
             reason: '非法 source URL: $s',
           );

@@ -192,6 +192,9 @@ def merge():
 
     # Step 1: 对每个已知 source key, 看 channels_cn.json 有没有匹配的 channel
     for k, urls in known.items():
+        # 跳过注释键 (以 // 开头) 和非 list 值
+        if k.startswith('//') or not isinstance(urls, list):
+            continue
         # 尝试多种 ID 形式
         possible_channel_ids = [k, k.replace('.cn', '')]
         # 频道 id 通常是 .cn 后缀
