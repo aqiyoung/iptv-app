@@ -24,8 +24,7 @@ void main() {
       client.close();
     });
 
-    test('send 真实网络: GET icanhazip.com 拿到的 IP 是 IPv4 (强制 IPv4)',
-        () async {
+    test('send 真实网络: GET icanhazip.com 拿到的 IP 是 IPv4 (强制 IPv4)', () async {
       // v0.3.5.1 (6/18): 之前 try/catch skip 掉所有真网络错误, 4-in-1 subagent
       // 把这测试写成"CI 可能没网, 跳过" — 完全失去测试意义.  v0.3.5.1 hotfix
       // 删除吞错逻辑, CI 必须有网 (release workflow 需要拉 github), 没网就是 fail.
@@ -79,7 +78,8 @@ void main() {
         }
       }
       // 所有 endpoint 都失败 — 真网络问题, fail (不是 skip)
-      fail('所有 IP endpoint 都失败: status=$lastStatus, body=$lastBody, error=$lastError');
+      fail(
+          '所有 IP endpoint 都失败: status=$lastStatus, body=$lastBody, error=$lastError');
     }, timeout: const Timeout(Duration(seconds: 30)));
   });
 }
