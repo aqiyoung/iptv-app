@@ -17,7 +17,11 @@ publish_to: "none"
 #   player_service: stop/dispose 改 public
 #   media_kit: 不启用后台 AudioService
 #   player_page dispose: 显式 stop
-version: 0.3.3+16
+# 0.3.4+17 (6/18): P2-1 集成 TvFocusCapWrap 到 home_page
+#   home_page AppBar + 3 分类卡套 TvFocusCap (maxFocusable=9)
+#   焦点高亮增强: scale 1.03 → 1.05, 2px 暖色边
+#   ChatGPT 6/17 21:18 建议, 老板拍板
+version: 0.3.4+17
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
