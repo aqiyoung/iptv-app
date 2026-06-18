@@ -10,14 +10,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/features/settings/settings_page.dart';
+import 'package:sanyelive/features/settings/theme_provider.dart';
 import 'package:sanyelive/main.dart' show currentVersion, currentVersionCode;
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('SettingsPage 版本号显示 (v0.3.5.9)', () {
     testWidgets('显示版本号 (currentVersion)', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(
+              SharedPreferences.getMockInstance(),
+            ),
+          ],
           child: MaterialApp(
             home: Scaffold(body: const SettingsPage()),
           ),
@@ -30,7 +41,12 @@ void main() {
 
     testWidgets('显示 build number (currentVersionCode)', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(
+              SharedPreferences.getMockInstance(),
+            ),
+          ],
           child: MaterialApp(
             home: Scaffold(body: const SettingsPage()),
           ),
@@ -53,7 +69,12 @@ void main() {
 
     testWidgets('设置页同时有主题和版本号 section', (tester) async {
       await tester.pumpWidget(
-        const ProviderScope(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(
+              SharedPreferences.getMockInstance(),
+            ),
+          ],
           child: MaterialApp(
             home: Scaffold(body: const SettingsPage()),
           ),
