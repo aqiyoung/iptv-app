@@ -105,56 +105,68 @@ class _HomePageState extends ConsumerState<HomePage> {
         ? null
         : all.where((c) => c.id == _lastChannelId).cast<Channel?>().firstOrNull;
 
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _AppHeader(
-                onSearchTap: () => context.go('/search'),
-              ),
-              // 上次观看 (有记录才显示)
-              if (lastChannel != null) ...[
-                ContinueWatchingCard(
-                  channelName: lastChannel.displayName,
-                  channelLogo: lastChannel.logoUrl,
-                  subtitle: '继续播放',
-                  onTap: () => context.push('/player/${lastChannel.id}'),
-                  onClear: _clearLast,
+    // P2-1 (6/18): 一屏焦点项上限守卫 — ChatGPT 6/17 21:18 建议
+    //   当前 home_page (TV) 焦点项:
+    //     - 2 个 AppBar actions (search / favorites)
+    //     - 1 个 ContinueWatchingCard (当有 lastChannel 时)
+    //     - 3 个 CategoryCard
+    //   最多 6 个, 远低于 9. 但用 TvFocusScope 断言, 后续加新焦点项时
+    //   超出上限会报 assert 警告, 防止漂移.
+    final focusableCount = 2 + 3 + (lastChannel != null ? 1 : 0);
+
+    return TvFocusScope(
+      actualFocusableCount: focusableCount,
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _AppHeader(
+                  onSearchTap: () => context.go('/search'),
                 ),
-                const SizedBox(height: 24),
+                // 上次观看 (有记录才显示)
+                if (lastChannel != null) ...[
+                  ContinueWatchingCard(
+                    channelName: lastChannel.displayName,
+                    channelLogo: lastChannel.logoUrl,
+                    subtitle: '继续播放',
+                    onTap: () => context.push('/player/${lastChannel.id}'),
+                    onClear: _clearLast,
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                const SerifHeadline(
+                  '频道分类',
+                  // 6/17 v0.2.3 P0-1: 实事求是,  实际 bake 了 484 个 CN 频道.
+                  // 7800+ 是 iptv-org 全量,  未进 APP.  改 500+.
+                  // 未来 v0.3.0 会重 bake + 二级分类.
+                  subtitle: '500+ 国内频道 · iptv-org 数据源',
+                ),
+                const SizedBox(height: 4),
               ],
-              const SerifHeadline(
-                '频道分类',
-                // 6/17 v0.2.3 P0-1: 实事求是,  实际 bake 了 484 个 CN 频道.
-                // 7800+ 是 iptv-org 全量,  未进 APP.  改 500+.
-                // 未来 v0.3.0 会重 bake + 二级分类.
-                subtitle: '500+ 国内频道 · iptv-org 数据源',
-              ),
-              const SizedBox(height: 4),
-            ],
+            ),
           ),
-        ),
-        SliverToBoxAdapter(
-          child: CategoryGrid(
-            items: items,
-            onItemTap: (item) {
-              final count = switch (item.id) {
-                'cctv' => cctv,
-                'satellite' => satellite,
-                'local' => local,
-                _ => 0,
-              };
-              context.push(
-                '/category/${item.id}?title=${Uri.encodeComponent(item.title)}',
-                extra: count,
-              );
-            },
+          SliverToBoxAdapter(
+            child: CategoryGrid(
+              items: items,
+              onItemTap: (item) {
+                final count = switch (item.id) {
+                  'cctv' => cctv,
+                  'satellite' => satellite,
+                  'local' => local,
+                  _ => 0,
+                };
+                context.push(
+                  '/category/${item.id}?title=${Uri.encodeComponent(item.title)}',
+                  extra: count,
+                );
+              },
+            ),
           ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 32)),
-      ],
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+        ],
+      ),
     );
   }
 }
@@ -189,18 +201,28 @@ class _AppHeader extends StatelessWidget {
             style: IptvTypography.serifTitle,
           ),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.search),
-            color: IptvColors.textPrimary,
-            tooltip: '搜索频道',
-            onPressed: onSearchTap,
-          ),
-          // 6/17 v0.2.3 P1-2: 收藏页入口,  在 search 旁加 ❤️ icon
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            color: IptvColors.textPrimary,
-            tooltip: '我的收藏',
-            onPressed: () => context.push('/favorites'),
+          // P2-1 (6/18 老板拍): AppBar actions 套 TvFocusCapWrap,
+          //  maxPerRow=3, 加新按钮超出上限会报 assert 警告.
+          //  Wrap 布局对 2 个 IconButton 跟原 Row 等价 (不会折行).
+          TvFocusCapWrap(
+            maxPerRow: 3,
+            spacing: 0,
+            runSpacing: 0,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.search),
+                color: IptvColors.textPrimary,
+                tooltip: '搜索频道',
+                onPressed: onSearchTap,
+              ),
+              // 6/17 v0.2.3 P1-2: 收藏页入口,  在 search 旁加 ❤️ icon
+              IconButton(
+                icon: const Icon(Icons.favorite_border),
+                color: IptvColors.textPrimary,
+                tooltip: '我的收藏',
+                onPressed: () => context.push('/favorites'),
+              ),
+            ],
           ),
         ],
       ),
