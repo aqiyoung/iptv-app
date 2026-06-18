@@ -390,7 +390,8 @@ void main() {
 
       final lastCheck = prefs.getInt('version_checker.last_check_time');
       expect(lastCheck, isNotNull);
-      expect(lastCheck, lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch));
+      expect(
+          lastCheck, lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch));
     });
 
     test('1h 内 cache 命中 → 保持 idle,  不写 state', () async {
@@ -428,7 +429,8 @@ void main() {
       // 预先 dismiss v0.3.8 (24h 内).
       final now = DateTime.now().millisecondsSinceEpoch;
       await prefs.setString('version_checker.dismissed_version', 'v0.3.8');
-      await prefs.setInt('version_checker.dismissed_at', now - 1 * 60 * 60 * 1000);
+      await prefs.setInt(
+          'version_checker.dismissed_at', now - 1 * 60 * 60 * 1000);
 
       // 把 last_check_time 设到 2h 前 → 走 fetch 路径.
       await prefs.setInt(

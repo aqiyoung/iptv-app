@@ -108,7 +108,8 @@ void main() {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container, isCritical: true);
-      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+      final state =
+          container.read(versionCheckerProvider) as VersionCheckOutdated;
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -122,18 +123,17 @@ void main() {
         ),
       );
 
-      expect(find.text('稍后'), findsNothing,
-          reason: 'P0 critical 不应显示 "稍后" 按钮');
+      expect(find.text('稍后'), findsNothing, reason: 'P0 critical 不应显示 "稍后" 按钮');
       expect(find.text('立刻更新'), findsOneWidget);
       expect(find.text('重要更新'), findsOneWidget);
     });
 
-    testWidgets('P1 release → 显示 "稍后" + "立刻更新" 2 按钮',
-        (tester) async {
+    testWidgets('P1 release → 显示 "稍后" + "立刻更新" 2 按钮', (tester) async {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container, isCritical: false);
-      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+      final state =
+          container.read(versionCheckerProvider) as VersionCheckOutdated;
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -158,7 +158,8 @@ void main() {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container, version: 'v0.3.8', body: '**P1** 修了几个小 bug');
-      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+      final state =
+          container.read(versionCheckerProvider) as VersionCheckOutdated;
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -180,12 +181,12 @@ void main() {
   });
 
   group('ForceUpdateDialog 按钮交互', () {
-    testWidgets('点 "稍后" → 写 dismissed_version + dismissed_at',
-        (tester) async {
+    testWidgets('点 "稍后" → 写 dismissed_version + dismissed_at', (tester) async {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container, version: 'v0.3.8');
-      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+      final state =
+          container.read(versionCheckerProvider) as VersionCheckOutdated;
 
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -218,8 +219,7 @@ void main() {
   });
 
   group('ForceUpdateDialog.show — barrierDismissible 验证', () {
-    testWidgets('调用 show() 后 dialog 在,  点外部 (20, 20) 不关',
-        (tester) async {
+    testWidgets('调用 show() 后 dialog 在,  点外部 (20, 20) 不关', (tester) async {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container);
