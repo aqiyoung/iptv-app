@@ -60,28 +60,35 @@ Future<void> _pump(
 
 void main() {
   group('NextChannelsStrip v0.3.5.4 主题适配 (浅色+暗色)', () {
-    testWidgets('浅色主题: section header 文字色 = onSurfaceVariant (= textSecondary)',
+    testWidgets('浅色主题: section header 文字色 = colorScheme.onSurfaceVariant (跟主题联动)',
         (tester) async {
       await _pump(tester, theme: IptvTheme.light());
       final header = tester.widget<Text>(find.text('下一频道'));
       expect(header, isNotNull);
       expect(header.style?.color, isNotNull);
-      // 浅色下 onSurfaceVariant = textSecondary (0xFF6B5F54)
-      expect(header.style?.color, equals(IptvColors.textSecondary),
-          reason: '浅色下 section header = onSurfaceVariant = textSecondary');
+      // 浅色下, section header 应该 = colorScheme.onSurfaceVariant
+      // (由 ColorScheme.fromSeed 自动生成, 浅米色页面上是 #53433F 中棕)
+      final ctx = tester.element(find.text('下一频道'));
+      final expected = Theme.of(ctx).colorScheme.onSurfaceVariant;
+      expect(header.style?.color, equals(expected),
+          reason: '浅色下 section header = onSurfaceVariant (跟主题联动)');
+      // 不应该是硬编码的浅色 token (textPrimary 0xFF2A2520 深棕)
+      expect(header.style?.color, isNot(equals(IptvColors.textPrimary)),
+          reason: 'section header 不该用浅色 token IptvColors.textPrimary');
     });
 
-    testWidgets(
-        '暗色主题: section header 文字色 = onSurfaceVariant (= darkTextSecondary)',
+    testWidgets('暗色主题: section header 文字色 = colorScheme.onSurfaceVariant (跟主题联动)',
         (tester) async {
       await _pump(tester, theme: IptvTheme.dark());
       final header = tester.widget<Text>(find.text('下一频道'));
       expect(header, isNotNull);
       expect(header.style?.color, isNotNull);
-      // 暗色下 onSurfaceVariant = darkTextSecondary (0xFFB5A99A 暖灰)
-      expect(header.style?.color, equals(IptvColors.darkTextSecondary),
-          reason: '暗色下 section header = onSurfaceVariant = darkTextSecondary');
-      // 不能是浅色 token
+      // 暗色下, section header 应该 = colorScheme.onSurfaceVariant
+      final ctx = tester.element(find.text('下一频道'));
+      final expected = Theme.of(ctx).colorScheme.onSurfaceVariant;
+      expect(header.style?.color, equals(expected),
+          reason: '暗色下 section header = onSurfaceVariant (跟主题联动)');
+      // 不能是浅色 token textSecondary (0xFF6B5F54)
       expect(header.style?.color, isNot(equals(IptvColors.textSecondary)),
           reason: '暗色下不能用浅色 token IptvColors.textSecondary');
     });
