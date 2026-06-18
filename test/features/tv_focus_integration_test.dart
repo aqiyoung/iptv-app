@@ -152,8 +152,7 @@ void main() {
   });
 
   group('P2-3-A Phase 1: 3 page TvFocus 集成', () {
-    testWidgets('favorites_page: back 按钮 + 列表 tile 套 TvFocus',
-        (tester) async {
+    testWidgets('favorites_page: back 按钮 + 列表 tile 套 TvFocus', (tester) async {
       final router = _router();
       await _pumpApp(
         tester,

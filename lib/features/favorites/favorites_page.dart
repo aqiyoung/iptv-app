@@ -41,8 +41,7 @@ class FavoritesPage extends ConsumerWidget {
                 child: asyncFavs.when(
                   loading: () => const _LoadingState(),
                   error: (e, _) => _ErrorState(message: e.toString()),
-                  data: (ids) =>
-                      _buildList(context, ref, ids, asyncChannels),
+                  data: (ids) => _buildList(context, ref, ids, asyncChannels),
                 ),
               ),
             ],

@@ -212,7 +212,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           '输入关键词搜索频道',
                           style: IptvTypography.body.copyWith(
                             // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: isTv ? 18 : 14,
                           ),
                         ),
@@ -230,8 +231,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                               Icons.search_off,
                               size: 48,
                               // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
-                              color:
-                                  Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -360,9 +362,8 @@ class _SearchResultTile extends StatelessWidget {
                           ? IptvColors.accentTerracotta
                           // ignore: deprecated_member_use
                           : IptvColors.accentTerracotta.withOpacity(0.5),
-                      fontSize: fontSizeOverride != null
-                          ? fontSizeOverride! + 2
-                          : 20,
+                      fontSize:
+                          fontSizeOverride != null ? fontSizeOverride! + 2 : 20,
                     ),
                   ),
                 ),
