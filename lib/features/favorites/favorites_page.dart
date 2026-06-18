@@ -131,13 +131,13 @@ class FavoritesPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(
+                  leading: Icon(
                     Icons.delete_outline,
-                    color: Colors.redAccent,
+                    color: Theme.of(ctx).colorScheme.error,
                   ),
-                  title: const Text(
+                  title: Text(
                     '从收藏移除',
-                    style: TextStyle(color: Colors.redAccent),
+                    style: TextStyle(color: Theme.of(ctx).colorScheme.error),
                   ),
                   onTap: () => Navigator.of(ctx).pop(true),
                 ),

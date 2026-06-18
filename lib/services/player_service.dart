@@ -176,10 +176,18 @@ class PlayerService extends ChangeNotifier {
       );
     } on AllSourcesFailedException catch (e) {
       if (_disposed) return;
+      // v0.3.6: CCTV 源 DRM 检测 — 所有源都失败时, 检查是否 CCTV 频道,
+      // 如果是, 追加 DRM 加密提示.
+      final isCctvError = channel.id.startsWith('CCTV') &&
+          e.attempts.any((a) => a.url.contains('cdrm'));
+      final errorMsg = isCctvError
+          ? '所有源均失败。央视源可能含 DRM 加密，当前播放器不支持解密。'
+              '\n建议：尝试非央视源（切换频道源），或在 GitHub Issue 反馈。'
+          : e.toString();
       _set(
         _state.copyWith(
           status: PlayerStatus.error,
-          error: e.toString(),
+          error: errorMsg,
           clearAttempt: true,
         ),
       );

@@ -603,8 +603,8 @@ class _StatusDot extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final color = switch (status) {
       PlayerStatus.playing => IptvColors.accentTerracotta,
-      PlayerStatus.loading => Colors.amber,
-      PlayerStatus.error => Colors.redAccent,
+      PlayerStatus.loading => IptvColors.accentTerracotta.withOpacity(0.7),
+      PlayerStatus.error => scheme.error,
       PlayerStatus.idle => scheme.onSurfaceVariant.withOpacity(0.38),
     };
     return Container(
@@ -717,7 +717,7 @@ class _ErrorOverlay extends ConsumerWidget {
             children: [
               const Icon(
                 Icons.error_outline,
-                color: Colors.redAccent,
+                color: scheme.error,
                 size: 48,
               ),
               const SizedBox(height: 8),
