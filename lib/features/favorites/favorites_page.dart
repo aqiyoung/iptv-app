@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/responsive/breakpoints.dart';
-import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/tv/tv_focus.dart';
 import '../../data/models/channel.dart';
@@ -203,9 +202,9 @@ class _LoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: CircularProgressIndicator(
-        color: IptvColors.accentTerracotta,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }
@@ -223,9 +222,9 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
-              color: IptvColors.accentTerracotta,
+              color: Theme.of(context).colorScheme.primary,
               size: 48,
             ),
             const SizedBox(height: 16),

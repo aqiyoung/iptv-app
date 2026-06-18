@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/channel.dart';
 import '../../data/repositories/channel_repository.dart';
@@ -284,10 +283,11 @@ class _SearchResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
     return Container(
       color: isSelected
           // ignore: deprecated_member_use
-          ? IptvColors.accentTerracotta.withOpacity(0.08)
+          ? accent.withOpacity(0.08)
           : Colors.transparent,
       child: Material(
         color: Colors.transparent,
@@ -303,9 +303,9 @@ class _SearchResultTile extends StatelessWidget {
                     channelNumber,
                     style: IptvTypography.serifTitle.copyWith(
                       color: isSelected
-                          ? IptvColors.accentTerracotta
+                          ? accent
                           // ignore: deprecated_member_use
-                          : IptvColors.accentTerracotta.withOpacity(0.5),
+                          : accent.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -345,7 +345,7 @@ class _SearchResultTile extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: IptvColors.accentTerracotta,
+                      color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
