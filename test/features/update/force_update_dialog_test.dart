@@ -244,18 +244,22 @@ void main() {
         ),
       );
 
-      // showDialog 触发 barrierDismissible: false → dialog 出现.
-      await ForceUpdateDialog.show(ctx!);
+      // 不要 await show() — show() 返回的 Future 会一直 pending 直到 dialog
+      // 被 pop,  会让 test 挂到 10 分钟 timeout.  showDialog 同步会 push
+      // 到 Navigator,  后续 pump() 能拿到 widget 树.
+      // ignore: unawaited_futures
+      ForceUpdateDialog.show(ctx!);
       await tester.pump(); // 一帧
-      await tester.pump(const Duration(milliseconds: 300)); // 弹窗动画结束
+      await tester.pump(const Duration(milliseconds: 500)); // 弹窗动画结束
 
       // 找到 AlertDialog (Material library 内置 widget).
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(AlertDialog), findsOneWidget,
+          reason: 'show() 后 AlertDialog 应在树中');
 
       // 点 (20, 20) — 屏幕左上角,  在 barrier 但不在 dialog 内容里.
       await tester.tapAt(const Offset(20, 20));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(milliseconds: 500));
 
       // barrierDismissible: false → dialog 应该还在.
       expect(find.byType(AlertDialog), findsOneWidget,
