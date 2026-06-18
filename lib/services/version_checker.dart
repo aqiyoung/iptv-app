@@ -72,9 +72,6 @@ const Duration _kCacheTtl = Duration(hours: 1);
 /// 用户点"稍后"后,  24h 内不再弹 (避免 P1 反复骚扰).
 const Duration _kDismissTtl = Duration(hours: 24);
 
-/// GitHub API 请求 timeout.
-const Duration _kFetchTimeout = Duration(seconds: 8);
-
 /// 强制更新检测结果.
 sealed class VersionCheckState {
   const VersionCheckState();

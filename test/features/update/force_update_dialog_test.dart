@@ -67,7 +67,7 @@ void main() {
   /// 渲染一个简化的 dialog 内容 (Container + version text + release notes +
   /// 按钮栈),  模拟 _ForceUpdateDialogContent 的关键 UI.  不走 showDialog,
   /// 避免真实 overlay + 异步动画.  按钮逻辑跟 _ForceUpdateDialogContent 一致.
-  Widget _buildTestDialog({
+  Widget buildTestDialog({
     required VersionCheckOutdated state,
     required void Function() onDismiss,
   }) {
@@ -118,7 +118,7 @@ void main() {
           child: MaterialApp(
             theme: IptvTheme.light(),
             home: Scaffold(
-              body: _buildTestDialog(state: state, onDismiss: () {}),
+              body: buildTestDialog(state: state, onDismiss: () {}),
             ),
           ),
         ),
@@ -142,7 +142,7 @@ void main() {
           child: MaterialApp(
             theme: IptvTheme.light(),
             home: Scaffold(
-              body: _buildTestDialog(state: state, onDismiss: () {}),
+              body: buildTestDialog(state: state, onDismiss: () {}),
             ),
           ),
         ),
@@ -168,7 +168,7 @@ void main() {
           child: MaterialApp(
             theme: IptvTheme.light(),
             home: Scaffold(
-              body: _buildTestDialog(state: state, onDismiss: () {}),
+              body: buildTestDialog(state: state, onDismiss: () {}),
             ),
           ),
         ),
@@ -195,7 +195,7 @@ void main() {
           child: MaterialApp(
             theme: IptvTheme.light(),
             home: Scaffold(
-              body: _buildTestDialog(
+              body: buildTestDialog(
                 state: state,
                 onDismiss: () {
                   // 模拟 production 行为:  markDismissed 写 prefs.
