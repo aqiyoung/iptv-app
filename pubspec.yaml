@@ -26,6 +26,15 @@ publish_to: "none"
 #   - CCTV-5 + 14 卫视 source URL 合并 (assets/data/channels_cn.json)
 #   - 强制 IPv4 http.Client, 修 wifi 加载不出来 (lib/core/http/ipv4_client.dart)
 #   - 维护脚本 scripts/merge_known_sources.py
+# 0.3.5+19 (6/18): v0.3.5.1 hotfix (P0 bug 老板 11:41 装机实测反馈)
+#   - CCTV-5 新源 append (保留旧源向后兼容, iptv-org 已无 CCTV-5)
+#   - Channel.fromJson 支持 dict 格式 source (混存 145 string + 83 dict)
+#     之前 .cast<String>() 在 dict 上 view 不报错但访问 TypeError 炸
+#   - 强制 IPv4 http.Client 真机测试 (test/core/http/ipv4_client_test.dart)
+#     httpbin.org/ip 验 IPv4, CI 无网 fail (不是 skip)
+#   - 维护脚本 scripts/check_sources.py: 测每条 source URL, 列出 dead 源
+#     支持 --channel / --fail-on-dead-cctv, exit 0/1 给 CI 用
+#   - release workflow 跑 check_sources --fail-on-dead-cctv (CCTV-5 优先)
 # 0.3.6+19 (6/18): 暗色主题 + 设置页 + 主题持久化
 #   lib/core/theme/theme.dart 加 IptvTheme.dark()
 #   lib/core/theme/colors.dart 加 darkBg/darkSurface/darkTextPrimary tokens
@@ -33,7 +42,7 @@ publish_to: "none"
 #   lib/features/settings/settings_page.dart (新) — 系统/浅色/深色 RadioListTile
 #   home_page 加齿轮 icon 跳 settings_page
 #   test/features/settings/theme_provider_test.dart + test/core/theme/dark_theme_test.dart
-version: 0.3.6+19
+version: 0.3.5+19
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
