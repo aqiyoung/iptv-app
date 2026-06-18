@@ -9,15 +9,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sanyelive/features/settings/settings_page.dart';
 import 'package:sanyelive/main.dart' show currentVersion, currentVersionCode;
+import 'package:sanyelive/features/settings/theme_provider.dart';
 
 void main() {
   group('SettingsPage 版本号显示 (v0.3.5.9)', () {
     testWidgets('显示版本号 (currentVersion)', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(body: SettingsPage()),
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(body: const SettingsPage()),
+          ),
         ),
       );
 
@@ -27,8 +31,10 @@ void main() {
 
     testWidgets('显示 build number (currentVersionCode)', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(body: SettingsPage()),
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(body: const SettingsPage()),
+          ),
         ),
       );
 
@@ -36,20 +42,22 @@ void main() {
     });
 
     testWidgets('currentVersion 跟 pubspec 版本一致', (tester) async {
-      // pubspec.yaml version: 0.3.5+26
+      // pubspec.yaml version: 0.3.5+27 (v0.3.5.11 CI fix bump)
       // main.dart currentVersion 必须匹配
-      expect(currentVersion, equals('0.3.5+26'));
+      expect(currentVersion, equals('0.3.5+27'));
     });
 
     testWidgets('currentVersionCode 是正整数', (tester) async {
       expect(currentVersionCode, greaterThan(0));
-      expect(currentVersionCode, equals(26)); // v0.3.5.9 bump +1 from 25
+      expect(currentVersionCode, equals(27)); // v0.3.5.11 bump +1 from 26
     });
 
     testWidgets('设置页同时有主题和版本号 section', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(body: SettingsPage()),
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(body: const SettingsPage()),
+          ),
         ),
       );
 
