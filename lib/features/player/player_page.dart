@@ -60,21 +60,49 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     // immersive 时状态栏被隐, 拉下来也看不到频道名.  改成 edgeToEdge 保留
     // 状态栏可见, 但用浅色文字 + 黑色背景.
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    // 卡 7 (6/17 老板需求): 播放页背景黑, 状态栏文字用白图标.
-    // 退出时 dispose 还原.
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light, // Android: 白图标
-        statusBarBrightness: Brightness.dark, // iOS: 黑背景 -> 白文字
-        systemNavigationBarColor: Colors.black,
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-    );
+    // v0.3.5.4: SystemUI 样式延后到 postFrameCallback 里设置, 这样能
+    // 拿到 Theme.of(context).colorScheme.surfaceContainer 跟当前主题配套.
+    // 退出全屏/退出页面会在 _toggleFullscreen / dispose 里同样用主题色.
+    // (initState 没 context, 不能直接 Theme.of.)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _applySystemUiOverlayForPlayer();
+    });
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
     // P0-1: 首帧后启动控件隐身计时器
     WidgetsBinding.instance.addPostFrameCallback((_) => _resetHideTimer());
+  }
+
+  /// v0.3.5.4: 播放页 systemUI overlay — 状态栏用白图标 (跟黑底视频配套),
+  /// 系统导航栏用 colorScheme.surfaceContainer (浅/暗色都自然, 跟页
+  /// 主题联动).
+  void _applySystemUiOverlayForPlayer() {
+    final scheme = Theme.of(context).colorScheme;
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light, // Android: 白图标
+        statusBarBrightness: Brightness.dark, // iOS: 黑背景 -> 白文字
+        systemNavigationBarColor: scheme.surfaceContainer,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
+  }
+
+  /// v0.3.5.4: 退出全屏 / 退出页面时还原成全 APP 默认 — 状态栏黑图标 (跟
+  /// 浅米色页面配套), 系统导航栏用 colorScheme.surfaceContainer 跟主题联动.
+  void _applySystemUiOverlayForApp() {
+    final scheme = Theme.of(context).colorScheme;
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: scheme.surfaceContainer,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
   }
 
   @override
@@ -91,14 +119,21 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     }
     // 6/17: 退出时还原 edgeToEdge (不是 immersiveSticky).
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    // 卡 7: 还原成全 APP 默认 (黑图标, 跟浅米色页面配套)
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-      ),
-    );
+    // 卡 7: 还原成全 APP 默认 — 状态栏黑图标 (跟浅米色页面配套),
+    // 系统导航栏用 colorScheme.surfaceContainer 跟主题联动.  (v0.3.5.4)
+    // 用 try-catch 包起来: dispose 期间 InheritedWidget 可能已经拆, Theme.of
+    // 会抛.  异常情况下降级成原全 APP 默认 (黑图标 + 透明 nav bar).
+    try {
+      _applySystemUiOverlayForApp();
+    } catch (_) {
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
+      );
+    }
     // 6/18 P3-1 (老板反馈): 路由 pop 时显式 stop native player.  不做
     // dispose, 保留 libmpv 实例在内存中 (后续返回频道会重新 open).  这
     // 是 RouteObserver + AppLifecycleListener 之外的第一道保险:  当用户
@@ -129,7 +164,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
   /// P2-2: 切真全屏 ↔ 退出.  全屏: immersiveSticky + landscape + 状态栏透
   /// 明 + 白图标, 让视频占满整个屏幕并隐藏状态栏/导航栏.  退出: edgeToEdge
-  /// + portrait (默认) + 还原成全 APP 默认 (黑图标 + 浅米色 nav bar).
+  /// + portrait (默认) + 还原成全 APP 默认 (黑图标 + colorScheme nav bar).
+  /// v0.3.5.4: 退出全屏时 nav bar 用 colorScheme.surfaceContainer 跟主题联动.
   void _toggleFullscreen() {
     setState(() => _isFullscreen = !_isFullscreen);
     if (_isFullscreen) {
@@ -154,16 +190,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       // phones, landscape on TVs, etc.).  Passing null breaks the
       // argument_type_not_assignable analyzer check on Flutter 3.29.3.
       SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
-      // 6/18 P1 hotfix: 退出全屏还原成全 APP 默认 (黑图标, 跟浅米色页面配套)
-      SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
-          statusBarBrightness: Brightness.light,
-          systemNavigationBarColor: IptvColors.bgParchment,
-          systemNavigationBarIconBrightness: Brightness.dark,
-        ),
-      );
+      // 6/18 P1 hotfix + v0.3.5.4: 退出全屏还原成全 APP 默认 — 状态栏黑图标
+      // (跟浅米色页面配套), 系统导航栏用 colorScheme.surfaceContainer
+      // 跟当前主题联动.
+      _applySystemUiOverlayForApp();
     }
   }
 
@@ -241,16 +271,21 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         state: state,
                         channel: channel,
                       ),
+                      // v0.3.5.4: 全屏按钮背景 + 图标都跟主题联动 —
+                      // 浅色下浅底 + 深色图标 (跟浅米色页面风格一致),
+                      // 暗色下深底 + 浅色图标 (跟深棕黑页面风格一致).
+                      // 背景用 surfaceContainerHigh, 图标用 onSurface
+                      // (跟 Material 3 M3 spec 一致).
                       Positioned(
                         right: 8,
                         bottom: 8,
                         child: Material(
-                          color: Colors.black54,
+                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
                           shape: const CircleBorder(),
                           child: IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.fullscreen,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onSurface,
                               size: 22,
                             ),
                             tooltip: '全屏',
@@ -394,17 +429,19 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                 ),
               // P2-2: 移动端用户主动全屏时, 给个"退出全屏"按钮 (TV 端没有)
               // 6/18 P1 hotfix: status bar 已隐, top=12 顶到屏幕真正顶部.
+              // v0.3.5.4: 跟右下角全屏按钮统一 — 背景 surfaceContainerHigh,
+              // 图标 onSurface (跟主题联动).
               if (_isFullscreen)
                 Positioned(
                   right: 12,
                   top: 12,
                   child: Material(
-                    color: Colors.black54,
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
                     shape: const CircleBorder(),
                     child: IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.fullscreen_exit,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         size: 22,
                       ),
                       tooltip: '退出全屏',
