@@ -7,12 +7,15 @@ check_sources.py — 测 assets/data/channels_cn.json 每条 source URL
   1. release 前发现 dead 源 (超时/403/404/连接重置), 不用靠老板装机测
   2. exit 0/1 给 CI 用 (--fail-on-dead-cctv 配合 release workflow)
   3. 支持 --channel 只测某个频道, 支持 --quiet 只打 dead
+  4. v0.3.5.3 (6/18): 加 --require-cctv, 强制每个 CCTV 主频道有 cctvSource 且 alive
 
 用法:
-  python3 scripts/check_sources.py                    # 全测, 列出 dead
-  python3 scripts/check_sources.py --channel CCTV-5   # 只测 CCTV-5
-  python3 scripts/check_sources.py --channel CCTV-5+  # 只测 CCTV-5+
-  python3 scripts/check_sources.py --fail-on-dead-cctv # CCTV-5/-5+ 全 dead 才 fail
+  python3 scripts/check_sources.py                          # 全测, 列出 dead
+  python3 scripts/check_sources.py --channel CCTV-5         # 只测 CCTV-5
+  python3 scripts/check_sources.py --channel CCTV-5+        # 只测 CCTV-5+
+  python3 scripts/check_sources.py --fail-on-dead-cctv      # CCTV-5/-5+ 全 dead 才 fail
+  python3 scripts/check_sources.py --require-cctv           # v0.3.5.3 release: CCTV 频道有 cctvSource 且 alive 才 exit 0
+  python3 scripts/check_sources.py --require-cctv --json assets/data/channels_cn.json  # 自定义路径
 
   注: --channel 匹配 channel.id (e.g. CCTV5.cn) 或 channel.name / alt_names
 
@@ -21,6 +24,11 @@ check_sources.py — 测 assets/data/channels_cn.json 每条 source URL
   ottrrs.hl.chinamobile.com + ott.mobaibox.com 都 timeout, iptv-org 6/18
   已删 CCTV-5 (版权), 公开 m3u 全 404.  这个脚本就是 release 前
   强制每条 source 走一遍, 防止 dead 源混进 APK.
+
+v0.3.5.3 (6/18) 加 --require-cctv:
+  老板 14:02 拍板 "去找央视的源", 6 方向调研得到 12/16 频道公共源.
+  release 前必须确保每个 CCTV 主频道 (CCTV1~17, 5+, 4K) 都有 cctvSource
+  字段且 URL alive.  这是 v0.3.5.3 release gate.
 """
 import argparse
 import json
@@ -83,6 +91,21 @@ def is_cctv_sports(channel: dict) -> bool:
     if 'cctv-5' in name or 'cctv5' in name:
         return True
     return False
+
+
+# v0.3.5.3 (6/18): CCTV 主频道 18 个 (16 主 + 4K + 5Plus)
+# 跟 lib/data/cctv_source.dart kCctvMainChannelIds 对齐
+CCTV_MAIN_CHANNEL_IDS = {
+    'CCTV1.cn', 'CCTV2.cn', 'CCTV3.cn', 'CCTV4.cn', 'CCTV5.cn', 'CCTV5Plus.cn',
+    'CCTV6.cn', 'CCTV7.cn', 'CCTV8.cn', 'CCTV9.cn', 'CCTV10.cn', 'CCTV11.cn',
+    'CCTV12.cn', 'CCTV13.cn', 'CCTV14.cn', 'CCTV15.cn', 'CCTV16.cn', 'CCTV17.cn',
+    'CCTV4K.cn',
+}
+
+
+def is_cctv_main(channel: dict) -> bool:
+    """channel 是 v0.3.5.3 关注的 18 个 CCTV 主频道."""
+    return channel.get('id', '') in CCTV_MAIN_CHANNEL_IDS
 
 
 def check_one_url(url: str, timeout: float) -> tuple[str, int | None, str]:
@@ -180,6 +203,11 @@ def main() -> int:
         help='CCTV-5 / CCTV-5+ 系列有 dead 源时 exit 1 (给 release CI 用)',
     )
     parser.add_argument(
+        '--require-cctv',
+        action='store_true',
+        help='v0.3.5.3 release: 每个 CCTV 主频道 (CCTV1-17, 5+, 4K) 必须有 cctvSource 且至少 1 条 alive, 否则 exit 1',
+    )
+    parser.add_argument(
         '--quiet',
         action='store_true',
         help='只打 dead 源, 不打 alive 列表',
@@ -212,6 +240,10 @@ def main() -> int:
         for s in ch.get('sources', []):
             url = extract_source_url(s)
             if url:
+                targets.append((cid, url))
+        # v0.3.5.3 (6/18): 也测 cctvSource 字段
+        for url in ch.get('cctvSource', []):
+            if url and isinstance(url, str):
                 targets.append((cid, url))
 
     if not targets:
@@ -279,6 +311,48 @@ def main() -> int:
         # 其他 channel dead 容忍 (不在本 release 修), exit 0
         print(
             f'\n⚠️ --fail-on-dead-cctv: 非 CCTV-5/5+ 有 {len(dead)} 条 dead 源, 容忍 exit 0',
+            file=sys.stderr,
+        )
+        return 0
+
+    # v0.3.5.3 (6/18) 加: --require-cctv 强制 18 个 CCTV 主频道有 cctvSource
+    # 且至少 1 条 alive.  这是 v0.3.5.3 release gate, 老板 14:02 拍板
+    # "去找央视的源", release 前必须确认 cctvSource 字段有数据.
+    if args.require_cctv:
+        # 重新过滤, 只看 18 个 CCTV 主频道的 cctvSource 字段
+        cctv_main = [c for c in channels if is_cctv_main(c)]
+        missing_cctv_source = []
+        no_alive_cctv_source = []
+        for ch in cctv_main:
+            cid = ch.get('id', '?')
+            cctv_srcs = ch.get('cctvSource', [])
+            if not cctv_srcs:
+                missing_cctv_source.append(cid)
+                continue
+            # 看 cctvSource 里是否有 alive 的
+            cctv_alive = [r for r in alive if r[0] == cid and r[1] in cctv_srcs]
+            if not cctv_alive:
+                no_alive_cctv_source.append(cid)
+
+        if missing_cctv_source or no_alive_cctv_source:
+            print(
+                f'\n💥 --require-cctv: CCTV 主频道 cctvSource 校验失败, exit 1',
+                file=sys.stderr,
+            )
+            if missing_cctv_source:
+                print(
+                    f'   缺失 cctvSource 字段: {", ".join(missing_cctv_source)}',
+                    file=sys.stderr,
+                )
+            if no_alive_cctv_source:
+                print(
+                    f'   cctvSource 全部 dead: {", ".join(no_alive_cctv_source)}',
+                    file=sys.stderr,
+                )
+            return 1
+        # CCTV 主频道全部 OK
+        print(
+            f'\n✅ --require-cctv: {len(cctv_main)} 个 CCTV 主频道全部有 cctvSource 且至少 1 条 alive',
             file=sys.stderr,
         )
         return 0

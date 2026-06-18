@@ -6,6 +6,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import '../data/models/channel.dart';
+import '../data/source_dispatcher.dart';
 import 'source_failover.dart';
 
 /// 播放状态
@@ -124,7 +125,11 @@ class PlayerService extends ChangeNotifier {
   /// 切到 [channel]; 已在播放则先 stop
   Future<void> play(Channel channel) async {
     if (_disposed) return;
-    if (channel.sources.isEmpty) {
+
+    // v0.3.5.3 (6/18): 用 SourceDispatcher 选源 — CCTV 频道优先走 cctvSource,
+    // 非 CCTV 走老逻辑 channel.sources (repository 已合并 known_sources).
+    final sources = SourceDispatcher.dispatch(channel);
+    if (sources.isEmpty) {
       _set(
         _state.copyWith(
           status: PlayerStatus.error,
@@ -155,7 +160,7 @@ class PlayerService extends ChangeNotifier {
 
     try {
       final source = await _failover.play(
-        channel.sources,
+        sources,
         onAttempt: (event) {
           if (_disposed) return;
           _set(_state.copyWith(attempt: event));

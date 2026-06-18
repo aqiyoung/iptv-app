@@ -185,19 +185,24 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Check source health (v0.3.5.1)
+      - name: Check source health (v0.3.5.1 + v0.3.5.3)
         # v0.3.5.1 (6/18): 老板 11:41 装机实测 CCTV-5 加载不出来, 加 scripts/check_sources.py 验每条源.
         # 默认模式 exit 1 = 有 dead 源 (任何 channel).  v0.3.5.1 门槛暂不括住
         # CCTV-5, 因为全公开源 dead, 卡住会 block v0.3.5.1 release.  改用
         # --no-fail-on-dead-cctv 临时在 release script 里不硬性 fail.  v0.3.7
         # 之前需要老板提供 CCTV-5 活的源 / 调 known_sources.
         # 后续 release 可改回 --fail-on-dead-cctv (CCTV-5 有 1 条活时才返 0).
+        # v0.3.5.3 (6/18): 老板 14:02 拍板 "去找央视的源", 拿到 18 频道公共源.
+        # 加 --require-cctv 闸: 18 个 CCTV 主频道必须 cctvSource 字段 + alive.
+        # 卡住会 block v0.3.5.3 release — 必须有源才出 APK.
         run: |
           set -e
-          # 走默认 (任何 dead 返 1) 太严格 — 5 min 超时全 CCTV 源都 timeout.
-          # 改 --quiet 只打 dead, exit code 1 不阻 release.
+          # v0.3.5.1: 走 --quiet 只打 dead (不阻 release)
           python3 scripts/check_sources.py --quiet || echo "⚠️ check_sources.py 有 dead 源 (不阻 release, 见 PR #7)"
-          echo "✅ check_sources.py 跑完 (不阻 release)"
+          echo "✅ check_sources.py 跑完 (v0.3.5.1, 不阻 release)"
+          # v0.3.5.3: 走 --require-cctv 强拦 (CCTV 主频道必须有 cctvSource)
+          python3 scripts/check_sources.py --require-cctv
+          echo "✅ --require-cctv 闸通过 (v0.3.5.3, 18 个 CCTV 主频道有 cctvSource + alive)"
 
       - name: Build APK (release, signed)
         # 卡 6: 明确 target-platform android-arm64, 减少体积 (电视/手机都是 arm64).

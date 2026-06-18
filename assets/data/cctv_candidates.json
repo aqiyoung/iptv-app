@@ -1,0 +1,209 @@
+{
+  "_comment": "v0.3.5.3 (6/18) — CCTV 候选播放源 (30+ 条, 6 方向调研).\n每个 entry: {channel, url, method, note, region}\n  channel: CCTV channel id (e.g. CCTV1.cn)\n  url:     HLS m3u8 URL (HTTP 优先, HTTPS 备用)\n  method:  探测方法 (tencent_cloud|skygo|xykt_fix|cmcc|legacy_iptv|cctvnews|monkey_king)\n  note:    备注 (CDN 描述 / token 策略 / 已知限制)\n  region:  适用地区 (CN 国内, CN_INT 国际, GLOB 全球)\n\n调研时间: 2026-06-18 14:00 GMT+8\n调研人: OpenClaw subagent (cctv-v0.3.5.3)\n\n6 方向:\n  1. 央视频 App → ldncctvwbcdtxy.liveplay.myqcloud.com (Tencent Cloud)\n  2. 央视网直播 → cctvnews.cctv.com (官方 CCTVNews CDN)\n  3. GitHub CCTV 仓库 → xykt-fix.github.io (代理 + CMCC token 跳转)\n  4. 各地电信 IPTV → chinaiptv.pages.dev/Multicast (rtp://239.x, ISP 内网)\n  5. CSS / 流媒体抓取 → cdn4.skygo.mn (蒙古 CDN, 部分 CCTV)\n  6. 自建 nginx + ffmpeg → 卡 6 终极 fallback (留给老板)\n\n存活规则:\n  - HEAD + 1KB GET 都 OK, body 以 #EXTM3U 开头\n  - 但有 sub-stream 的才算可用 (master-only = 假活, geo-blocked)\n  - token/expire 类 URL (CMCC 264788.xyz) 必须通过 GitHub Pages 跳转, 直接用会 401\n",
+  "_candidate_count": 32,
+  "candidates": [
+    {
+      "channel": "CCTV1.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "央视官方 Tencent Cloud CDN. 6/18 实测 sub-stream 200 OK, 1080p/720p/480p 多码率",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV1.cn",
+      "url": "http://198.204.240.250:82/live/cctv1.m3u8",
+      "method": "legacy_iptv",
+      "note": "198.204.240.250:82 公开 iptv 节点. 6/18 实测 OK. 备选",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV1.cn",
+      "url": "http://69.30.245.50/live/cctv1.m3u8",
+      "method": "legacy_iptv",
+      "note": "iptv-org cn.m3u 历史源. 6/18 实测 connection reset. 留作降级",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV2.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv2_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 实测 geo-blocked (非 1/13)",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV3.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv3_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 实测 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV4.cn",
+      "url": "https://xykt-fix.github.io/play/a02a/index.m3u8",
+      "method": "xykt_fix",
+      "note": "xykt-fix 跳转到 live-play-hls.cctvnews.cctv.com (CCTVNews 官方 CDN). 6/18 master+sub OK",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV4.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv4_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 实测 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV4K.cn",
+      "url": "http://198.204.240.250:82/live/cctv4k.m3u8",
+      "method": "legacy_iptv",
+      "note": "4K 超高清. 6/18 实测 OK, 198.204.240.250 公共节点",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV5.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv5_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 实测 geo-blocked. iptv-org 6/18 已删 CCTV-5 (版权)",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV5.cn",
+      "url": "http://38.75.136.137:98/gslb/dsdqpub/cctv5.m3u8?auth=testpub",
+      "method": "monkey_king",
+      "note": "38.75.136.137 猴王系列. 6/18 实测返回 JSON 错误 (频道未配置服务器)",
+      "region": "CN"
+    },
+    {
+      "channel": "CCTV5Plus.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv51_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "CCTV-5+ 体育赛事. 6/18 master 200 OK 但 sub-stream 404. iptv-org 已删",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV6.cn",
+      "url": "http://198.204.240.250:82/live/cctv6.m3u8",
+      "method": "legacy_iptv",
+      "note": "198.204.240.250:82. 6/18 实测 OK",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV6.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv6_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV7.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv7_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV8.cn",
+      "url": "http://198.204.240.250:82/live/cctv8.m3u8",
+      "method": "legacy_iptv",
+      "note": "198.204.240.250:82. 6/18 实测 OK",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV8.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv8_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV9.cn",
+      "url": "https://xykt-fix.github.io/Y77.m3u8",
+      "method": "xykt_fix",
+      "note": "xykt-fix 跳转到 v4.livehwc4.com (kankanlive 直播). 6/18 实测 OK, CCTV-9 纪录",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV10.cn",
+      "url": "https://cdn4.skygo.mn/live/disk1/CCTV-10/HLSv3-FTA/CCTV-10.m3u8",
+      "method": "skygo",
+      "note": "cdn4.skygo.mn 蒙古 CDN. 6/18 实测 OK, 多码率 master",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV10.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv10_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV11.cn",
+      "url": "https://xykt-fix.github.io/play/a02b/index.m3u8",
+      "method": "cmcc",
+      "note": "xykt-fix 跳转到 shcm-stream-cf1.stream.264788.xyz (CMCC TV). 6/18 实测 OK, 每次 GET 换 token, 1.3Mbps",
+      "region": "CN"
+    },
+    {
+      "channel": "CCTV11.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv11_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV12.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv12_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked. 公开 m3u 渠道 6/18 全部 dead",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV13.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv13_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "央视官方 Tencent Cloud CDN. 6/18 实测 sub-stream 200 OK, 1080p/720p/480p 多码率",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV14.cn",
+      "url": "https://cdn4.skygo.mn/live/disk1/CCTV-14/HLSv3-FTA/CCTV-14.m3u8",
+      "method": "skygo",
+      "note": "cdn4.skygo.mn 蒙古 CDN. 6/18 实测 OK, 多码率 master, CCTV-14 少儿",
+      "region": "GLOB"
+    },
+    {
+      "channel": "CCTV14.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv14_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV15.cn",
+      "url": "https://xykt-fix.github.io/play/a02e/index.m3u8",
+      "method": "cmcc",
+      "note": "xykt-fix 跳转到 shcm-stream-cf1.stream.264788.xyz (CMCC TV). 6/18 实测 OK, 4.7Mbps 高码率",
+      "region": "CN"
+    },
+    {
+      "channel": "CCTV15.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv15_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV16.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv16_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked. CCTV-16 奥林匹克",
+      "region": "CN_INT"
+    },
+    {
+      "channel": "CCTV17.cn",
+      "url": "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv17_1/index.m3u8",
+      "method": "tencent_cloud",
+      "note": "Tencent Cloud master 200 OK 但 sub-stream 404. 6/18 geo-blocked. CCTV-17 农业农村",
+      "region": "CN_INT"
+    }
+  ]
+}
