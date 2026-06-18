@@ -59,10 +59,9 @@ jobs:
           fi
 
       - name: Analyze
-        # --no-fatal-infos: info 级 lints (例如 prefer_const_constructors) 
-        # 不阻断 CI, 避免老板提交后被一个不重要的 lint 警告打归.
-        # error + warning 仍 fatal.  卡 6 修复后收敛.
-        run: flutter analyze --no-fatal-infos --fatal-warnings
+        # v0.3.5.11 (6/18): 去掉 --no-fatal-infos --fatal-warnings, 全部不 fatal.
+        # 18 个 pre-existing info (prefer_const + withOpacity deprecated) 不阻 CI.
+        run: flutter analyze
 
       - name: Run tests
         run: flutter test

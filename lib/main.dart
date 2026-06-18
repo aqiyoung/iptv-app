@@ -13,6 +13,11 @@ import 'features/update/force_update_dialog.dart';
 import 'services/player_service.dart';
 import 'services/version_checker.dart';
 
+// v0.3.5.9: 编译期 const, 跟 pubspec 版本一致.
+// settings_page.dart / settings_page_test.dart import 这两个值显示版本号.
+const currentVersion = '0.3.5+27';
+const currentVersionCode = 27;
+
 void main() async {
   // 卡 7 (6/17 修复): 之前 v0.2.0 启动崩
   // 'MediaKit.ensureInitialized must be called', 因为 bootstrap 是 async
@@ -39,10 +44,6 @@ void main() async {
   // 编译期 const 来自 pubspec.yaml,  跟 release workflow 跑出来的 APK
   // tag +versionCode 一致.  也跟 services/version_checker.dart 里 parse
   // APK asset 名的 +N 格式对齐.
-  // v0.3.5.9: versionCode 25 → 26 (pubspec 0.3.5+25 → 0.3.5+26), currentVersion 同步.
-  // 下次 release 前要记得同步这两个 const.
-  const currentVersion = '0.3.5+26';
-  const currentVersionCode = 26;
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
