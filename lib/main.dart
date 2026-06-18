@@ -15,8 +15,8 @@ import 'services/version_checker.dart';
 
 // v0.3.5.9: 编译期 const, 跟 pubspec 版本一致.
 // settings_page.dart / settings_page_test.dart import 这两个值显示版本号.
-const currentVersion = '0.3.5+30';
-const currentVersionCode = 30;
+const currentVersion = '0.3.5+37';
+const currentVersionCode = 37;
 
 void main() async {
   // 卡 7 (6/17 修复): 之前 v0.2.0 启动崩

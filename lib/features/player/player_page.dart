@@ -342,7 +342,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     final asyncChannels = ref.watch(channelsProvider);
 
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold({
+    return Scaffold(
       backgroundColor: scheme.surface,
       // 6/18 P1 hotfix: 全屏时不 SafeArea.  immersiveSticky 已隐 status bar /
       // nav bar 视觉, 但 SafeArea 仍会按 MediaQuery padding 布局, 压下视频
@@ -603,6 +603,7 @@ class _StatusDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final color = switch (status) {
       PlayerStatus.playing => IptvColors.accentTerracotta,
       PlayerStatus.loading => Colors.amber,
@@ -723,7 +724,7 @@ class _ErrorOverlay extends ConsumerWidget {
                 size: 48,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 '播放失败',
                 style: TextStyle(
                   color: scheme.onSurface,
