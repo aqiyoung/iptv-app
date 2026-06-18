@@ -151,13 +151,11 @@ void main() {
         ),
       );
 
-      expect(find.text('稍后'), findsNothing,
-          reason: 'P0 critical 不应显示 "稍后" 按钮');
+      expect(find.text('稍后'), findsNothing, reason: 'P0 critical 不应显示 "稍后" 按钮');
       expect(find.text('立刻更新'), findsOneWidget);
     });
 
-    testWidgets('P1 release → 显示 "稍后" + "立刻更新" 2 按钮',
-        (tester) async {
+    testWidgets('P1 release → 显示 "稍后" + "立刻更新" 2 按钮', (tester) async {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container, isCritical: false);
@@ -286,7 +284,8 @@ class _TestDialogHostState extends ConsumerState<_TestDialogHost> {
           children: [
             Text('发现新版本', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('${widget.state.currentVersion} → ${widget.state.latestVersion}'),
+            Text(
+                '${widget.state.currentVersion} → ${widget.state.latestVersion}'),
             const SizedBox(height: 12),
             Text(widget.state.releaseNotes),
             const SizedBox(height: 16),

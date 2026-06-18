@@ -206,7 +206,8 @@ void main() {
     });
 
     test('**P1** 提级不强制 → false', () {
-      expect(VersionCheckerNotifier.debugIsCriticalRelease('**P1** new feature'),
+      expect(
+          VersionCheckerNotifier.debugIsCriticalRelease('**P1** new feature'),
           isFalse);
     });
 
@@ -249,7 +250,8 @@ void main() {
 
       final lastCheck = prefs.getInt('version_checker.last_check_time');
       expect(lastCheck, isNotNull);
-      expect(lastCheck, lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch));
+      expect(
+          lastCheck, lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch));
     });
 
     test('1h 内 cache 命中 → 保持 idle,  不写 state', () async {

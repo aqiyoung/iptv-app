@@ -126,9 +126,8 @@ class _ForceUpdateDialogContentState
                     : IptvColors.bgParchment,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isDark
-                      ? IptvColors.darkDivider
-                      : IptvColors.dividerWarm,
+                  color:
+                      isDark ? IptvColors.darkDivider : IptvColors.dividerWarm,
                 ),
               ),
               child: Text(
@@ -147,9 +146,8 @@ class _ForceUpdateDialogContentState
                 child: LinearProgressIndicator(
                   value: _progress > 0 ? _progress : null,
                   minHeight: 6,
-                  backgroundColor: isDark
-                      ? IptvColors.darkDivider
-                      : IptvColors.dividerWarm,
+                  backgroundColor:
+                      isDark ? IptvColors.darkDivider : IptvColors.dividerWarm,
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     IptvColors.accentTerracotta,
                   ),
@@ -222,9 +220,7 @@ class _ForceUpdateDialogContentState
         if (!s.isCritical)
           TextButton(
             onPressed: () async {
-              await ref
-                  .read(versionCheckerProvider.notifier)
-                  .markDismissed();
+              await ref.read(versionCheckerProvider.notifier).markDismissed();
               if (mounted) Navigator.of(context).pop();
             },
             child: const Text('稍后'),
@@ -257,9 +253,7 @@ class _ForceUpdateDialogContentState
       actions.add(
         TextButton(
           onPressed: () async {
-            await ref
-                .read(versionCheckerProvider.notifier)
-                .markDismissed();
+            await ref.read(versionCheckerProvider.notifier).markDismissed();
             if (mounted) Navigator.of(context).pop();
           },
           child: const Text('稍后'),
