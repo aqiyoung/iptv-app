@@ -67,11 +67,24 @@ const Set<String> kCctvSubChannelIds = <String>{
 
 /// CCTV 数字主频道 (1-17, 含 CCTV-5+) — 这 16 频道是 v0.3.5.3 修的目标
 const Set<String> kCctvMainChannelIds = <String>{
-  'CCTV1.cn', 'CCTV2.cn', 'CCTV3.cn', 'CCTV4.cn',
-  'CCTV5.cn', 'CCTV5Plus.cn',
-  'CCTV6.cn', 'CCTV7.cn', 'CCTV8.cn', 'CCTV9.cn',
-  'CCTV10.cn', 'CCTV11.cn', 'CCTV12.cn', 'CCTV13.cn',
-  'CCTV14.cn', 'CCTV15.cn', 'CCTV16.cn', 'CCTV17.cn',
+  'CCTV1.cn',
+  'CCTV2.cn',
+  'CCTV3.cn',
+  'CCTV4.cn',
+  'CCTV5.cn',
+  'CCTV5Plus.cn',
+  'CCTV6.cn',
+  'CCTV7.cn',
+  'CCTV8.cn',
+  'CCTV9.cn',
+  'CCTV10.cn',
+  'CCTV11.cn',
+  'CCTV12.cn',
+  'CCTV13.cn',
+  'CCTV14.cn',
+  'CCTV15.cn',
+  'CCTV16.cn',
+  'CCTV17.cn',
   'CCTV4K.cn',
 };
 
@@ -88,8 +101,10 @@ const Set<String> kCctvMainChannelIds = <String>{
 @visibleForTesting
 const Map<String, double> kCctvHealthScores = <String, double>{
   // === 央视官方 (Tencent Cloud CDN, 6/18 实测 1/13 sub-stream 200 OK) ===
-  'http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8': 0.95,
-  'http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv13_1/index.m3u8': 0.95,
+  'http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8':
+      0.95,
+  'http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv13_1/index.m3u8':
+      0.95,
 
   // === 央视 4K (198.204.240.250:82 — iptv-org 历史源) ===
   'http://198.204.240.250:82/live/cctv4k.m3u8': 0.7,
@@ -153,7 +168,8 @@ class CctvSourcePicker {
   }) {
     if (!isCctvMainChannel(channel)) {
       // 非 CCTV 主频道: 老逻辑, sources 字段照旧
-      return _mergeKnownSources(channel.sources, knownSources[channel.id] ?? const <String>[]);
+      return _mergeKnownSources(
+          channel.sources, knownSources[channel.id] ?? const <String>[]);
     }
 
     // CCTV 主频道: cctvSource 优先
@@ -310,7 +326,8 @@ class CctvSourceRegistry {
         // ignore: avoid_print
         print('CctvSourceRegistry.load failed, falling back to static: $e');
       }
-      _instance = CctvSourceRegistry._(sourcesByChannel: const <String, List<CctvSource>>{});
+      _instance = CctvSourceRegistry._(
+          sourcesByChannel: const <String, List<CctvSource>>{});
     }
     return _instance!;
   }
@@ -347,7 +364,9 @@ class CctvSourceRegistry {
 
   /// Internal access path — keeps the API similar to old code.
   Map<String, List<CctvSource>> get _sourcesByChannel =>
-      sourcesByChannel.isEmpty ? const <String, List<CctvSource>>{} : sourcesByChannel;
+      sourcesByChannel.isEmpty
+          ? const <String, List<CctvSource>>{}
+          : sourcesByChannel;
 
   /// 拿指定 channel 的所有 CCTV 源 (按 health_score 降序).
   /// 没有的话返回空列表 (跟没设置 cctvSource 字段等价).

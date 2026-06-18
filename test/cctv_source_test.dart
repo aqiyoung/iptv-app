@@ -69,9 +69,24 @@ void main() {
     test('case 2: CctvSourcePicker.isCctvMainChannel 判别 18 CCTV 主频道', () {
       // 18 个主频道 (CCTV1-17 + 5Plus + 4K) 都应该是 true
       for (final id in [
-        'CCTV1.cn', 'CCTV2.cn', 'CCTV3.cn', 'CCTV4.cn', 'CCTV5.cn', 'CCTV5Plus.cn',
-        'CCTV6.cn', 'CCTV7.cn', 'CCTV8.cn', 'CCTV9.cn', 'CCTV10.cn', 'CCTV11.cn',
-        'CCTV12.cn', 'CCTV13.cn', 'CCTV14.cn', 'CCTV15.cn', 'CCTV16.cn', 'CCTV17.cn',
+        'CCTV1.cn',
+        'CCTV2.cn',
+        'CCTV3.cn',
+        'CCTV4.cn',
+        'CCTV5.cn',
+        'CCTV5Plus.cn',
+        'CCTV6.cn',
+        'CCTV7.cn',
+        'CCTV8.cn',
+        'CCTV9.cn',
+        'CCTV10.cn',
+        'CCTV11.cn',
+        'CCTV12.cn',
+        'CCTV13.cn',
+        'CCTV14.cn',
+        'CCTV15.cn',
+        'CCTV16.cn',
+        'CCTV17.cn',
         'CCTV4K.cn',
       ]) {
         final c = Channel(
@@ -89,9 +104,15 @@ void main() {
 
       // 数字频道 (Billiards / Storm / Plus / Opera) 不算主频道
       for (final id in [
-        'CCTVPlus1.cn', 'CCTVPlus2.cn', 'CCTV4America.cn', 'CCTV4Asia.cn',
-        'CCTV4Europe.cn', 'CCTVBilliards.cn', 'CCTVStormFootball.cn',
-        'CCTVGolfTennis.cn', 'CCTVWeaponTechnology.cn',
+        'CCTVPlus1.cn',
+        'CCTVPlus2.cn',
+        'CCTV4America.cn',
+        'CCTV4Asia.cn',
+        'CCTV4Europe.cn',
+        'CCTVBilliards.cn',
+        'CCTVStormFootball.cn',
+        'CCTVGolfTennis.cn',
+        'CCTVWeaponTechnology.cn',
       ]) {
         final c = Channel(
           id: id,
@@ -107,7 +128,8 @@ void main() {
       }
     });
 
-    test('case 3: pickSources 优先级 cctvSource[0] > sources[0] > known_sources', () {
+    test('case 3: pickSources 优先级 cctvSource[0] > sources[0] > known_sources',
+        () {
       // CCTV-1 模拟 3 层源
       final c = Channel(
         id: 'CCTV1.cn',
@@ -198,7 +220,9 @@ void main() {
       ]);
     });
 
-    test('case 5: SourceDispatcher.dispatch CCTV 走 cctvSource, 非 CCTV 走 sources', () {
+    test(
+        'case 5: SourceDispatcher.dispatch CCTV 走 cctvSource, 非 CCTV 走 sources',
+        () {
       // CCTV 频道: dispatch 走 cctvSource 优先
       final cctvChannel = const Channel(
         id: 'CCTV1.cn',
@@ -221,12 +245,17 @@ void main() {
         name: 'CCTV-台球',
         country: 'CN',
         categories: <String>['sports'],
-        sources: <String>['http://38.75.136.137:98/gslb/dsdqpub/ystq.m3u8?auth=testpub'],
+        sources: <String>[
+          'http://38.75.136.137:98/gslb/dsdqpub/ystq.m3u8?auth=testpub'
+        ],
       );
       final cctvSubResult = SourceDispatcher.dispatch(cctvSubChannel);
-      expect(cctvSubResult, <String>[
-        'http://38.75.136.137:98/gslb/dsdqpub/ystq.m3u8?auth=testpub',
-      ], reason: 'CCTV 子频道走老逻辑 (channel.sources)');
+      expect(
+          cctvSubResult,
+          <String>[
+            'http://38.75.136.137:98/gslb/dsdqpub/ystq.m3u8?auth=testpub',
+          ],
+          reason: 'CCTV 子频道走老逻辑 (channel.sources)');
 
       // 非 CCTV (卫视) 走 channel.sources (老逻辑)
       const nonCctv = Channel(
@@ -256,7 +285,8 @@ void main() {
       expect(trace.strategy, 'cctv_priority');
       expect(trace.cctvSourcesUsed, 1);
       expect(trace.legacySourcesUsed, 1);
-      expect(trace.pickedSource, 'https://xykt-fix.github.io/play/a02a/index.m3u8');
+      expect(trace.pickedSource,
+          'https://xykt-fix.github.io/play/a02a/index.m3u8');
       expect(trace.strategyDetail, contains('cctvSource[0]'));
     });
 

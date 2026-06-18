@@ -90,7 +90,9 @@ class SourceDispatcher {
     String pickedMethod;
     if (cctv.isNotEmpty && picked.isNotEmpty && picked.first == cctv.first) {
       pickedMethod = 'cctvSource[0]';
-    } else if (sources.isNotEmpty && picked.isNotEmpty && picked.first == sources.first) {
+    } else if (sources.isNotEmpty &&
+        picked.isNotEmpty &&
+        picked.first == sources.first) {
       pickedMethod = 'sources[0] (iptv-org)';
     } else if (known.isNotEmpty) {
       pickedMethod = 'known_sources[0]';
@@ -129,5 +131,6 @@ class DispatchTrace {
   final String strategyDetail;
 
   @override
-  String toString() => 'DispatchTrace($channelId, $strategy, picked: $pickedSource)';
+  String toString() =>
+      'DispatchTrace($channelId, $strategy, picked: $pickedSource)';
 }

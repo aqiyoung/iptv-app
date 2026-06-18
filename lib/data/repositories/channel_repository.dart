@@ -36,7 +36,8 @@ List<Channel> mergeKnownSources(
       website: c.website,
       logoUrl: c.logoUrl,
       sources: merged,
-      cctvSource: c.cctvSource, // v0.3.5.3 (6/18): 保留 CCTV 专属源不被 known_sources 覆盖
+      cctvSource:
+          c.cctvSource, // v0.3.5.3 (6/18): 保留 CCTV 专属源不被 known_sources 覆盖
       isNsfw: c.isNsfw,
     );
   }).toList(growable: false);
