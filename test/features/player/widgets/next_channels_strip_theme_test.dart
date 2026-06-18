@@ -60,7 +60,8 @@ Future<void> _pump(
 
 void main() {
   group('NextChannelsStrip v0.3.5.4 主题适配 (浅色+暗色)', () {
-    testWidgets('浅色主题: section header 文字色 = colorScheme.onSurfaceVariant (跟主题联动)',
+    testWidgets(
+        '浅色主题: section header 文字色 = colorScheme.onSurfaceVariant (跟主题联动)',
         (tester) async {
       await _pump(tester, theme: IptvTheme.light());
       final header = tester.widget<Text>(find.text('下一频道'));
@@ -77,7 +78,8 @@ void main() {
           reason: 'section header 不该用浅色 token IptvColors.textPrimary');
     });
 
-    testWidgets('暗色主题: section header 文字色 = colorScheme.onSurfaceVariant (跟主题联动)',
+    testWidgets(
+        '暗色主题: section header 文字色 = colorScheme.onSurfaceVariant (跟主题联动)',
         (tester) async {
       await _pump(tester, theme: IptvTheme.dark());
       final header = tester.widget<Text>(find.text('下一频道'));
