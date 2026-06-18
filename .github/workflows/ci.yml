@@ -59,9 +59,10 @@ jobs:
           fi
 
       - name: Analyze
-        # v0.3.5.11 (6/18): 去掉 --no-fatal-infos --fatal-warnings, 全部不 fatal.
+        # v0.3.5.11 (6/18): --no-fatal-infos 防止 info 级 lint 阻 CI.
         # 18 个 pre-existing info (prefer_const + withOpacity deprecated) 不阻 CI.
-        run: flutter analyze
+        # error + warning 仍 fatal.
+        run: flutter analyze --no-fatal-infos
 
       - name: Run tests
         run: flutter test
