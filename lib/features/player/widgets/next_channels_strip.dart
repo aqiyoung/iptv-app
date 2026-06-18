@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
+import '../../../data/category_zh.dart';
 import '../../../data/models/channel.dart';
 
 /// "下一频道" 横滑条
@@ -187,7 +188,7 @@ class _ChannelChip extends StatelessWidget {
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    channel.primaryCategory,
+                    categoryZh(channel.primaryCategory),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: IptvTypography.caption.copyWith(

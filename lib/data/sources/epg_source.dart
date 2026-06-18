@@ -1,11 +1,12 @@
 import 'package:http/http.dart' as http;
 
+import '../../core/http/ipv4_client.dart';
 import '../models/epg.dart';
 
 /// iptv-org EPG 数据源 (XMLTV, 巨大，卡 3 仅占位)
 class EpgSource {
   EpgSource({http.Client? client, this.endpoint = _defaultEndpoint})
-      : _client = client ?? http.Client();
+      : _client = client ?? IPv4Client();
 
   static const String _defaultEndpoint =
       'https://iptv-org.github.io/epg/guides/ar.xml.gz';

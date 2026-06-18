@@ -5,11 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/http/ipv4_client.dart';
 import '../data/models/epg.dart';
 
 /// EPG 服务 — 懒加载 + 7 天缓存 + 当前/下一档节目展示
 class EpgService {
-  EpgService({http.Client? client}) : _client = client ?? http.Client();
+  EpgService({http.Client? client}) : _client = client ?? IPv4Client();
 
   /// 注入 http client (test 用); 保留字段以备未来 XMLTV 接入
   // ignore: unused_field
