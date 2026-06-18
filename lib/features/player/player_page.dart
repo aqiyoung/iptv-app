@@ -57,9 +57,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   void initState() {
     super.initState();
     // 6/17 (UI 优化): 不再用 immersiveSticky (完全隐藏状态栏) — 老板反馈
-    // immersive 时状态栏被隐, 拉下来也看不到频道名.  改成 edgeToEdge 保留
-    // 状态栏可见, 但用浅色文字 + 黑色背景.
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // v0.3.5.19: 改回 immersiveSticky — 全屏时完全隐藏状态栏 + 导航栏, 视频占满屏幕
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     // v0.3.5.4: SystemUI 样式延后到 postFrameCallback 里设置, 这样能
     // 拿到 Theme.of(context).colorScheme.surfaceContainer 跟当前主题配套.
     // 退出全屏/退出页面会在 _toggleFullscreen / dispose 里同样用主题色.
@@ -245,7 +244,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: scheme.surface,
+      backgroundColor: Colors.black, // 视频区纯黑底, 不跟主题联动 (threely 21:07 要求)
       body: SafeArea(
         child: asyncChannels.when(
           loading: () => Center(
@@ -281,9 +280,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         right: 8,
                         bottom: 8,
                         child: Material(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHigh,
+                          color: Colors.transparent,
                           shape: const CircleBorder(),
                           child: IconButton(
                             icon: Icon(
@@ -343,7 +340,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: scheme.surface,
+      backgroundColor: Colors.black, // 视频区纯黑底, 不跟主题联动 (threely 21:07 要求)
       // 6/18 P1 hotfix: 全屏时不 SafeArea.  immersiveSticky 已隐 status bar /
       // nav bar 视觉, 但 SafeArea 仍会按 MediaQuery padding 布局, 压下视频
       // ~24-32px (Android) / ~44px (iOS) 看着像有顶栏.
@@ -577,7 +574,7 @@ class _TopBarState extends State<_TopBar> {
           if (widget.onExitFullscreen != null) ...[
             const SizedBox(width: 4),
             Material(
-              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              color: Colors.transparent,
               shape: const CircleBorder(),
               child: IconButton(
                 icon: Icon(
