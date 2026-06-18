@@ -244,7 +244,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.black, // 视频区纯黑底, 不跟主题联动 (threely 21:07 要求)
+      backgroundColor: scheme.surface,
       body: SafeArea(
         child: asyncChannels.when(
           loading: () => Center(
@@ -340,7 +340,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.black, // 视频区纯黑底, 不跟主题联动 (threely 21:07 要求)
+      backgroundColor: scheme.surface,
       // 6/18 P1 hotfix: 全屏时不 SafeArea.  immersiveSticky 已隐 status bar /
       // nav bar 视觉, 但 SafeArea 仍会按 MediaQuery padding 布局, 压下视频
       // ~24-32px (Android) / ~44px (iOS) 看着像有顶栏.
