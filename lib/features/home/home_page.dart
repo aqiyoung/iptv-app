@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../core/tv/tv_focus.dart';
 import '../../data/channel_filter.dart';
@@ -188,7 +187,7 @@ class _AppHeader extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: IptvColors.accentTerracotta,
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
@@ -294,8 +293,8 @@ class _SkeletonBox extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        // 暖米色骨架色 — 在 IptvColors.dividerWarm 基础上加透明度, 不刺眼
-        color: IptvColors.dividerWarm.withOpacity(0.4),
+        // 暖骨架色 — 用 colorScheme.outlineVariant 跟主题联动 (浅+暗都覆盖)
+        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.4),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );
@@ -334,10 +333,10 @@ class _ContinueWatchingSkeleton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: IptvColors.dividerWarm.withOpacity(0.2),
+        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: IptvColors.dividerWarm.withOpacity(0.4),
+          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.4),
           width: 1,
         ),
       ),
@@ -370,10 +369,10 @@ class _CategoryCardSkeleton extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: IptvColors.dividerWarm.withOpacity(0.2),
+        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: IptvColors.dividerWarm.withOpacity(0.4),
+          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.4),
           width: 1,
         ),
       ),
@@ -402,9 +401,9 @@ class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
-            color: IptvColors.accentTerracotta,
+            color: Theme.of(context).colorScheme.primary,
             size: 48,
           ),
           const SizedBox(height: 16),
