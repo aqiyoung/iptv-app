@@ -61,8 +61,7 @@ void main() {
       expect(find.text('CCTV-1 综合'), findsOneWidget);
     });
 
-    testWidgets('移动端 → 主动全屏: SafeArea 消失, 视频区填满全屏',
-        (tester) async {
+    testWidgets('移动端 → 主动全屏: SafeArea 消失, 视频区填满全屏', (tester) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -100,8 +99,7 @@ void main() {
       expect(find.byIcon(Icons.fullscreen_exit), findsOneWidget);
     });
 
-    testWidgets('全屏: _TopBar 跟其他控件一起 3s 后隐身 (opacity 0)',
-        (tester) async {
+    testWidgets('全屏: _TopBar 跟其他控件一起 3s 后隐身 (opacity 0)', (tester) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -148,8 +146,7 @@ void main() {
       );
     });
 
-    testWidgets('全屏: 退出全屏按钮 (fullscreen_exit) 在 top right',
-        (tester) async {
+    testWidgets('全屏: 退出全屏按钮 (fullscreen_exit) 在 top right', (tester) async {
       tester.view.physicalSize = const Size(1080, 1920);
       tester.view.devicePixelRatio = 2.0;
       addTearDown(tester.view.resetPhysicalSize);
@@ -199,8 +196,7 @@ void main() {
       );
     });
 
-    testWidgets('TV 端 (短边 >= 600): 默认走全屏覆盖, _TopBar 渲染且参与隐身',
-        (tester) async {
+    testWidgets('TV 端 (短边 >= 600): 默认走全屏覆盖, _TopBar 渲染且参与隐身', (tester) async {
       // TV 端: logical 1920x1080 (短边 1080 >= 600)
       tester.view.physicalSize = const Size(1920, 1080);
       tester.view.devicePixelRatio = 1.0;
