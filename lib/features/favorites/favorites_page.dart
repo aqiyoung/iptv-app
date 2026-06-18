@@ -24,7 +24,8 @@ class FavoritesPage extends ConsumerWidget {
     final asyncChannels = ref.watch(channelsProvider);
 
     return Scaffold(
-      backgroundColor: IptvColors.bgParchment,
+      // 6/18 v0.3.6.1 hotfix: 删 scaffold 硬编码 bgParchment,
+      // 让 colorScheme.surface (light=bgParchment / dark=darkBg) 生效.
       body: SafeArea(
         child: Column(
           children: [
@@ -109,7 +110,9 @@ class FavoritesPage extends ConsumerWidget {
     final svc = ref.read(favoritesServiceProvider);
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: IptvColors.bgElevated,
+      // 6/18 v0.3.6.1 hotfix: bgElevated → colorScheme.surfaceContainer,
+      // 暗色下用 darkSurface (暖深灰) 而不是浅米色.
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -171,7 +174,9 @@ class _FavoritesAppBar extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            color: IptvColors.textPrimary,
+            // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface,
+            // 暗色下用 darkTextPrimary (米色) 而不是浅色 token.
+            color: Theme.of(context).colorScheme.onSurface,
             onPressed: () => context.pop(),
           ),
           const SizedBox(width: 4),
@@ -249,10 +254,12 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.favorite_border,
               size: 56,
-              color: IptvColors.textSecondary,
+              // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant,
+              // 暗色下用 darkTextSecondary (暖灰) 而不是浅色 token.
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
             Text('还没有收藏', style: IptvTypography.serifTitle),

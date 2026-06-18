@@ -142,7 +142,8 @@ class _BackBar extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: onBack,
-            color: IptvColors.textPrimary,
+            // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           const SizedBox(width: 4),
           Expanded(
@@ -210,8 +211,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(32),
+    return Padding(
+      padding: const EdgeInsets.all(32),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -219,10 +220,11 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.inbox_outlined,
               size: 48,
-              color: IptvColors.textSecondary,
+              // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            SizedBox(height: 16),
-            Text('该分类暂无频道', style: IptvTypography.serifTitle),
+            const SizedBox(height: 16),
+            const Text('该分类暂无频道', style: IptvTypography.serifTitle),
           ],
         ),
       ),

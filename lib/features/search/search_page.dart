@@ -167,7 +167,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       IconButton(
                         icon: const Icon(Icons.arrow_back),
                         onPressed: () => context.pop(),
-                        color: IptvColors.textPrimary,
+                        // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                       Expanded(
                         child: TextField(
@@ -177,7 +178,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           decoration: InputDecoration(
                             hintText: '搜索频道名或频道号…',
                             hintStyle: IptvTypography.body.copyWith(
-                              color: IptvColors.textSecondary,
+                              // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                             border: InputBorder.none,
                             suffixIcon: _query.isNotEmpty
@@ -207,7 +211,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       child: Text(
                         '输入关键词搜索频道',
                         style: IptvTypography.body.copyWith(
-                          color: IptvColors.textSecondary,
+                          // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -220,16 +225,21 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     child: Center(
                       child: Column(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.search_off,
                             size: 48,
-                            color: IptvColors.textSecondary,
+                            // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(height: 12),
                           Text(
                             '未找到匹配 "$_query" 的频道',
                             style: IptvTypography.body.copyWith(
-                              color: IptvColors.textSecondary,
+                              // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -307,9 +317,10 @@ class _SearchResultTile extends StatelessWidget {
                       Text(
                         channel.displayName,
                         style: IptvTypography.sansTitle.copyWith(
+                          // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface (x2)
                           color: isSelected
-                              ? IptvColors.textPrimary
-                              : IptvColors.textPrimary,
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       if (channel.country.isNotEmpty) ...[

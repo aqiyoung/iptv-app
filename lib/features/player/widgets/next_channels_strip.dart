@@ -54,7 +54,8 @@ class NextChannelsStrip extends StatelessWidget {
           child: Text(
             '下一频道',
             style: IptvTypography.caption.copyWith(
-              color: IptvColors.textSecondary,
+              // 6/18 v0.3.6.1 hotfix: textSecondary → onSurfaceVariant
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
           ),
