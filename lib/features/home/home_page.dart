@@ -213,21 +213,24 @@ class _AppHeader extends StatelessWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.search),
-                color: IptvColors.textPrimary,
+                // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
+                color: Theme.of(context).colorScheme.onSurface,
                 tooltip: '搜索频道',
                 onPressed: onSearchTap,
               ),
               // 6/17 v0.2.3 P1-2: 收藏页入口,  在 search 旁加 ❤️ icon
               IconButton(
                 icon: const Icon(Icons.favorite_border),
-                color: IptvColors.textPrimary,
+                // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
+                color: Theme.of(context).colorScheme.onSurface,
                 tooltip: '我的收藏',
                 onPressed: () => context.push('/favorites'),
               ),
               // 0.3.6+19: 暗色主题设置入口,  加齿轮 icon
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                color: IptvColors.textPrimary,
+                // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
+                color: Theme.of(context).colorScheme.onSurface,
                 tooltip: '设置',
                 onPressed: onSettingsTap,
               ),
