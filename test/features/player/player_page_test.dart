@@ -272,3 +272,365 @@ class _FakeChannelRepository implements ChannelRepository {
   @override
   Future<List<Channel>> loadBundled() async => _channels;
 }
+
+// ───────────── v0.3.5.7 theme color tests ─────────────
+
+/// Helper: pump PlayerPage with a specific brightness theme
+Future<void> _pumpPlayerPageThemed(
+  WidgetTester tester, {
+  required Brightness brightness,
+  required String channelId,
+}) async {
+  final router = GoRouter(
+    initialLocation: '/player/$channelId',
+    routes: [
+      GoRoute(
+        path: '/player/:channelId',
+        builder: (_, state) => PlayerPage(
+          channelId: state.pathParameters['channelId']!,
+        ),
+      ),
+    ],
+  );
+
+  final theme = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue,
+      brightness: brightness,
+    ),
+    useMaterial3: true,
+  );
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        streamOpenerProvider.overrideWithValue(
+          _ScriptedOpener([_ScriptedResult.failure()]),
+        ),
+        channelRepositoryProvider.overrideWith(
+          (ref) => _FakeChannelRepository(_channels),
+        ),
+        mediaKitVideoControllerProvider
+            .overrideWithValue(_FakeVideoController()),
+        mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
+        startupServiceProvider.overrideWithValue(StartupService()),
+        favoritesServiceProvider.overrideWithValue(
+          FavoritesService(store: InMemoryFavoritesStore()),
+        ),
+      ],
+      child: MaterialApp.router(
+        theme: theme,
+        routerConfig: router,
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.runAsync(() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+  });
+  await tester.pump();
+}
+
+/// Find the Scaffold widget and return its backgroundColor
+Color? _scaffoldBackground(WidgetTester tester) {
+  final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+  return scaffold.backgroundColor;
+}
+
+/// Find Icon widgets and return their colors
+List<Color?> _iconColors(WidgetTester tester) {
+  return tester
+      .widgetList<Icon>(find.byType(Icon))
+      .map((icon) => icon.color)
+      .toList();
+}
+
+/// Find Text widgets and return their colors (from style)
+List<Color?> _textColors(WidgetTester tester) {
+  return tester
+      .widgetList<Text>(find.byType(Text))
+      .map((text) => text.style?.color)
+      .toList();
+}
+
+group('v0.3.5.7 player_page theme colors', () {
+  testWidgets('浅色主题: Scaffold 背景是 surface (非黑)', (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    final bg = _scaffoldBackground(tester);
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .surface;
+    expect(bg, isNot(Colors.black),
+        reason: '浅色主题下 Scaffold 背景不应是黑色');
+    expect(bg, expected,
+        reason: 'Scaffold 背景应匹配 colorScheme.surface');
+  });
+
+  testWidgets('暗色主题: Scaffold 背景是 surface (非黑)', (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final bg = _scaffoldBackground(tester);
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .surface;
+    expect(bg, isNot(Colors.black),
+        reason: '暗色主题下 Scaffold 背景也不应是纯黑');
+    expect(bg, expected,
+        reason: 'Scaffold 背景应匹配 colorScheme.surface');
+  });
+
+  testWidgets('浅色主题: Icon 颜色是 onSurface (非白)', (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    final colors = _iconColors(tester);
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    for (final c in colors) {
+      expect(c, isNot(Colors.white),
+          reason: '浅色主题下 Icon 不应是白色');
+    }
+    // 至少有一个 Icon 用了 onSurface
+    expect(colors.any((c) => c == expected), isTrue,
+        reason: '至少一个 Icon 应使用 onSurface');
+  });
+
+  testWidgets('暗色主题: Icon 颜色是 onSurface', (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final colors = _iconColors(tester);
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    for (final c in colors) {
+      expect(c, isNot(Colors.white),
+          reason: '暗色主题下 Icon 不应是白色');
+    }
+    expect(colors.any((c) => c == expected), isTrue,
+        reason: '至少一个 Icon 应使用 onSurface');
+  });
+
+  testWidgets('浅色主题: TopBar 文字颜色是 onSurface (非白)', (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    // 频道名 TextStyle 用了 copyWith(color: onSurface)
+    final channelName = find.text('CCTV-1 综合');
+    expect(channelName, findsOneWidget);
+    final textWidget = tester.widget<Text>(channelName);
+    expect(textWidget.style?.color, expected,
+        reason: '频道名文字颜色应匹配 onSurface');
+  });
+
+  testWidgets('暗色主题: TopBar 文字颜色是 onSurface', (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    final channelName = find.text('CCTV-1 综合');
+    expect(channelName, findsOneWidget);
+    final textWidget = tester.widget<Text>(channelName);
+    expect(textWidget.style?.color, expected,
+        reason: '频道名文字颜色应匹配 onSurface');
+  });
+
+  testWidgets('浅色主题: 状态文字颜色是 onSurfaceVariant (非白)',
+      (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    final expected =
+        Theme.of(tester.element(find.byType(Scaffold)))
+            .colorScheme
+            .onSurfaceVariant;
+    // 状态文字 (准备中 / 播放失败 等)
+    final statusText = find.text('播放失败');
+    expect(statusText, findsOneWidget);
+    final textWidget = tester.widget<Text>(statusText);
+    expect(textWidget.style?.color, expected,
+        reason: '状态文字颜色应匹配 onSurfaceVariant');
+  });
+
+  testWidgets('暗色主题: 状态文字颜色是 onSurfaceVariant',
+      (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final expected =
+        Theme.of(tester.element(find.byType(Scaffold)))
+            .colorScheme
+            .onSurfaceVariant;
+    final statusText = find.text('播放失败');
+    expect(statusText, findsOneWidget);
+    final textWidget = tester.widget<Text>(statusText);
+    expect(textWidget.style?.color, expected,
+        reason: '状态文字颜色应匹配 onSurfaceVariant');
+  });
+
+  testWidgets('浅色主题: 加载指示器颜色是 onSurfaceVariant (非白)',
+      (tester) async {
+    // 用 loading 状态频道
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    // CircularProgressIndicator 在 loading 状态显示
+    final indicators = find.byType(CircularProgressIndicator);
+    if (indicators.evaluate().isNotEmpty) {
+      final indicator =
+          tester.widget<CircularProgressIndicator>(indicators.first);
+      final expected =
+          Theme.of(tester.element(find.byType(Scaffold)))
+              .colorScheme
+              .onSurfaceVariant;
+      expect(indicator.color, expected,
+          reason: 'CircularProgressIndicator 颜色应匹配 onSurfaceVariant');
+    }
+  });
+
+  testWidgets('暗色主题: 加载指示器颜色是 onSurfaceVariant',
+      (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final indicators = find.byType(CircularProgressIndicator);
+    if (indicators.evaluate().isNotEmpty) {
+      final indicator =
+          tester.widget<CircularProgressIndicator>(indicators.first);
+      final expected =
+          Theme.of(tester.element(find.byType(Scaffold)))
+              .colorScheme
+              .onSurfaceVariant;
+      expect(indicator.color, expected,
+          reason: 'CircularProgressIndicator 颜色应匹配 onSurfaceVariant');
+    }
+  });
+
+  testWidgets('浅色主题: 错误 overlay 文字颜色是 onSurface (非白)',
+      (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    // 错误 overlay 的 "播放失败" 标题
+    final errorTitle = find.text('播放失败');
+    expect(errorTitle, findsWidgets);
+    // 至少一个 "播放失败" 用了 onSurface
+    bool found = false;
+    for (final elt in errorTitle.evaluate()) {
+      final tw = tester.widget<Text>(find.descendant(
+        of: find.ancestor(of: elt, matching: find.byType(ColoredBox)),
+        matching: find.text('播放失败'),
+      ));
+      if (tw.style?.color == expected) {
+        found = true;
+        break;
+      }
+    }
+    expect(found, isTrue,
+        reason: '错误 overlay 标题文字颜色应匹配 onSurface');
+  });
+
+  testWidgets('暗色主题: 错误 overlay 文字颜色是 onSurface',
+      (tester) async {
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    final errorTitle = find.text('播放失败');
+    expect(errorTitle, findsWidgets);
+    bool found = false;
+    for (final elt in errorTitle.evaluate()) {
+      final tw = tester.widget<Text>(find.descendant(
+        of: find.ancestor(of: elt, matching: find.byType(ColoredBox)),
+        matching: find.text('播放失败'),
+      ));
+      if (tw.style?.color == expected) {
+        found = true;
+        break;
+      }
+    }
+    expect(found, isTrue,
+        reason: '错误 overlay 标题文字颜色应匹配 onSurface');
+  });
+
+  testWidgets('浅色主题: 全屏按钮 Icon 颜色是 onSurface (非白)',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.light,
+      channelId: 'CCTV1.cn',
+    );
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    // 全屏按钮 Icon
+    final fullscreenIcon = find.byIcon(Icons.fullscreen);
+    expect(fullscreenIcon, findsOneWidget);
+    final icon = tester.widget<Icon>(fullscreenIcon);
+    expect(icon.color, expected,
+        reason: '全屏按钮 Icon 颜色应匹配 onSurface');
+  });
+
+  testWidgets('暗色主题: 全屏按钮 Icon 颜色是 onSurface',
+      (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await _pumpPlayerPageThemed(
+      tester,
+      brightness: Brightness.dark,
+      channelId: 'CCTV1.cn',
+    );
+    final expected = Theme.of(tester.element(find.byType(Scaffold)))
+        .colorScheme
+        .onSurface;
+    final fullscreenIcon = find.byIcon(Icons.fullscreen);
+    expect(fullscreenIcon, findsOneWidget);
+    final icon = tester.widget<Icon>(fullscreenIcon);
+    expect(icon.color, expected,
+        reason: '全屏按钮 Icon 颜色应匹配 onSurface');
+  });
+});
