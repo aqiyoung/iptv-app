@@ -18,24 +18,24 @@ tasks.register("clean", Delete) {
 }
 
 // v0.3.7+20 (6/18): 后台强制更新 — install_plugin 2.1.0 缺 namespace
-// (AGP 8+ 要求).  加上 afterEvaluate 注入 namespace,  避免 push 后
-// 依赖老插件源包发布.  如果 命名空间原本就有,  这个 afterEvaluate 不会覆盖
-// (我们只在 namespace 为空时设).
+// (AGP 8+ 要求).  使用 plugins.withId 在 plugin apply 时注入 namespace.
+// 不能用 afterEvaluate (project 已 evaluated).  如果子项目是 com.android.library
+// 且 namespace 仍为 null,  试 manifest package 属性兑底.
 subprojects { subproject ->
-    afterEvaluate {
-        if (subproject.hasProperty("android")) {
-            def androidExt = subproject.extensions.findByName("android")
-            if (androidExt != null && androidExt.namespace == null) {
-                // 试 manifest package 属性兑底
+    subproject.plugins.withId("com.android.library") {
+        try {
+            if (subproject.android.namespace == null) {
                 def manifestFile = subproject.file("src/main/AndroidManifest.xml")
                 if (manifestFile.exists()) {
                     def manifestText = manifestFile.text
                     def pkgMatch = (manifestText =~ /package="([^"]+)"/)
                     if (pkgMatch.find()) {
-                        androidExt.namespace = pkgMatch.group(1)
+                        subproject.android.namespace = pkgMatch.group(1)
                     }
                 }
             }
+        } catch (Exception e) {
+            // ignore — 一些子项目可能不是 android library,  忽略
         }
     }
 }
