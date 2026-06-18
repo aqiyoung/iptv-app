@@ -21,7 +21,12 @@ publish_to: "none"
 #   home_page AppBar + 3 分类卡套 TvFocusCap (maxFocusable=9)
 #   焦点高亮增强: scale 1.03 → 1.05, 2px 暖色边
 #   ChatGPT 6/17 21:18 建议, 老板拍板
-version: 0.3.4+17
+# 0.3.5+18 (6/18): P2-2 4 个小优化 (老板 10:27 拍)
+#   - 播放页 sports 英文 → 中文 (lib/data/category_zh.dart)
+#   - CCTV-5 + 14 卫视 source URL 合并 (assets/data/channels_cn.json)
+#   - 强制 IPv4 http.Client, 修 wifi 加载不出来 (lib/core/http/ipv4_client.dart)
+#   - 维护脚本 scripts/merge_known_sources.py
+version: 0.3.5+18
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
