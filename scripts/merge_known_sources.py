@@ -76,7 +76,10 @@ def merge(channels, known):
         urls = known[matched_key]
         if isinstance(urls, str):
             urls = [urls]
-        ch['sources'] = [{'url': u, 'type': 'hls'} for u in urls]
+        # sources 字段是 List<String> (just URL), 不是 List<Map>.
+        # 跟 lib/data/models/channel.dart Channel.fromJson 一致: sources: List<String>
+        # 跟 test/data/channels_cn_asset_test.dart 的 cast<String>() 约束一致.
+        ch['sources'] = list(urls)
         ch['source_updated_at'] = TODAY
         merged += 1
     return merged, no_match

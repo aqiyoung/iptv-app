@@ -33,7 +33,7 @@ python3 scripts/merge_known_sources.py
 
 ### 写入规则
 
-- `sources` 字段写入 `[{url, type: 'hls'}, ...]`
+- `sources` 字段写入 `List<String>` (纯 URL 列表, 跟 `Channel.fromJson` 一致)
 - 加 `source_updated_at` 字段追踪合并时间 (e.g. `2026-06-18`)
 
 ### 历史
