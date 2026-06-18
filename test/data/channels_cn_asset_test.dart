@@ -72,12 +72,23 @@ void main() {
       }
     });
 
-    test('categories 至少一个, 主分类在允许集合内', () {
+    test('categories 至少一个, 主分类在允许集合内 (新创建的 merged channel 可以为空)', () {
       // iptv-org categories 有 'science' (不在我们的 wantedCats 里)
       // 这里只软验证: categories 非空 + 首项是字符串
+      // P2-2 合并脚本创建的 channel (known_sources 不带 categories) 允许空
       for (final c in list) {
         final cats = (c['categories'] as List?)?.cast<String>() ?? const [];
-        expect(cats, isNotEmpty, reason: '${c['id']} 没 categories');
+        // merged channel 类别是 [], 原 iptv-org channel 至少 1 个
+        if (cats.isEmpty) {
+          // merged channel: 校验 sources 非空 (避免伪空数据)
+          final sources = (c['sources'] as List?) ?? const [];
+          expect(
+            sources.isNotEmpty,
+            true,
+            reason: '${c['id']} 伪空 channel: 无 categories 又无 sources',
+          );
+          continue;
+        }
         expect(cats.first, isA<String>(), reason: '${c['id']} 首项不是字符串: $cats');
       }
     });
