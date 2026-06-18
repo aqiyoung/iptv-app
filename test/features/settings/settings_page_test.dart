@@ -63,12 +63,12 @@ void main() {
     testWidgets('currentVersion 跟 pubspec 版本一致', (tester) async {
       // pubspec.yaml version: 0.3.5+27 (v0.3.5.11 CI fix bump +1 from 0.3.5.9)
       // main.dart currentVersion 必须跟 pubspec 一致
-      expect(currentVersion, equals('0.3.5+27'));
+      expect(currentVersion, equals('0.3.5+37'));
     });
 
     testWidgets('currentVersionCode 是正整数', (tester) async {
       expect(currentVersionCode, greaterThan(0));
-      expect(currentVersionCode, equals(27)); // v0.3.5.11 bump +1 from 26
+      expect(currentVersionCode, equals(37)); // v0.3.5.11 bump +1 from 26
     });
 
     testWidgets('设置页同时有主题和版本号 section', (tester) async {
