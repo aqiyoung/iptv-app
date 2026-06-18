@@ -576,6 +576,14 @@
       {
         "url": "http://ott.mobaibox.com/PLTV/3/224/3221226019/index.m3u8",
         "type": "hls"
+      },
+      {
+        "url": "http://74.91.26.218:82/live/cctv5plus.m3u8",
+        "type": "hls"
+      },
+      {
+        "url": "https://live.fanmingming.com/cctv5.m3u8",
+        "type": "hls"
       }
     ]
   },
@@ -603,6 +611,10 @@
       },
       {
         "url": "http://198.204.240.250:82/live/cctv5+.m3u8",
+        "type": "hls"
+      },
+      {
+        "url": "http://198.204.240.250:82/live/cctv5.m3u8",
         "type": "hls"
       }
     ]

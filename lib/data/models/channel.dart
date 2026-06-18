@@ -75,6 +75,21 @@ class Channel {
   static const Map<String, String> _manualZhMap = kChannelNameZh;
 
   factory Channel.fromJson(Map<String, dynamic> j) {
+    // v0.3.5.1 (6/18): 支持 string 和 {url, type} dict 两种 source 格式.
+    // channels_cn.json 现有 145 string 源 (iptv-org 原始格式) + 83 dict 源
+    // (merge_known_sources.py 把 known_sources.json 合并后改的格式).
+    // 之前 .cast<String>() 在 dict 上 view 不报错, 但访问时 TypeError 炸,
+    // CCTV-5 加载不出来可能就是这原因.
+    final rawSources = (j['sources'] as List?) ?? const [];
+    final sources = <String>[];
+    for (final s in rawSources) {
+      if (s is String) {
+        sources.add(s);
+      } else if (s is Map) {
+        final url = s['url'];
+        if (url is String) sources.add(url);
+      }
+    }
     return Channel(
       id: j['id'] as String,
       name: (j['name'] as String?) ?? (j['id'] as String),
@@ -84,7 +99,7 @@ class Channel {
       altNames: ((j['alt_names'] as List?)?.cast<String>()) ?? const <String>[],
       website: j['website'] as String?,
       logoUrl: j['logo'] as String?,
-      sources: ((j['sources'] as List?)?.cast<String>()) ?? const <String>[],
+      sources: sources,
       isNsfw: (j['is_nsfw'] as bool?) ?? false,
     );
   }
