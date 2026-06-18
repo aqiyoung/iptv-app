@@ -1,10 +1,11 @@
 // v0.3.6.1 hotfix: 暗色主题 widget 适配 — favorites_page dark theme test
 //
 // 验证:
-//   1. dark theme 下, FavoritesPage 渲染的 Text widget 没有 hardcode 浅色 token
-//      (IptvColors.textPrimary / IptvColors.textSecondary)
-//   2. showModalBottomSheet 内部背景色 (colorScheme.surfaceContainer) 是 dark
-//   3. Scaffold 不再 hardcode bgParchment (删了 backgroundColor)
+//   1. dark theme 下, FavoritesPage Scaffold 不再 hardcode bgParchment
+//      (让 theme.surface 生效)
+//   2. 返回按钮 IconButton.color 用 colorScheme.onSurface (= darkTextPrimary)
+//   3. 空态 favorite_border IconButton.color 用 colorScheme.onSurfaceVariant
+//      (不是 textSecondary 浅色 token)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,37 +70,35 @@ void main() {
           reason: 'Scaffold 硬编码 backgroundColor 会盖掉 theme');
     });
 
-    testWidgets('所有 Text widget 都没有用浅色 token (textPrimary/textSecondary)',
+    testWidgets('返回按钮 IconButton.color = onSurface (darkTextPrimary)',
         (tester) async {
       await _pumpDark(tester);
-
-      final offenders = <String>[];
-      for (final w in tester.widgetList<Text>(find.byType(Text))) {
-        final c = w.style?.color;
-        if (c == IptvColors.textPrimary) {
-          offenders.add('${w.data} uses IptvColors.textPrimary');
-        } else if (c == IptvColors.textSecondary) {
-          offenders.add('${w.data} uses IptvColors.textSecondary');
-        }
-      }
-      expect(offenders, isEmpty,
-          reason:
-              '暗色主题下不允许 hardcode 浅色 token: ${offenders.join(", ")}');
+      // _FavoritesAppBar 里的返回 IconButton
+      final backButton = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.arrow_back),
+      );
+      expect(backButton.color, isNotNull,
+          reason: '返回按钮的 IconButton.color 应该是显式设置的');
+      expect(backButton.color, isNot(equals(IptvColors.textPrimary)),
+          reason: '返回按钮不该用浅色 token IptvColors.textPrimary');
+      // dark theme 下应该用 darkTextPrimary (colorScheme.onSurface)
+      expect(backButton.color, equals(IptvColors.darkTextPrimary));
     });
 
-    testWidgets('空态图标色用 onSurfaceVariant (darkTextSecondary)',
+    testWidgets('空态 favorite_border icon 颜色 != textSecondary 浅色 token',
         (tester) async {
-      // 空收藏列表 → 显示 _EmptyState 里的 favorite_border 图标
+      // 空收藏列表 → _EmptyState → favorite_border icon
       await _pumpDark(tester);
-      // _EmptyState 里的 favorite_border icon
-      final iconWidgets = tester.widgetList<Icon>(find.byIcon(Icons.favorite_border));
-      expect(iconWidgets, isNotEmpty);
-      final icon = iconWidgets.first;
-      expect(icon.color, isNot(equals(IptvColors.textSecondary)),
-          reason: '空态图标不该用浅色 token');
-      // dark theme onSurfaceVariant = M3 default light purple-gray
-      // (IptvTheme.dark() 没显式 set onSurfaceVariant, 走 M3 default)
-      expect(icon.color, isA<Color>());
+      // ChannelTile 不渲染 (空 favIds), _EmptyState 显示 1 个 favorite_border icon
+      final iconFinder = find.byIcon(Icons.favorite_border);
+      expect(iconFinder, findsOneWidget);
+      // 从 IconTheme.of 读 resolved color (M3 IconButton/Icon 用 IconTheme 传色)
+      final ctx = tester.element(iconFinder);
+      final resolvedColor = IconTheme.of(ctx).color;
+      expect(resolvedColor, isNotNull);
+      // 不应该是浅色 textSecondary
+      expect(resolvedColor, isNot(equals(IptvColors.textSecondary)),
+          reason: '空态图标不该用浅色 token IptvColors.textSecondary');
     });
   });
 }

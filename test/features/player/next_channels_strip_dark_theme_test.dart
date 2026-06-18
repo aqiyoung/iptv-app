@@ -1,6 +1,6 @@
 // v0.3.6.1 hotfix: 暗色主题 widget 适配 — next_channels_strip dark theme test
 //
-// 验证 L57 「下一频道」 section 标题用 onSurfaceVariant (darkTextSecondary).
+// 验证 L57 「下一频道」 section 标题用 onSurfaceVariant.
 // 注意: chip 本身 (L126, 147, 160, 161, 185, 196) 故意保留浅色 token,
 // 因为 chip 浮在视频上 (黑底) — 需要高对比度, 不跟随 app 主题.
 // 范围严格按 task spec: 只 L57.
@@ -53,18 +53,15 @@ Future<void> _pumpDark(WidgetTester tester) async {
 
 void main() {
   group('NextChannelsStrip dark theme (v0.3.6.1 hotfix)', () {
-    testWidgets('「下一频道」 section header 文字色 = darkTextSecondary',
+    testWidgets('「下一频道」 section header 文字色 != textSecondary 浅色 token',
         (tester) async {
       await _pumpDark(tester);
       final header = tester.widget<Text>(find.text('下一频道'));
       expect(header, isNotNull);
-      // L57 之前 hardcode textSecondary, 现在用 onSurfaceVariant (dark theme
-      // 下 = darkTextSecondary)
+      // L57 之前 hardcode textSecondary, 现在用 onSurfaceVariant
+      expect(header.style?.color, isNotNull);
       expect(header.style?.color, isNot(equals(IptvColors.textSecondary)),
-          reason: '「下一频道」 section header 不该用浅色 token');
-      // dark theme onSurfaceVariant 走 M3 default (IptvTheme.dark() 没显式
-      // set onSurfaceVariant), 只要不是浅色 token 就 OK
-      expect(header.style?.color, isA<Color>());
+          reason: '「下一频道」 section header 不该用浅色 token IptvColors.textSecondary');
     });
   });
 }
