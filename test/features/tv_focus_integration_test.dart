@@ -242,8 +242,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400)); // debounce 300ms
       await tester.pumpAndSettle();
 
-      // 1 back + 2 result tile = 3 TvFocus
-      expect(find.byType(TvFocus), findsNWidgets(3));
+      // 1 back + 1 clear (query 非空) + 2 result tile = 4 TvFocus
+      expect(find.byType(TvFocus), findsNWidgets(4));
     });
 
     testWidgets('category_page (cctv): back + 列表 tile 套 TvFocus',
