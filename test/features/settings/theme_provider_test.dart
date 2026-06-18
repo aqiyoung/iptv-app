@@ -29,8 +29,7 @@ void main() {
       expect(container.read(themeModeProvider), ThemeMode.system);
     });
 
-    test('setMode(ThemeMode.dark) 后 SharedPreferences 写入了 "dark"',
-        () async {
+    test('setMode(ThemeMode.dark) 后 SharedPreferences 写入了 "dark"', () async {
       final prefs = await SharedPreferences.getInstance();
       final container = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
@@ -43,8 +42,7 @@ void main() {
       expect(prefs.getString('theme_mode'), 'dark');
     });
 
-    test('setMode(ThemeMode.light) 后 SharedPreferences 写入了 "light"',
-        () async {
+    test('setMode(ThemeMode.light) 后 SharedPreferences 写入了 "light"', () async {
       final prefs = await SharedPreferences.getInstance();
       final container = ProviderContainer(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],

@@ -59,8 +59,7 @@ void main() {
       expect(sysUi?.statusBarIconBrightness, Brightness.dark);
     });
 
-    test('dark() 主色保留 IptvColors.accentTerracotta (暖橙在深底上对比好)',
-        () {
+    test('dark() 主色保留 IptvColors.accentTerracotta (暖橙在深底上对比好)', () {
       final dark = IptvTheme.dark();
       expect(dark.colorScheme.primary, IptvColors.accentTerracotta);
     });
