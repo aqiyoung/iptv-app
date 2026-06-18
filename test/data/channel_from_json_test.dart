@@ -28,7 +28,10 @@ void main() {
         'country': 'CN',
         'categories': ['sports'],
         'sources': [
-          {'url': 'http://ottrrs.hl.chinamobile.com/PLTV/index.m3u8', 'type': 'hls'},
+          {
+            'url': 'http://ottrrs.hl.chinamobile.com/PLTV/index.m3u8',
+            'type': 'hls'
+          },
           {'url': 'https://live.fanmingming.com/cctv5.m3u8', 'type': 'hls'},
         ],
       });
