@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:sanyelive/core/http/ipv4_client.dart';
 
 void main() {
   group('IPv4Client', () {
-    test('创建成功 (HttpClient.addresses 为空 = 强制 IPv4)', () {
+    test('创建成功 (HttpClient.connectionFactory 已装 IPv4-only)', () {
       final client = IPv4Client();
       expect(client, isNotNull);
       client.close();

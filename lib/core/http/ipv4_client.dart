@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -9,20 +10,36 @@ import 'package:http/io_client.dart';
 /// - 移动数据 (4G/5G): 双栈, 看起来工作
 /// - wifi 路由器 (IPv4-only): 解析到 IPv6 地址卡死, 用户"必须连手机流量"
 ///
-/// 通过把 `HttpClient.addresses` 设空列表, 强制走系统默认 IPv4 解析.
+/// 通过给 [HttpClient.connectionFactory] 装一个 IPv4-only 的 [ConnectionTask]
+/// (拿域名 -> InternetAddress(IPv4) -> Socket.connect IPv4), 强制走 IPv4.
 class IPv4Client extends http.BaseClient {
   IPv4Client({Duration? timeout})
       : _timeout = timeout ?? const Duration(seconds: 30) {
-    _ioClient = IOClient(_createHttpClient());
+    _httpClient = _createHttpClient();
+    _ioClient = IOClient(_httpClient);
   }
 
   final Duration _timeout;
+  late final HttpClient _httpClient;
   late final IOClient _ioClient;
 
   static HttpClient _createHttpClient() {
     final client = HttpClient();
-    // 关键: 强制 IPv4 解析 (happy-eyeballs disabled)
-    client.addresses = <InternetAddress>[];
+    // 关键: 用 connectionFactory 强制只走 IPv4
+    // (HttpClient 没有 setAddresses, addresses 是 getter)
+    client.connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) {
+      // 直接 (不通过代理) 时, 用 IPv4 解析域名 + 连
+      if (proxyHost == null || proxyHost.isEmpty) {
+        return Socket.startConnect(
+          uri.host,
+          uri.port,
+          // 关键: type=InternetAddressType.IPv4 强制 IPv4 解析
+          type: InternetAddressType.IPv4,
+        );
+      }
+      // 走代理时仍用默认行为
+      return null;
+    };
     return client;
   }
 
