@@ -271,7 +271,7 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
-            ## 三页直播 v${{ github.ref_name }}
+            ## 三页直播 ${{ github.ref_name }}
 
             ### APK 信息
             - **架构**: arm64-v8a (Android TV / 手机 / 盒子)
@@ -279,7 +279,7 @@ jobs:
             - **SHA256**: `${{ env.APK_SHA256 }}`
 
             ### 下载
-            下载下方 `sanyelive-v${{ github.ref_name }}-arm64-v8a.apk` 即可在 Android 设备上安装。
+            下载下方 `sanyelive-${{ github.ref_name }}-arm64-v8a.apk` 即可在 Android 设备上安装。
             `.sha256` 文件包含校验值, 可用 `sha256sum` 验证。
 
             ### 构建信息
