@@ -128,7 +128,8 @@ void main() {
       expect(find.text('央视'), findsOneWidget);
     });
 
-    testWidgets('AppBar actions 包在 TvFocusCapWrap (maxPerRow=3) 内', (tester) async {
+    testWidgets('AppBar actions 包在 TvFocusCapWrap (maxPerRow=3) 内',
+        (tester) async {
       await _pump(
         tester,
         router: _router(),

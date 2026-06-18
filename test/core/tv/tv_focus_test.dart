@@ -116,7 +116,8 @@ void main() {
       expect(tester.takeException(), isA<AssertionError>());
     });
 
-    testWidgets('TvFocusCapWrap children <= maxPerRow → Wrap 渲染', (tester) async {
+    testWidgets('TvFocusCapWrap children <= maxPerRow → Wrap 渲染',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
