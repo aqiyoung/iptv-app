@@ -10,12 +10,12 @@ import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/channel.dart';
 import '../../data/repositories/channel_repository.dart';
-import '../../features/favorites/favorite_button.dart';
 import '../../services/player_service.dart';
 import '../../services/startup_service.dart';
 import 'widgets/next_channels_strip.dart';
 import 'widgets/now_next_program.dart';
-import 'widgets/source_picker_sheet.dart';
+import 'widgets/player_top_bar.dart';
+import 'widgets/video_area.dart';
 
 /// 播放页 — 卡 5 实现
 ///   - 顶部: 返回 + 频道名 + 节目时间
@@ -266,7 +266,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _VideoArea(
+                      VideoArea(
                         controller: controller,
                         state: state,
                         channel: channel,
@@ -297,7 +297,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   ),
                 ),
                 // 顶栏 (返回 / 频道名 / 收藏等)
-                _TopBar(
+                TopBar(
                   channel: channel,
                   state: state,
                   onBack: () => context.pop(),
@@ -373,7 +373,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       _resetHideTimer();
                     }
                   },
-                  child: _VideoArea(
+                  child: VideoArea(
                     controller: controller,
                     state: state,
                     channel: channel,
@@ -387,7 +387,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: _TopBar(
+                child: TopBar(
                   channel: channel,
                   state: state,
                   onBack: () => context.pop(),
@@ -448,338 +448,3 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 }
 
-class _TopBar extends StatefulWidget {
-  const _TopBar({
-    required this.channel,
-    required this.state,
-    required this.onBack,
-    this.onExitFullscreen,
-  });
-
-  final Channel? channel;
-  final PlayerState state;
-  final VoidCallback onBack;
-  // v0.3.5.5 P0 bug fix: 退出全屏按钮 — 永远显示, 不参与 _controlsVisible
-  // 3s 隐身.  null = 不渲染 (移动端嵌入布局 / TV 默认布局).
-  final VoidCallback? onExitFullscreen;
-
-  @override
-  State<_TopBar> createState() => _TopBarState();
-}
-
-class _TopBarState extends State<_TopBar> {
-  late Timer _clockTimer;
-  String _clockText = _clockNow();
-
-  @override
-  void initState() {
-    super.initState();
-    _clockTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() => _clockText = _clockNow());
-    });
-  }
-
-  @override
-  void dispose() {
-    _clockTimer.cancel();
-    super.dispose();
-  }
-
-  static String _clockNow() {
-    final n = DateTime.now();
-    return '${n.hour.toString().padLeft(2, '0')}:${n.minute.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final statusText = switch (widget.state.status) {
-      PlayerStatus.idle => '准备中',
-      PlayerStatus.loading => widget.state.attempt == null
-          ? '正在尝试源…'
-          : '尝试源 ${widget.state.attempt!.index}/${widget.state.attempt!.total}',
-      PlayerStatus.playing => 'LIVE',
-      PlayerStatus.error => '播放失败',
-    };
-
-    final scheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: Row(
-        children: [
-          IconButton(
-            icon: Icon(Icons.arrow_back, color: scheme.onSurface),
-            onPressed: widget.onBack,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.channel?.displayName ?? '加载中…',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: IptvTypography.serifTitle
-                      .copyWith(color: scheme.onSurface, fontSize: 18),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    _StatusDot(status: widget.state.status),
-                    const SizedBox(width: 4),
-                    Text(
-                      statusText,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _clockText,
-                      style: TextStyle(
-                        color: scheme.onSurfaceVariant,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.more_vert, color: scheme.onSurface),
-            onPressed: () {},
-          ),
-          if (widget.channel != null) ...[
-            const SizedBox(width: 4),
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: FavoriteIcon(
-                channelId: widget.channel!.id,
-                channelName: widget.channel!.name,
-                size: 24,
-                onChanged: (isFav) {
-                  // 收藏状态变化不需要额外动作, sqflite 已持久化
-                },
-              ),
-            ),
-          ],
-          // v0.3.5.5 P0 bug fix: 退出全屏按钮放在 TopBar 末尾, 永远 visible.
-          // (原来在 _buildFullscreenOverlay 里单独 Positioned, 跟 TopBar
-          // 走 _controlsVisible 时一起隐 — 用户反馈体验严重 bug.)
-          // 跟右下角全屏按钮统一 — 背景 surfaceContainerHigh, 图标
-          // onSurface (跟主题联动).
-          if (widget.onExitFullscreen != null) ...[
-            const SizedBox(width: 4),
-            Material(
-              color: Colors.transparent,
-              shape: const CircleBorder(),
-              child: IconButton(
-                icon: Icon(
-                  Icons.fullscreen_exit,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  size: 22,
-                ),
-                tooltip: '退出全屏',
-                onPressed: widget.onExitFullscreen!,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusDot extends StatelessWidget {
-  const _StatusDot({required this.status});
-  final PlayerStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final color = switch (status) {
-      PlayerStatus.playing => IptvColors.accentTerracotta,
-      PlayerStatus.loading => IptvColors.accentTerracotta.withOpacity(0.7),
-      PlayerStatus.error => scheme.error,
-      PlayerStatus.idle => scheme.onSurfaceVariant.withOpacity(0.38),
-    };
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
-}
-
-class _VideoArea extends StatelessWidget {
-  const _VideoArea({
-    required this.controller,
-    required this.state,
-    required this.channel,
-  });
-
-  final VideoController controller;
-  final PlayerState state;
-  final Channel? channel;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-      // 6/17 修容器超出: Wrap AspectRatio 16/9 + Stack in ClipRect, 防止在
-      // 某些比例 (e.g. 21:9 曲面屏, iPad 分屏) 上 video widget 算出意外高度
-      // 溢出顶/底栏.
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // 视频底层 (黑色)
-            ColoredBox(color: Colors.black),
-            // media_kit Video (播放时)
-            if (state.status == PlayerStatus.playing)
-              Video(controller: controller),
-            // 加载 / 错误 / 空 占位
-            switch (state.status) {
-              PlayerStatus.idle || PlayerStatus.loading => _LoadingOverlay(
-                  text: state.attempt == null
-                      ? '正在打开…'
-                      : '尝试源 ${state.attempt!.index}/${state.attempt!.total}',
-                ),
-              PlayerStatus.error =>
-                _ErrorOverlay(message: state.error ?? '播放失败'),
-              PlayerStatus.playing => const SizedBox.shrink(),
-            },
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoadingOverlay extends StatelessWidget {
-  const _LoadingOverlay({required this.text});
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return ColoredBox(
-      color: scheme.shadow,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 36,
-              height: 36,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  IptvColors.accentTerracotta,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(text, style: TextStyle(color: scheme.onSurfaceVariant)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorOverlay extends ConsumerWidget {
-  const _ErrorOverlay({required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // 6/17 v0.2.3 P0-4: 错误时给用户「重试 + 换源」按钮.
-    // current channel 从 currentPlayerStateProvider 拿.  避免外部多传一个
-    // channel 参数导致状态不一致.
-    final state = ref.watch(currentPlayerStateProvider);
-    final channel = state.channel;
-    final hasMultipleSources = (channel?.sources.length ?? 0) > 1;
-
-    final scheme = Theme.of(context).colorScheme;
-
-    return ColoredBox(
-      color: scheme.shadow,
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.error_outline,
-                color: scheme.error,
-                size: 48,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '播放失败',
-                style: TextStyle(
-                  color: scheme.onSurface,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              // 重试 + 换源 两个按钮.  重试: 重调 play(当前 channel), 走
-              // SourceFailover 自动选源.  换源: 弹底部 sheet, 选单源调
-              // playSingleSource.
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: channel == null
-                        ? null
-                        : () {
-                            ref.read(playerServiceProvider).play(channel);
-                          },
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: const Text('重试'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: scheme.onPrimary,
-                      side: BorderSide(color: scheme.outline),
-                    ),
-                  ),
-                  if (hasMultipleSources) ...[
-                    const SizedBox(width: 12),
-                    FilledButton.icon(
-                      onPressed: channel == null
-                          ? null
-                          : () async {
-                              final url = await pickSourceUrl(context, channel);
-                              if (url == null) return; // 取消
-                              ref
-                                  .read(playerServiceProvider)
-                                  .playSingleSource(url, channel: channel);
-                            },
-                      icon: const Icon(Icons.swap_horiz, size: 18),
-                      label: const Text('换源'),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: IptvColors.accentTerracotta,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
