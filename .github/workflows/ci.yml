@@ -34,6 +34,13 @@ jobs:
       - name: Verify formatting (auto-fix + commit on dirty)
         run: |
           set -e
+          # P2-1 (6/18) fix: actions/checkout@v4 在 PR context 默认是 detached HEAD,
+          #  `git push` 无 refspec 会报错 "You are not currently on a branch." 
+          #  创建本地分支头, push 时指名 refspec 才能推回 PR 分支.
+          if [ -n "${GITHUB_HEAD_REF:-}" ]; then
+            git checkout -B "${GITHUB_HEAD_REF}" HEAD
+            echo "Reattached to branch: ${GITHUB_HEAD_REF}"
+          fi
           if ! dart format --output=none --set-exit-if-changed .; then
             echo "Auto-formatting dirty files..."
             dart format .
@@ -43,7 +50,9 @@ jobs:
             git add -A
             if ! git diff --staged --quiet; then
               git commit -m "style: auto-fix dart format"
-              git push
+              # 推送指名 refspec — PR context 下 HEAD 是 detached, 
+              #  需用 github.head_ref (PR 源分支) 才能 push 回去.
+              git push origin "HEAD:refs/heads/${GITHUB_HEAD_REF}"
               echo "Committed and pushed dart format fixes"
             fi
           fi
