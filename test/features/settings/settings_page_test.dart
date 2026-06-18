@@ -31,7 +31,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: Scaffold(body: SettingsPage()),
+            home: SettingsPage(),
           ),
         ),
       );
@@ -51,7 +51,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: Scaffold(body: SettingsPage()),
+            home: SettingsPage(),
           ),
         ),
       );
@@ -81,7 +81,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: const MaterialApp(
-            home: Scaffold(body: SettingsPage()),
+            home: SettingsPage(),
           ),
         ),
       );
