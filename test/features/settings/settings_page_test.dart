@@ -22,13 +22,14 @@ void main() {
 
   group('SettingsPage 版本号显示 (v0.3.5.9)', () {
     testWidgets('显示版本号 (currentVersion)', (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(
-              SharedPreferences.getMockInstance(),
-            ),
-          ],
+        UncontrolledProviderScope(
+          container: container,
           child: MaterialApp(
             home: Scaffold(body: const SettingsPage()),
           ),
@@ -40,13 +41,14 @@ void main() {
     });
 
     testWidgets('显示 build number (currentVersionCode)', (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(
-              SharedPreferences.getMockInstance(),
-            ),
-          ],
+        UncontrolledProviderScope(
+          container: container,
           child: MaterialApp(
             home: Scaffold(body: const SettingsPage()),
           ),
@@ -68,13 +70,14 @@ void main() {
     });
 
     testWidgets('设置页同时有主题和版本号 section', (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      final container = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(container.dispose);
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(
-              SharedPreferences.getMockInstance(),
-            ),
-          ],
+        UncontrolledProviderScope(
+          container: container,
           child: MaterialApp(
             home: Scaffold(body: const SettingsPage()),
           ),
