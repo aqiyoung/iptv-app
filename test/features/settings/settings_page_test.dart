@@ -12,7 +12,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sanyelive/features/settings/settings_page.dart';
 import 'package:sanyelive/main.dart' show currentVersion, currentVersionCode;
-import 'package:sanyelive/features/settings/theme_provider.dart';
 
 void main() {
   group('SettingsPage 版本号显示 (v0.3.5.9)', () {
