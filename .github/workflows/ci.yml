@@ -34,16 +34,24 @@ jobs:
       - name: Verify formatting (auto-fix + commit on dirty)
         run: |
           set -e
-          # P2-1 (6/18) fix: actions/checkout@v4 在 PR context 默认是 detached HEAD,
-          #  `git push` 无 refspec 会报错 "You are not currently on a branch." 
-          #  创建本地分支头, push 时指名 refspec 才能推回 PR 分支.
+          # v0.3.6+44: 区分 push 事件和 PR 事件.
+          #  PR 事件: GITHUB_HEAD_REF 非空, checkout 到 PR 源分支后 push.
+          #  push 事件: GITHUB_HEAD_REF 为空, 直接用 GITHUB_REF_NAME 推送.
           if [ -n "${GITHUB_HEAD_REF:-}" ]; then
+            # PR context: detached HEAD → checkout 到 PR 源分支
             git fetch origin "refs/heads/${GITHUB_HEAD_REF}:refs/remotes/origin/${GITHUB_HEAD_REF}"
             git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
-            echo "Reattached to branch: ${GITHUB_HEAD_REF} (at origin/${GITHUB_HEAD_REF})"
+            echo "Reattached to PR branch: ${GITHUB_HEAD_REF}"
+            PUSH_REF="${GITHUB_HEAD_REF}"
+          else
+            # push 事件: 已经在正确分支上, 直接 push
+            echo "Push event on branch: ${GITHUB_REF_NAME}"
+            PUSH_REF="${GITHUB_REF_NAME}"
           fi
-          if dart format --output=none .; then
-            echo "Auto-formatting dirty files..."
+          if dart format --output=none . 2>/dev/null; then
+            echo "Format check passed — no changes needed"
+          else
+            echo "Format issues found — auto-fixing..."
             dart format .
             git config user.email "openclaw@threel.site"
             git config user.name "小七 (OpenClaw)"
@@ -51,11 +59,12 @@ jobs:
             git add -A
             if ! git diff --staged --quiet; then
               git commit -m "style: auto-fix dart format"
-              # 推送指名 refspec — PR context 下 HEAD 是 detached, 
-              #  需用 github.head_ref (PR 源分支) 才能 push 回去.
-              git push origin "HEAD:refs/heads/${GITHUB_HEAD_REF}"
-              echo "Committed and pushed dart format fixes"
+              git push origin "HEAD:refs/heads/${PUSH_REF}"
+              echo "Committed and pushed dart format fixes to ${PUSH_REF}"
             fi
+          else
+            echo "Format check failed — blocking CI"
+            exit 1
           fi
 
       - name: Analyze
