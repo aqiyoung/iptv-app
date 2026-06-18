@@ -280,7 +280,9 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         right: 8,
                         bottom: 8,
                         child: Material(
-                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh,
                           shape: const CircleBorder(),
                           child: IconButton(
                             icon: Icon(

@@ -140,9 +140,8 @@ void main() {
       final ctx = tester.element(btnFinder);
       final expectedColor = Theme.of(ctx).colorScheme.surfaceContainerHigh;
       // 从 Material 父级拿 color
-      final materialFinder = find
-          .ancestor(of: btnFinder, matching: find.byType(Material))
-          .first;
+      final materialFinder =
+          find.ancestor(of: btnFinder, matching: find.byType(Material)).first;
       final material = tester.widget<Material>(materialFinder);
       expect(material.color, isNotNull);
       expect(material.color, equals(expectedColor),
@@ -158,9 +157,8 @@ void main() {
       );
       final btnFinder = find.widgetWithIcon(IconButton, Icons.fullscreen);
       expect(btnFinder, findsOneWidget);
-      final materialFinder = find
-          .ancestor(of: btnFinder, matching: find.byType(Material))
-          .first;
+      final materialFinder =
+          find.ancestor(of: btnFinder, matching: find.byType(Material)).first;
       final material = tester.widget<Material>(materialFinder);
       // 暗色 theme 下, surfaceContainerHigh = IptvColors.darkSurfaceHigh
       // (312B25 暖深灰), 跟浅色的 EAE5DA 不同, 验证用的是当前主题的 token.
@@ -172,8 +170,7 @@ void main() {
           reason: '暗色下不能用浅色 token IptvColors.bgElevated');
     });
 
-    testWidgets('浅/暗色 Scaffold 视频底都是 Colors.black (跟主题无关)',
-        (tester) async {
+    testWidgets('浅/暗色 Scaffold 视频底都是 Colors.black (跟主题无关)', (tester) async {
       // 浅色: Scaffold 应该是 Colors.black (视频区, 不跟主题)
       await _pumpPlayer(
         tester,

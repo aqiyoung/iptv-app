@@ -71,7 +71,8 @@ void main() {
           reason: '浅色下 section header = onSurfaceVariant = textSecondary');
     });
 
-    testWidgets('暗色主题: section header 文字色 = onSurfaceVariant (= darkTextSecondary)',
+    testWidgets(
+        '暗色主题: section header 文字色 = onSurfaceVariant (= darkTextSecondary)',
         (tester) async {
       await _pump(tester, theme: IptvTheme.dark());
       final header = tester.widget<Text>(find.text('下一频道'));

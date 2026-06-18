@@ -108,7 +108,8 @@ void main() {
       }
     });
 
-    testWidgets('暗色主题: AppBar 3 个 IconButton.color = onSurface (= darkTextPrimary)',
+    testWidgets(
+        '暗色主题: AppBar 3 个 IconButton.color = onSurface (= darkTextPrimary)',
         (tester) async {
       await _pump(tester, theme: IptvTheme.dark());
       for (final icon in [
