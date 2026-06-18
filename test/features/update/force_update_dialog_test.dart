@@ -21,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sanyelive/core/theme/theme.dart';
 import 'package:sanyelive/features/settings/theme_provider.dart';
+import 'package:sanyelive/features/update/force_update_dialog.dart';
 import 'package:sanyelive/services/version_checker.dart';
 
 void main() {
