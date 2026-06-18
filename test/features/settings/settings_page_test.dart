@@ -37,6 +37,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // dump widget tree for debugging
+      debugDumpApp();
+
       expect(find.text('版本号'), findsOneWidget);
       expect(find.text(currentVersion), findsOneWidget);
     });
