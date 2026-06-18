@@ -243,17 +243,18 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     final controller = ref.watch(mediaKitVideoControllerProvider);
     final asyncChannels = ref.watch(channelsProvider);
 
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: scheme.surface,
       body: SafeArea(
         child: asyncChannels.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: Colors.white54),
+          loading: () => Center(
+            child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
           ),
           error: (e, _) => Center(
             child: Text(
               '加载失败: $e',
-              style: const TextStyle(color: Colors.white54),
+              style: TextStyle(color: scheme.onSurfaceVariant),
             ),
           ),
           data: (channels) {
@@ -340,19 +341,20 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     final controller = ref.watch(mediaKitVideoControllerProvider);
     final asyncChannels = ref.watch(channelsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.black,
+    final scheme = Theme.of(context).colorScheme;
+    return Scaffold({
+      backgroundColor: scheme.surface,
       // 6/18 P1 hotfix: 全屏时不 SafeArea.  immersiveSticky 已隐 status bar /
       // nav bar 视觉, 但 SafeArea 仍会按 MediaQuery padding 布局, 压下视频
       // ~24-32px (Android) / ~44px (iOS) 看着像有顶栏.
       body: asyncChannels.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: Colors.white54),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
         ),
         error: (e, _) => Center(
           child: Text(
             '加载失败: $e',
-            style: const TextStyle(color: Colors.white54),
+            style: TextStyle(color: scheme.onSurfaceVariant),
           ),
         ),
         data: (channels) {
@@ -433,7 +435,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       width: 6,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: Colors.white24,
+                        color: scheme.onSurfaceVariant.withOpacity(0.24),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -502,12 +504,14 @@ class _TopBarState extends State<_TopBar> {
       PlayerStatus.error => '播放失败',
     };
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back, color: scheme.onSurface),
             onPressed: widget.onBack,
           ),
           const SizedBox(width: 4),
@@ -520,7 +524,7 @@ class _TopBarState extends State<_TopBar> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: IptvTypography.serifTitle
-                      .copyWith(color: Colors.white, fontSize: 18),
+                      .copyWith(color: scheme.onSurface, fontSize: 18),
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -529,16 +533,16 @@ class _TopBarState extends State<_TopBar> {
                     const SizedBox(width: 4),
                     Text(
                       statusText,
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       _clockText,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -548,7 +552,7 @@ class _TopBarState extends State<_TopBar> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: Icon(Icons.more_vert, color: scheme.onSurface),
             onPressed: () {},
           ),
           if (widget.channel != null) ...[
@@ -603,7 +607,7 @@ class _StatusDot extends StatelessWidget {
       PlayerStatus.playing => IptvColors.accentTerracotta,
       PlayerStatus.loading => Colors.amber,
       PlayerStatus.error => Colors.redAccent,
-      PlayerStatus.idle => Colors.white38,
+      PlayerStatus.idle => scheme.onSurfaceVariant.withOpacity(0.38),
     };
     return Container(
       width: 8,
@@ -664,8 +668,9 @@ class _LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return ColoredBox(
-      color: Colors.black54,
+      color: scheme.shadow,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -681,7 +686,7 @@ class _LoadingOverlay extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text(text, style: const TextStyle(color: Colors.white70)),
+            Text(text, style: TextStyle(color: scheme.onSurfaceVariant)),
           ],
         ),
       ),
@@ -702,8 +707,10 @@ class _ErrorOverlay extends ConsumerWidget {
     final channel = state.channel;
     final hasMultipleSources = (channel?.sources.length ?? 0) > 1;
 
+    final scheme = Theme.of(context).colorScheme;
+
     return ColoredBox(
-      color: Colors.black87,
+      color: scheme.shadow,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -719,7 +726,7 @@ class _ErrorOverlay extends ConsumerWidget {
               const Text(
                 '播放失败',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: scheme.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -728,7 +735,7 @@ class _ErrorOverlay extends ConsumerWidget {
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white60, fontSize: 12),
+                style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
               ),
               const SizedBox(height: 16),
               // 重试 + 换源 两个按钮.  重试: 重调 play(当前 channel), 走
@@ -746,8 +753,8 @@ class _ErrorOverlay extends ConsumerWidget {
                     icon: const Icon(Icons.refresh, size: 18),
                     label: const Text('重试'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white54),
+                      foregroundColor: scheme.onPrimary,
+                      side: BorderSide(color: scheme.outline),
                     ),
                   ),
                   if (hasMultipleSources) ...[
