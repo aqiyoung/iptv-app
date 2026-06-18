@@ -38,8 +38,9 @@ jobs:
           #  `git push` 无 refspec 会报错 "You are not currently on a branch." 
           #  创建本地分支头, push 时指名 refspec 才能推回 PR 分支.
           if [ -n "${GITHUB_HEAD_REF:-}" ]; then
-            git checkout -B "${GITHUB_HEAD_REF}" HEAD
-            echo "Reattached to branch: ${GITHUB_HEAD_REF}"
+            git fetch origin "refs/heads/${GITHUB_HEAD_REF}:refs/remotes/origin/${GITHUB_HEAD_REF}"
+            git checkout -B "${GITHUB_HEAD_REF}" "origin/${GITHUB_HEAD_REF}"
+            echo "Reattached to branch: ${GITHUB_HEAD_REF} (at origin/${GITHUB_HEAD_REF})"
           fi
           if ! dart format --output=none --set-exit-if-changed .; then
             echo "Auto-formatting dirty files..."
