@@ -265,16 +265,14 @@ class CctvSourcePicker {
   }
 
   /// 从 SharedPreferences 加载持久化健康分 (启动时调一次).
+  /// 遍历 kCctvHealthScores 的 URL, 按 hashCode 读 pref.
   static Future<void> loadPersistedScores() async {
     _prefs = await SharedPreferences.getInstance();
-    final keys = _prefs?.getKeys() ?? <String>{};
-    for (final key in keys) {
-      if (key.startsWith('iptv_health_')) {
-        final value = _prefs?.getDouble(key);
-        if (value != null) {
-          final url = key.substring('iptv_health_'.length);
-          _runtimeScores[url] = value;
-        }
+    for (final url in kCctvHealthScores.keys) {
+      final key = 'iptv_health_${url.hashCode}';
+      final value = _prefs?.getDouble(key);
+      if (value != null) {
+        _runtimeScores[url] = value;
       }
     }
   }
@@ -282,7 +280,7 @@ class CctvSourcePicker {
   /// 持久化单个 key.
   static Future<void> _persist(String url, double score) async {
     _prefs ??= await SharedPreferences.getInstance();
-    await _prefs?.setDouble('iptv_health_$url', score);
+    await _prefs?.setDouble('iptv_health_${url.hashCode}', score);
   }
 
   /// 查单个 URL 的健康分 (测试用, UI 显示用).
