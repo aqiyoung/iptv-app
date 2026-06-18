@@ -129,11 +129,7 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
 
   @override
   VersionCheckState build() {
-    _dio = Dio(BaseOptions(
-      connectTimeout: _kFetchTimeout,
-      receiveTimeout: _kFetchTimeout,
-      sendTimeout: _kFetchTimeout,
-    ));
+    _dio = ref.read(dioProvider);
     _prefs = ref.read(sharedPreferencesProvider);
     return const VersionCheckIdle();
   }
@@ -375,3 +371,13 @@ final versionCheckerProvider =
     NotifierProvider<VersionCheckerNotifier, VersionCheckState>(
   VersionCheckerNotifier.new,
 );
+
+/// Dio provider — 默认 new Dio() (生产).  测试可 overrideWithValue 注入 mock.
+/// 用了 ref.read 创建,  避免 Notifier.build() 多次跑时重建 Dio.
+final dioProvider = Provider<Dio>((ref) {
+  return Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 8),
+    receiveTimeout: const Duration(seconds: 8),
+    sendTimeout: const Duration(seconds: 8),
+  ));
+});

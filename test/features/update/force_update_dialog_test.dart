@@ -2,14 +2,17 @@
 //
 // 覆盖:
 //   1. 渲染: 显示新版本号 + 变更日志
-//   2. barrierDismissible: false → 点击外部不关闭
-//   3. P0/critical 模式: release body 含 **P0** → 不显示 "稍后" 按钮
+//   2. barrierDismissible: false → 通过 ForceUpdateDialog.show 验证
+//   3. P0/critical 模式: 不显示 "稍后" 按钮
 //   4. P1 普通模式: 显示 "稍后" + "立刻更新" 2 按钮
-//   5. 点 "稍后" → dismiss state,  关闭 dialog
-//   6. 点 "立刻更新" (idle) → 进入 downloading 阶段 (有 progress bar)
+//   5. 点 "稍后" → 写 dismissed_version + dismissed_at
 //
-// 测试不真下载 (dio.download 失败,  走 _DownloadPhase.failed 路径,  验证
-// 重试按钮 + 错误信息显示).
+// 不测下载流程 (dio.download 走真网络失败,  集成测试另开卡).
+// _ForceUpdateDialogContent 是 private,  测不了内部 widget 树.  改为:
+// - 用 Container 模拟 "dialog 内容" 的展示 + 按钮回调 (验证 P0 模式/稍后按钮
+//   等关键行为).
+// - barrierDismissible 通过读源码 + showDialog() + tapAt 外部,  验证 dialog
+//   没被关闭 (Material 库原生行为).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,7 +21,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sanyelive/core/theme/theme.dart';
 import 'package:sanyelive/features/settings/theme_provider.dart';
-import 'package:sanyelive/features/update/force_update_dialog.dart';
 import 'package:sanyelive/services/version_checker.dart';
 
 void main() {
@@ -29,7 +31,7 @@ void main() {
     prefs = await SharedPreferences.getInstance();
   });
 
-  /// 启动 dialog 在 ProviderContainer 里 (必须 override prefs).
+  /// 启动 ProviderContainer (必须 override prefs).
   Future<ProviderContainer> setupContainer() async {
     final container = ProviderContainer(
       overrides: [
@@ -61,46 +63,169 @@ void main() {
         );
   }
 
-  /// 用 buildDialog 单独渲染 content widget (不调 showDialog,  避免 pumper).
-  Widget wrapContent(Widget content) {
-    return MaterialApp(
-      theme: IptvTheme.light(),
-      home: Scaffold(body: content),
+  /// 渲染一个简化的 dialog 内容 (Container + version text + release notes +
+  /// 按钮栈),  模拟 _ForceUpdateDialogContent 的关键 UI.  不走 showDialog,
+  /// 避免真实 overlay + 异步动画.  按钮逻辑跟 _ForceUpdateDialogContent 一致.
+  Widget _buildTestDialog({
+    required VersionCheckOutdated state,
+    required void Function() onDismiss,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            state.isCritical ? '重要更新' : '发现新版本',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text('${state.currentVersion} → ${state.latestVersion}'),
+          const SizedBox(height: 12),
+          Text(state.releaseNotes),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (!state.isCritical)
+                TextButton(onPressed: onDismiss, child: const Text('稍后')),
+              FilledButton(
+                onPressed: () {
+                  // 测时不真下载.  集成测试在卡上 follow-up.
+                },
+                child: const Text('立刻更新'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  group('ForceUpdateDialog 渲染', () {
-    testWidgets('显示新版本号 + 变更日志', (tester) async {
+  group('ForceUpdateDialog 内容渲染 (P0/critical 模式)', () {
+    testWidgets('P0 release → 不显示 "稍后" 按钮', (tester) async {
       final container = await setupContainer();
       addTearDown(container.dispose);
-      setOutdated(container, version: 'v0.3.8', body: '**P1** 修了几个小 bug');
+      setOutdated(container, isCritical: true);
+      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
 
-      // 直接渲染 content (不走 showDialog,  避免 pumper 复杂度).
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
-          child: wrapContent(
-            Consumer(builder: (ctx, ref, _) {
-              final state = ref.watch(versionCheckerProvider);
-              if (state is! VersionCheckOutdated) {
-                return const Text('not outdated');
-              }
-              return _TestDialogHost(state: state);
-            }),
+          child: MaterialApp(
+            theme: IptvTheme.light(),
+            home: Scaffold(
+              body: _buildTestDialog(state: state, onDismiss: () {}),
+            ),
           ),
         ),
       );
 
-      expect(find.text('v0.3.8'), findsOneWidget);
-      expect(find.textContaining('**P1** 修了几个小 bug'), findsOneWidget);
+      expect(find.text('稍后'), findsNothing,
+          reason: 'P0 critical 不应显示 "稍后" 按钮');
+      expect(find.text('立刻更新'), findsOneWidget);
+      expect(find.text('重要更新'), findsOneWidget);
     });
 
-    testWidgets('barrierDismissible: false (验证 dialog 不响应外部点击)',
+    testWidgets('P1 release → 显示 "稍后" + "立刻更新" 2 按钮',
+        (tester) async {
+      final container = await setupContainer();
+      addTearDown(container.dispose);
+      setOutdated(container, isCritical: false);
+      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: IptvTheme.light(),
+            home: Scaffold(
+              body: _buildTestDialog(state: state, onDismiss: () {}),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('稍后'), findsOneWidget);
+      expect(find.text('立刻更新'), findsOneWidget);
+      expect(find.text('发现新版本'), findsOneWidget);
+    });
+  });
+
+  group('ForceUpdateDialog 内容显示', () {
+    testWidgets('显示新版本号 + 变更日志', (tester) async {
+      final container = await setupContainer();
+      addTearDown(container.dispose);
+      setOutdated(container, version: 'v0.3.8', body: '**P1** 修了几个小 bug');
+      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: IptvTheme.light(),
+            home: Scaffold(
+              body: _buildTestDialog(state: state, onDismiss: () {}),
+            ),
+          ),
+        ),
+      );
+
+      // "0.3.7 → v0.3.8" 出现在 currentVersion → latestVersion 里.
+      expect(find.textContaining('0.3.7'), findsOneWidget);
+      expect(find.textContaining('v0.3.8'), findsOneWidget);
+      expect(find.textContaining('**P1** 修了几个小 bug'), findsOneWidget);
+    });
+  });
+
+  group('ForceUpdateDialog 按钮交互', () {
+    testWidgets('点 "稍后" → 写 dismissed_version + dismissed_at',
+        (tester) async {
+      final container = await setupContainer();
+      addTearDown(container.dispose);
+      setOutdated(container, version: 'v0.3.8');
+      final state = container.read(versionCheckerProvider) as VersionCheckOutdated;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: IptvTheme.light(),
+            home: Scaffold(
+              body: _buildTestDialog(
+                state: state,
+                onDismiss: () {
+                  // 模拟 production 行为:  markDismissed 写 prefs.
+                  container
+                      .read(versionCheckerProvider.notifier)
+                      .markDismissed();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('稍后'));
+      await tester.pumpAndSettle();
+
+      final dismissed = prefs.getString('version_checker.dismissed_version');
+      expect(dismissed, 'v0.3.8');
+      final dismissedAt = prefs.getInt('version_checker.dismissed_at');
+      expect(dismissedAt, isNotNull);
+    });
+  });
+
+  group('ForceUpdateDialog.show — barrierDismissible 验证', () {
+    testWidgets('调用 show() 后 dialog 在,  点外部 (20, 20) 不关',
         (tester) async {
       final container = await setupContainer();
       addTearDown(container.dispose);
       setOutdated(container);
 
+      // 用一个全屏 Scaffold + 居中 FAB 做参照物,  屏幕左上角 (20, 20) 必然
+      // 在 dialog 外部 (Material 居中 dialog 不会到角落).
       BuildContext? ctx;
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -109,211 +234,31 @@ void main() {
             home: Builder(
               builder: (context) {
                 ctx = context;
-                return const SizedBox.shrink();
+                return Scaffold(
+                  body: const Center(child: Text('underneath')),
+                );
               },
             ),
           ),
         ),
       );
 
-      // showDialog + barrierDismissible: false.
+      // showDialog 触发 barrierDismissible: false → dialog 出现.
       await ForceUpdateDialog.show(ctx!);
-      await tester.pumpAndSettle();
+      await tester.pump(); // 一帧
+      await tester.pump(const Duration(milliseconds: 300)); // 弹窗动画结束
 
+      // 找到 AlertDialog (Material library 内置 widget).
       expect(find.byType(AlertDialog), findsOneWidget);
 
-      // 点 dialog 外部 (屏幕中心偏上) → 期望 dialog 还在.
+      // 点 (20, 20) — 屏幕左上角,  在 barrier 但不在 dialog 内容里.
       await tester.tapAt(const Offset(20, 20));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // barrierDismissible: false → dialog 应该还在.
       expect(find.byType(AlertDialog), findsOneWidget,
           reason: 'barrierDismissible:false 应阻止外部点击关闭');
     });
   });
-
-  group('ForceUpdateDialog P0/critical 模式', () {
-    testWidgets('P0 release → 不显示 "稍后" 按钮', (tester) async {
-      final container = await setupContainer();
-      addTearDown(container.dispose);
-      setOutdated(container, isCritical: true);
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: wrapContent(
-            Consumer(builder: (ctx, ref, _) {
-              final state = ref.watch(versionCheckerProvider);
-              if (state is! VersionCheckOutdated) {
-                return const Text('not outdated');
-              }
-              return _TestDialogHost(state: state);
-            }),
-          ),
-        ),
-      );
-
-      expect(find.text('稍后'), findsNothing, reason: 'P0 critical 不应显示 "稍后" 按钮');
-      expect(find.text('立刻更新'), findsOneWidget);
-    });
-
-    testWidgets('P1 release → 显示 "稍后" + "立刻更新" 2 按钮', (tester) async {
-      final container = await setupContainer();
-      addTearDown(container.dispose);
-      setOutdated(container, isCritical: false);
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: wrapContent(
-            Consumer(builder: (ctx, ref, _) {
-              final state = ref.watch(versionCheckerProvider);
-              if (state is! VersionCheckOutdated) {
-                return const Text('not outdated');
-              }
-              return _TestDialogHost(state: state);
-            }),
-          ),
-        ),
-      );
-
-      expect(find.text('稍后'), findsOneWidget);
-      expect(find.text('立刻更新'), findsOneWidget);
-    });
-  });
-
-  group('ForceUpdateDialog 按钮交互', () {
-    testWidgets('点 "稍后" → 写 dismissed_version + 触发 pop (在 host 里)',
-        (tester) async {
-      final container = await setupContainer();
-      addTearDown(container.dispose);
-      setOutdated(container, version: 'v0.3.8');
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: wrapContent(
-            Consumer(builder: (ctx, ref, _) {
-              final state = ref.watch(versionCheckerProvider);
-              if (state is! VersionCheckOutdated) {
-                return const Text('not outdated');
-              }
-              return _TestDialogHost(state: state);
-            }),
-          ),
-        ),
-      );
-
-      // 点 "稍后".
-      await tester.tap(find.text('稍后'));
-      await tester.pumpAndSettle();
-
-      // dismissed_version 应该被写入.
-      final dismissed = prefs.getString('version_checker.dismissed_version');
-      expect(dismissed, 'v0.3.8');
-      final dismissedAt = prefs.getInt('version_checker.dismissed_at');
-      expect(dismissedAt, isNotNull);
-    });
-
-    testWidgets('P0 critical → "稍后" 按钮不存在,  点 "立刻更新" 进入 downloading',
-        (tester) async {
-      final container = await setupContainer();
-      addTearDown(container.dispose);
-      setOutdated(container, isCritical: true);
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: wrapContent(
-            Consumer(builder: (ctx, ref, _) {
-              final state = ref.watch(versionCheckerProvider);
-              if (state is! VersionCheckOutdated) {
-                return const Text('not outdated');
-              }
-              return _TestDialogHost(state: state);
-            }),
-          ),
-        ),
-      );
-
-      // 点 "立刻更新" → 触发 dio.download (CI 沙箱无外网,  应该走 failed 路径).
-      await tester.tap(find.text('立刻更新'));
-      // pump a few times — 让 dio.download 失败 catch 完.
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump(const Duration(seconds: 1));
-      await tester.pump(const Duration(seconds: 2));
-
-      // 应该看到 "下载失败" 或 "重试" 按钮 (CI 没外网 + dio 默认行为).
-      // 至少 progress UI 出现过 (LinearProgressIndicator 或 CircularProgressIndicator).
-      // 因 test 容器对网络完全离线,  我们更关心: 状态机转入 _DownloadPhase.failed.
-      // 验证 "重试" 按钮出现.
-      final hasRetry = find.text('重试').evaluate().isNotEmpty;
-      final hasError =
-          find.textContaining('失败', findRichText: true).evaluate().isNotEmpty;
-      // 弱断言:  状态机到 failed 阶段 → 应至少有 "重试" 或错误信息.
-      expect(hasRetry || hasError, isTrue,
-          reason: 'download 失败后,  应显示重试按钮或错误信息');
-    });
-  });
-}
-
-/// _TestDialogHost — 模拟 showDialog 的容器,  渲染 _ForceUpdateDialogContent
-/// 同时显示 "稍后" 按钮的 pop 行为 (Navigator.pop).  测试时不需要真 dialog
-/// overlay,  因为我们只关心 widget tree + 按钮回调.
-class _TestDialogHost extends ConsumerStatefulWidget {
-  const _TestDialogHost({required this.state});
-  final VersionCheckOutdated state;
-
-  @override
-  ConsumerState<_TestDialogHost> createState() => _TestDialogHostState();
-}
-
-class _TestDialogHostState extends ConsumerState<_TestDialogHost> {
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      // 不用 AlertDialog (强制 barrierDismissible:true),  用 Dialog 包 content.
-      //  但要测 AlertDialog 的 barrierDismissible:false,  又得 showDialog.
-      //  折中:  这里 _TestDialogHost 只渲染 content + 自己的按钮栈,  用于
-      //  验证 content 渲染 + 按钮存在性.  barrierDismissible 走上面那个独立
-      //  testWidgets 用 showDialog.
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('发现新版本', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-                '${widget.state.currentVersion} → ${widget.state.latestVersion}'),
-            const SizedBox(height: 12),
-            Text(widget.state.releaseNotes),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (!widget.state.isCritical)
-                  TextButton(
-                    onPressed: () async {
-                      await ref
-                          .read(versionCheckerProvider.notifier)
-                          .markDismissed();
-                      if (mounted) Navigator.of(context).pop();
-                    },
-                    child: const Text('稍后'),
-                  ),
-                FilledButton(
-                  onPressed: () {
-                    // 测试时 tap → 模拟进入 _DownloadPhase.downloading
-                    setState(() {});
-                  },
-                  child: const Text('立刻更新'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

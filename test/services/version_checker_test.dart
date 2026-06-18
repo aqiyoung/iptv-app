@@ -5,20 +5,76 @@
 //   2. parse: release body 第一行 "**P0**" 标记 → isCritical=true
 //   3. parse: release body 普通 → isCritical=false
 //   4. parse: 无 tag_name / 无 assets / 无 arm64-v8a → return null
-//   5. 状态机: 网络失败 → state = VersionCheckFailed + 写 last_check_time
-//   6. 状态机: 1h 内 cache 命中 → 保持 idle,  不写 state
-//   7. 状态机: 1h 外 cache 过期 → 走 fetch 路径 (CI 沙箱无外网,  期望 failed)
-//   8. 持久化: resetCache 清除所有 key
+//   5. 状态机 (mock Dio): 拉回 v0.3.8 + versionCode 21 > current 20 → outdated
+//   6. 状态机 (mock Dio): 拉回 v0.3.6 + versionCode 19 < current 20 → upToDate
+//   7. 状态机 (mock Dio 抛错): 网络失败 → state = VersionCheckFailed + 写 last_check_time
+//   8. 状态机: 1h 内 cache 命中 → 保持 idle,  不写 state
+//   9. 状态机: 1h 外 cache 过期 → 走 fetch 路径 (mock 抛错,  期望 failed)
+//  10. 持久化: resetCache 清除所有 key
 //
-// parse 路径用 @visibleForTesting static 入口,  状态机走真 ProviderContainer
-// (网络失败是 CI 沙箱的预期结果,  不需要 mock).
+// parse 路径用 @visibleForTesting static 入口; 状态机走 ProviderContainer +
+// 注入 mock Dio (override dioProvider).
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:sanyelive/features/settings/theme_provider.dart';
 import 'package:sanyelive/services/version_checker.dart';
+
+/// 注入 mock Dio (响应 / 抛错,  不会走真网络).
+class _MockAdapter implements HttpClientAdapter {
+  _MockAdapter(this.responder);
+
+  /// (RequestOptions) → ResponseBody  或 throw
+  final Future<ResponseBody> Function(RequestOptions) responder;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    return responder(options);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+ResponseBody _jsonBody(Map<String, dynamic> json) {
+  final bytes = Uint8List.fromList(utf8.encode(jsonEncode(json)));
+  return ResponseBody.fromBytes(
+    bytes,
+    200,
+    headers: {
+      Headers.contentTypeHeader: ['application/json'],
+    },
+  );
+}
+
+class _FailingAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<List<int>>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    throw DioException(
+      requestOptions: options,
+      type: DioExceptionType.connectionError,
+      message: 'simulated network failure',
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
 
 void main() {
   late SharedPreferences prefs;
@@ -128,7 +184,7 @@ void main() {
         'body': '...',
         'assets': [
           {
-            'name': 'sanyelive-v0.3.8-arm64-v8a.apk', // 缺 +20
+            'name': 'sanyelive-v0.3.8-arm64-v8a.apk',
             'browser_download_url': 'https://example.com/apk.apk',
           },
         ],
@@ -207,8 +263,9 @@ void main() {
 
     test('**P1** 提级不强制 → false', () {
       expect(
-          VersionCheckerNotifier.debugIsCriticalRelease('**P1** new feature'),
-          isFalse);
+        VersionCheckerNotifier.debugIsCriticalRelease('**P1** new feature'),
+        isFalse,
+      );
     });
 
     test('空 body → false', () {
@@ -223,35 +280,117 @@ void main() {
     });
   });
 
-  group('VersionChecker 状态机 (ProviderContainer + 真 network failure)', () {
+  group('VersionChecker 状态机 (ProviderContainer + mock Dio)', () {
     Future<ProviderContainer> buildContainer({
+      required HttpClientAdapter adapter,
       int currentVersionCode = 20,
       String currentVersionString = '0.3.7',
     }) async {
+      final mockDio = Dio();
+      mockDio.httpClientAdapter = adapter;
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
           currentVersionCodeProvider.overrideWithValue(currentVersionCode),
           currentVersionStringProvider.overrideWithValue(currentVersionString),
+          dioProvider.overrideWithValue(mockDio),
         ],
       );
       return container;
     }
 
-    test('网络失败 → state = VersionCheckFailed + 写 last_check_time', () async {
-      final container = await buildContainer();
+    test('拉回 v0.3.8 + versionCode 21 > current 20 → outdated', () async {
+      final container = await buildContainer(
+        adapter: _MockAdapter((opts) async {
+          return _jsonBody({
+            'tag_name': 'v0.3.8',
+            'body': '**P1** new feature',
+            'assets': [
+              {
+                'name': 'sanyelive-v0.3.8+21-arm64-v8a.apk',
+                'browser_download_url': 'https://example.com/apk.apk',
+              },
+            ],
+          });
+        }),
+        currentVersionCode: 20,
+      );
       addTearDown(container.dispose);
 
       await container.read(versionCheckerProvider.notifier).checkOnStartup();
 
       final state = container.read(versionCheckerProvider);
-      expect(state, isA<VersionCheckFailed>(),
-          reason: '网络失败应被捕获并 state = VersionCheckFailed');
+      expect(state, isA<VersionCheckOutdated>());
+      final outdated = state as VersionCheckOutdated;
+      expect(outdated.latestVersion, 'v0.3.8');
+      expect(outdated.latestVersionCode, 21);
+      expect(outdated.currentVersion, '0.3.7');
+      expect(outdated.isCritical, isFalse);
+    });
+
+    test('拉回 v0.3.6 + versionCode 19 < current 20 → upToDate', () async {
+      final container = await buildContainer(
+        adapter: _MockAdapter((opts) async {
+          return _jsonBody({
+            'tag_name': 'v0.3.6',
+            'body': 'old',
+            'assets': [
+              {
+                'name': 'sanyelive-v0.3.6+19-arm64-v8a.apk',
+                'browser_download_url': 'https://example.com/apk.apk',
+              },
+            ],
+          });
+        }),
+        currentVersionCode: 20,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(versionCheckerProvider.notifier).checkOnStartup();
+
+      final state = container.read(versionCheckerProvider);
+      expect(state, isA<VersionCheckUpToDate>());
+      expect((state as VersionCheckUpToDate).latestVersion, 'v0.3.6');
+    });
+
+    test('P0 critical release → outdated + isCritical=true', () async {
+      final container = await buildContainer(
+        adapter: _MockAdapter((opts) async {
+          return _jsonBody({
+            'tag_name': 'v0.3.7.1',
+            'body': '**P0** 修启动崩溃',
+            'assets': [
+              {
+                'name': 'sanyelive-v0.3.7.1+21-arm64-v8a.apk',
+                'browser_download_url': 'https://example.com/apk.apk',
+              },
+            ],
+          });
+        }),
+        currentVersionCode: 20,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(versionCheckerProvider.notifier).checkOnStartup();
+
+      final state = container.read(versionCheckerProvider);
+      expect(state, isA<VersionCheckOutdated>());
+      expect((state as VersionCheckOutdated).isCritical, isTrue);
+    });
+
+    test('mock Dio 抛错 → state = VersionCheckFailed + 写 last_check_time',
+        () async {
+      final container = await buildContainer(adapter: _FailingAdapter());
+      addTearDown(container.dispose);
+
+      await container.read(versionCheckerProvider.notifier).checkOnStartup();
+
+      final state = container.read(versionCheckerProvider);
+      expect(state, isA<VersionCheckFailed>());
 
       final lastCheck = prefs.getInt('version_checker.last_check_time');
       expect(lastCheck, isNotNull);
-      expect(
-          lastCheck, lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch));
+      expect(lastCheck, lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch));
     });
 
     test('1h 内 cache 命中 → 保持 idle,  不写 state', () async {
@@ -259,7 +398,7 @@ void main() {
       await prefs.setInt(
           'version_checker.last_check_time', now - 30 * 60 * 1000);
 
-      final container = await buildContainer();
+      final container = await buildContainer(adapter: _FailingAdapter());
       addTearDown(container.dispose);
 
       await container.read(versionCheckerProvider.notifier).checkOnStartup();
@@ -267,13 +406,13 @@ void main() {
       expect(container.read(versionCheckerProvider), isA<VersionCheckIdle>());
     });
 
-    test('1h 外 cache 过期 → 走 fetch 路径 (期望 failed,  写新 last_check_time)',
+    test('1h 外 cache 过期 → 走 fetch 路径 (mock 抛错 → failed,  写新 last_check_time)',
         () async {
       final now = DateTime.now().millisecondsSinceEpoch;
       await prefs.setInt(
           'version_checker.last_check_time', now - 2 * 60 * 60 * 1000);
 
-      final container = await buildContainer();
+      final container = await buildContainer(adapter: _FailingAdapter());
       addTearDown(container.dispose);
 
       await container.read(versionCheckerProvider.notifier).checkOnStartup();
@@ -285,13 +424,48 @@ void main() {
       expect(newLastCheck!, greaterThan(now - 2 * 60 * 60 * 1000));
     });
 
+    test('dismiss 24h 内同版本不再弹 outdated', () async {
+      // 预先 dismiss v0.3.8 (24h 内).
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await prefs.setString('version_checker.dismissed_version', 'v0.3.8');
+      await prefs.setInt('version_checker.dismissed_at', now - 1 * 60 * 60 * 1000);
+
+      // 把 last_check_time 设到 2h 前 → 走 fetch 路径.
+      await prefs.setInt(
+          'version_checker.last_check_time', now - 2 * 60 * 60 * 1000);
+
+      final container = await buildContainer(
+        adapter: _MockAdapter((opts) async {
+          return _jsonBody({
+            'tag_name': 'v0.3.8',
+            'body': 'new',
+            'assets': [
+              {
+                'name': 'sanyelive-v0.3.8+21-arm64-v8a.apk',
+                'browser_download_url': 'https://example.com/apk.apk',
+              },
+            ],
+          });
+        }),
+        currentVersionCode: 20,
+      );
+      addTearDown(container.dispose);
+
+      await container.read(versionCheckerProvider.notifier).checkOnStartup();
+
+      // dismissed → state 不应是 outdated,  而应是 upToDate (静默路径).
+      final state = container.read(versionCheckerProvider);
+      expect(state, isA<VersionCheckUpToDate>(),
+          reason: 'dismiss 24h 内同版本应静默不弹');
+    });
+
     test('resetCache 清除所有持久化 key', () async {
       await prefs.setInt('version_checker.last_check_time', 12345);
       await prefs.setString('version_checker.last_seen_version', 'v0.3.7');
       await prefs.setString('version_checker.dismissed_version', 'v0.3.7');
       await prefs.setInt('version_checker.dismissed_at', 67890);
 
-      final container = await buildContainer();
+      final container = await buildContainer(adapter: _FailingAdapter());
       addTearDown(container.dispose);
 
       await container.read(versionCheckerProvider.notifier).resetCache();
