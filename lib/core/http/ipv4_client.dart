@@ -37,10 +37,13 @@ class IPv4Client extends http.BaseClient {
         if (addrs.isEmpty) {
           throw SocketException('No IPv4 address for ${uri.host}');
         }
-        // 取第一个 IPv4 解析结果去 connect
-        return Socket.connect(addrs.first, uri.port);
+        // 取第一个 IPv4 解析结果去 connect, 包装成 ConnectionTask
+        return ConnectionTask.fromSocket(
+          Socket.connect(addrs.first, uri.port),
+          () {},
+        );
       }
-      // 走代理时仍用默认行为 (返回 null = 用 HttpClient 默认连接逻辑)
+      // 走代理时仍用默认行为
       throw 'use default';
     };
     return client;
