@@ -326,11 +326,11 @@ class _ForceUpdateDialogContentState
       if (!mounted) return;
       setState(() => _phase = _DownloadPhase.installing);
 
-      // install_plugin 2.x 的 install(apiLevel, filePath) —  Android 8+
-      // 必须用 26,  早期 API (1) 在 Android 8+ 已被弃用.
-      // 注意:  install_plugin 是个社区包,  API 有点 quirky,  失败兜底
-      // 弹 snackbar 让用户去文件管理器手装.
-      final result = await InstallPlugin.install(26, savePath);
+      // install_plugin 2.1.0 的 install(filePath) 返回 Map 含 isSuccess /
+      // errorMessage.  Android 8+ (API 26+) 使用 application/vnd.android
+      // .package-archive  Intent + FileProvider,  manifest 加了
+      // REQUEST_INSTALL_PACKAGES 后会弹系统装包 UI.
+      final result = await InstallPlugin.install(savePath);
       debugPrint('install_plugin result: $result');
 
       // install_plugin 调起系统 installer 后,  我们的进程会被切后台.
