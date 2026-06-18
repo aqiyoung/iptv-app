@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// TV 端焦点环颜色 — 朱砂 (Cinnabar)
+import '../theme/colors.dart';
+
+/// TV 端焦点环颜色 — 朱砂 (Cinnabar) — 用于 [kTvFocusColor] 常量与
+/// 单元测试断言. TvFocus widget 实际渲染用的是 [IptvColors.accentTerracotta]
+/// (P2-1: 老板 6/18 拍板 1.05 scale + 2px 暖色边,  看起来更明显但不刺眼).
 const Color kTvFocusColor = Color(0xFFE24A1A);
 
-/// TV 焦点包裹器 — 4dp 朱砂焦点环
+/// TV 焦点包裹器 — 1.05 scale + 2px 赤陶焦点边 (P2-1 6/18 老板拍板).
+///
+/// 高亮态: scale 1.0 → 1.05, 2px IptvColors.accentTerracotta 0.6 alpha 边.
+/// 非高亮态: 无变换无边. 动画 150ms ease.
 class TvFocus extends StatefulWidget {
   const TvFocus({
     super.key,
@@ -75,14 +82,26 @@ class _TvFocusState extends State<TvFocus> {
       onKeyEvent: _handleKey,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: AnimatedContainer(
+        child: AnimatedScale(
+          // P2-1 (6/18 老板拍): 高亮态 scale 1.03 → 1.05, 远距离更明显.
+          // ChatGPT 6/17 21:18 建议, 1.05 是"明显但不夸张"的上限.
+          scale: _focused ? 1.05 : 1.0,
           duration: const Duration(milliseconds: 150),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            border:
-                _focused ? Border.all(color: kTvFocusColor, width: 4) : null,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              // P2-1: 焦点边 4dp 朱砂 → 2px 赤陶 0.6 alpha.
+              //  4dp 太厚遮卡片内容,  2px + scale 1.05 远距离也清晰.
+              border: _focused
+                  ? Border.all(
+                      color: IptvColors.accentTerracotta.withOpacity(0.6),
+                      width: 2,
+                    )
+                  : null,
+            ),
+            child: widget.child,
           ),
-          child: widget.child,
         ),
       ),
     );
@@ -177,5 +196,40 @@ class TvFocusCapWrap extends StatelessWidget {
       runSpacing: runSpacing,
       children: children,
     );
+  }
+}
+
+/// P2-1: 一屏焦点项上限守卫 (用于复杂布局, 仅断言不改布局).
+///
+/// 不同于 [TvFocusCap] / [TvFocusCapWrap] 只能用于 flat children list,
+/// 本 widget 只做断言, 不改变布局. 适合 CustomScrollView / GridView 这种
+/// children 不是 flat list 的场景. 调用方提供实际焦点项数, debug 模式下
+/// 超出上限时报 assert 警告 (生产运行时无效果).
+class TvFocusScope extends StatelessWidget {
+  const TvFocusScope({
+    super.key,
+    required this.actualFocusableCount,
+    required this.child,
+    this.maxFocusable = kTvMaxFocusablePerScreen,
+  });
+
+  /// 当前布局中实际可聚焦项数 (调用方在 build 阶段填).
+  final int actualFocusableCount;
+
+  /// 最大可聚焦项数 (默认 [kTvMaxFocusablePerScreen] = 9).
+  final int maxFocusable;
+
+  /// 被守卫的子组件 (布局不变).
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(
+      actualFocusableCount <= maxFocusable,
+      'TV 一屏焦点项 $actualFocusableCount 超出上限 $maxFocusable, '
+      '请分页或减少焦点项. '
+      '(P2-1: ChatGPT 6/17 建议, 老板拍板)',
+    );
+    return child;
   }
 }
