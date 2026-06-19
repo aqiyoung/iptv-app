@@ -161,7 +161,7 @@ class ContinueWatchingCard extends StatelessWidget {
 
   Widget _buildContent() {
     return Material(
-      color: IptvColors.accentTerracotta,
+      color: Theme.of(context).colorScheme.primary,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),

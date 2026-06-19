@@ -68,11 +68,11 @@ class _ForceUpdateDialogContentState
     final s = widget.state;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final dialogBg = isDark ? IptvColors.darkSurface : IptvColors.bgElevated;
+    final dialogBg = isDark ? theme.colorScheme.surfaceContainerHighest : theme.colorScheme.surface;
     final titleColor =
-        isDark ? IptvColors.darkTextPrimary : IptvColors.textPrimary;
+        isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
     final bodyColor =
-        isDark ? IptvColors.darkTextSecondary : IptvColors.textSecondary;
+        isDark ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurfaceVariant;
 
     return AlertDialog(
       backgroundColor: dialogBg,
@@ -89,7 +89,7 @@ class _ForceUpdateDialogContentState
             s.isCritical ? Icons.priority_high : Icons.system_update_alt,
             color: s.isCritical
                 ? Colors.red.shade700
-                : IptvColors.accentTerracotta,
+                : theme.colorScheme.primary,
             size: 28,
           ),
           const SizedBox(width: 12),
@@ -124,12 +124,12 @@ class _ForceUpdateDialogContentState
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isDark
-                    ? IptvColors.darkSurfaceHigh
-                    : IptvColors.bgParchment,
+                    ? theme.colorScheme.surfaceContainerHighestHigh
+                    : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      isDark ? IptvColors.darkDivider : IptvColors.dividerWarm,
+                      isDark ? theme.colorScheme.outline : theme.colorScheme.outlineVariant,
                 ),
               ),
               child: Text(
@@ -149,9 +149,9 @@ class _ForceUpdateDialogContentState
                   value: _progress > 0 ? _progress : null,
                   minHeight: 6,
                   backgroundColor:
-                      isDark ? IptvColors.darkDivider : IptvColors.dividerWarm,
+                      isDark ? theme.colorScheme.outline : theme.colorScheme.outlineVariant,
                   valueColor: const AlwaysStoppedAnimation<Color>(
-                    IptvColors.accentTerracotta,
+                    theme.colorScheme.primary,
                   ),
                 ),
               ),
@@ -239,7 +239,7 @@ class _ForceUpdateDialogContentState
         FilledButton(
           onPressed: () => _startDownload(s),
           style: FilledButton.styleFrom(
-            backgroundColor: IptvColors.accentTerracotta,
+            backgroundColor: theme.colorScheme.primary,
             foregroundColor: Colors.white,
           ),
           child: const Text('立刻更新'),
@@ -267,7 +267,7 @@ class _ForceUpdateDialogContentState
       FilledButton(
         onPressed: () => _startDownload(s),
         style: FilledButton.styleFrom(
-          backgroundColor: IptvColors.accentTerracotta,
+          backgroundColor: theme.colorScheme.primary,
           foregroundColor: Colors.white,
         ),
         child: const Text('立刻更新'),

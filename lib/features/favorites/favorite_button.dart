@@ -51,7 +51,7 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton> {
     return IconButton(
       icon: Icon(
         _isFav ? Icons.favorite : Icons.favorite_border,
-        color: _isFav ? IptvColors.accentTerracotta : IptvColors.textSecondary,
+        color: _isFav ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
         size: widget.size,
       ),
       onPressed: _toggle,
@@ -115,7 +115,7 @@ class _FavoriteIconState extends ConsumerState<FavoriteIcon> {
         child: Icon(
           _isFav ? Icons.favorite : Icons.favorite_border,
           color:
-              _isFav ? IptvColors.accentTerracotta : IptvColors.textSecondary,
+              _isFav ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant,
           size: widget.size,
         ),
       ),

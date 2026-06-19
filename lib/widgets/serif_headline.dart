@@ -32,7 +32,7 @@ class SerifHeadline extends StatelessWidget {
                   Text(subtitle!,
                       style: IptvTypography.caption.copyWith(
                           fontSize: 11,
-                          color: IptvColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           letterSpacing: 0.2)),
                 ],
               ],

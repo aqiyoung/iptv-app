@@ -35,14 +35,17 @@ class ChannelTile extends StatelessWidget {
     final favName = channel?.name ?? channelName;
 
     return Material(
-      color: IptvColors.bgElevated,
+      color: Theme.of(context).colorScheme.surface,
       child: InkWell(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: IptvColors.dividerWarm, width: 1),
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
+              ),
             ),
           ),
           child: Row(
@@ -52,7 +55,7 @@ class ChannelTile extends StatelessWidget {
                 child: Text(
                   channelNumber,
                   style: IptvTypography.serifTitle.copyWith(
-                    color: IptvColors.accentTerracotta,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -73,7 +76,7 @@ class ChannelTile extends StatelessWidget {
                       Text(
                         subtitle,
                         style: IptvTypography.caption.copyWith(
-                          color: IptvColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -99,7 +102,7 @@ class ChannelTile extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: IptvColors.accentTerracotta,
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(

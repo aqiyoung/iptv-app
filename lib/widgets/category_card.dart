@@ -22,7 +22,7 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: IptvColors.bgElevated,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -43,11 +43,11 @@ class CategoryCard extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(
                     // ignore: deprecated_member_use
-                    color: IptvColors.accentTerracotta.withOpacity(0.12),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child:
-                      Icon(icon, color: IptvColors.accentTerracotta, size: 22),
+                      Icon(icon, color: Theme.of(context).colorScheme.primary, size: 22),
                 ),
                 const SizedBox(height: 12),
                 Text(title, style: IptvTypography.serifTitle),
