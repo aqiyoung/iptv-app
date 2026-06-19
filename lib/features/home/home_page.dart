@@ -183,32 +183,24 @@ class _AppHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
       child: Row(
         children: [
-          // v0.3.7+82 (6/19 老板反馈): 换 home 顶部 logo — 米色背景 + TV 直播 icon
-          // + 红色边框.  v0.3.7+82 第一版用 "3" 字符 (三页直播语义),  老板 22:22
-          // 反馈 "展示为 TV 直播的类型图标 不要 3" — 改用 Icons.live_tv_rounded
-          // (TV + 心率红线,  Material 自带,  语义直白: 直播电视).
+          // v0.3.7+84 (6/19 老板反馈): 恢复 home 顶部 logo 原版 (v0.3.6+41 之前).
+          // 老板 22:37 反馈 "首页的logo换回来 不要3 你理解错了 我要改的是app的图标
+          // 但是也不能是3":
+          //   - 首页 logo: 恢复 v0.3.7+64 老设计 (红底 + Icons.live_tv 白图标)
+          //   - launcher icon: 老板说 "app 的图标"  = launcher,  v0.3.7+83 已
+          //     改成 TV 直播图标 (无 "3"),  保持
+          // 总结: 首页 logo 回到红底白电视;  launcher icon 不动 (TV 直播图标).
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              // 浅色主题:  米色背景,  深色主题: darkSurfaceHigh 背景.
-              // primary color 边框让 logo 在白页面更突出.
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Theme.of(context).colorScheme.surfaceContainerHigh
-                  : const Color(0xFFF5F4ED), // bgParchment
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary,
-                width: 1.0,
-              ),
-            ),
-            // v0.3.7+82 second: TV 直播 icon (Material Icons.live_tv_rounded).
-            // 之前 _isMobile=true 老版本用 white Icons.live_tv 单调,  改成
-            // primary 颜色 + 米色背景 = 跟主题一致 (亮一点 + 红).
-            child: Icon(
-              Icons.live_tv_rounded,
               color: Theme.of(context).colorScheme.primary,
-              size: 22,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.live_tv,
+              color: Colors.white,
+              size: 20,
             ),
           ),
           const SizedBox(width: 12),
