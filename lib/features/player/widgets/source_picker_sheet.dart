@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../data/models/channel.dart';
 import '../../../data/source_dispatcher.dart';
@@ -14,7 +13,7 @@ import '../../../data/source_dispatcher.dart';
 Future<String?> pickSourceUrl(BuildContext context, Channel channel) async {
   return showModalBottomSheet<String>(
     context: context,
-    backgroundColor: IptvColors.bgElevated,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -45,7 +44,7 @@ class _SourcePickerContent extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: IptvColors.dividerWarm,
+                  color: Theme.of(context).colorScheme.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -81,9 +80,12 @@ class _SourcePickerContent extends StatelessWidget {
                         final isCctvSrc = channel.cctvSource.contains(url);
                         return ListTile(
                           leading: CircleAvatar(
-                            backgroundColor:
-                                IptvColors.accentTerracotta.withOpacity(0.12),
-                            foregroundColor: IptvColors.accentTerracotta,
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.12),
+                            foregroundColor:
+                                Theme.of(context).colorScheme.primary,
                             child: Text('${i + 1}'),
                           ),
                           title: Text(
@@ -92,21 +94,21 @@ class _SourcePickerContent extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: IptvTypography.caption.copyWith(
                               fontSize: 12,
-                              color: IptvColors.textPrimary,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           subtitle: isCctvSrc
                               ? Text(
                                   'CCTV 源 · 健康分 ${(CctvSourcePicker.healthScore(url) * 100).round()}%',
                                   style: IptvTypography.caption.copyWith(
-                                    color: IptvColors.accentTerracotta,
+                                    color: Theme.of(context).colorScheme.primary,
                                     fontSize: 10,
                                   ),
                                 )
                               : null,
-                          trailing: const Icon(
+                          trailing: Icon(
                             Icons.play_arrow_rounded,
-                            color: IptvColors.accentTerracotta,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                           onTap: () => Navigator.of(context).pop(url),
                         );

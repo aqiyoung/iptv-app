@@ -472,3 +472,17 @@ class CctvSource {
   String toString() =>
       'CctvSource(url: $url, score: ${(score * 100).round()}%, method: $method, rtt: ${rttMs}ms)';
 }
+
+/// v0.3.7+50 (6/19): 按 health_score 降序排序, score=0 (死源) 排最后.
+/// stable sort — 同分保持输入顺序.  给 SourceFailover 选 top-1 用.
+List<CctvSource> sortByHealthScore(List<CctvSource> sources) {
+  final sorted = List<CctvSource>.from(sources);
+  sorted.sort((a, b) {
+    // 死源 (score=0) 排最后
+    if (a.score <= 0 && b.score > 0) return 1;
+    if (b.score <= 0 && a.score > 0) return -1;
+    // 降序
+    return b.score.compareTo(a.score);
+  });
+  return sorted;
+}

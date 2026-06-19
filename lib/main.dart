@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show HttpOverrides;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/cctv_source.dart';
+import 'core/http/dns_warmup.dart';
+import 'core/http/ipv4_client.dart';
 import 'core/router/router.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/theme.dart';
@@ -30,6 +33,14 @@ void main() async {
   // 会在浅米色页面背景下看不清.  需求是浅色页面用黑状态栏文字, 深色页面
   // 反转为白文字.  PlayerPage 自己会主动改 (黑屏看视频用白文字).
   _applySystemUiOverlay();
+  // v0.3.7+50 (6/19): 强制全 APP 走 IPv4 — 国内 wifi/4G IPv6 happy-eyeballs
+  // 会拖慢 1-2s.  HttpOverrides.global 一键劫持 dart:io HttpClient.
+  if (IPv4Client.defaultEnabled) {
+    HttpOverrides.global = Ipv4HttpOverrides();
+  }
+  // v0.3.7+50 (6/19): DNS + TCP 预热 — 启动时后台跑,  让用户首切频道时
+  // 跳过 DNS lookup + TCP handshake, 硬延迟砍半. fire-and-forget, 不阻塞.
+  unawaited(DnsWarmup.warmup(_warmupHostnames()));
   // Global error widget builder - set once, not on every rebuild
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
@@ -78,6 +89,22 @@ void main() async {
     }
   });
 }
+
+/// v0.3.7+50 (6/19): 启动 DNS 预热 host 列表 — 选国内常用公开源, top10 热门频道.
+/// 真实清单: 来自 assets/data/known_sources.json 的 CCTV1-15/5+/4K/35 卫视 top2 URL
+/// 抽 host.  这些是用户首屏会点的高频频道,  预热后切台硬延迟砍半.
+List<String> _warmupHostnames() => const <String>[
+  'ldncctvwbcdtxy.liveplay.myqcloud.com', // CCTV 1/2/3... myqcloud 主源
+  '198.204.240.250', //  198.204 IPTV 平台
+  'go.bkpcp.top', //  老公开源兜底
+  'ivi.bupt.edu.cn', //  北邮公开源兜底
+  'play-qukan.cztv.com', //  浙江卫视
+  '39.134.115.163', //  39.134 IPTV 平台
+  '183.207.248.71', //  江苏卫视
+  '39.134.24.166', //  上海卫视
+  '118.81.195.79', //  北京卫视
+  'ottrrs.hl.chinamobile.com', //  CCTV5 移动源
+];
 
 void _applySystemUiOverlay() {
   SystemChrome.setSystemUIOverlayStyle(

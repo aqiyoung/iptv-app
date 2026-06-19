@@ -9,6 +9,7 @@ import '../../data/models/channel.dart';
 import '../../data/repositories/channel_repository.dart';
 import '../../services/player_service.dart';
 import '../../services/startup_service.dart';
+import 'system_ui_overlay.dart';
 import 'widgets/next_channels_strip.dart';
 import 'widgets/now_next_program.dart';
 import 'widgets/player_top_bar.dart';
@@ -70,33 +71,23 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _resetHideTimer());
   }
 
-  /// v0.3.5.4: 播放页 systemUI overlay — 状态栏用白图标 (跟黑底视频配套),
-  /// 系统导航栏用 colorScheme.surfaceContainer (浅/暗色都自然, 跟页
-  /// 主题联动).
+  /// v0.3.7+50: 状态栏/导航栏图标亮度跟主题走 — 浅色主题深图标, 暗色
+  /// 主题白图标.  纯函数逻辑在 system_ui_overlay.dart,  给 test/ 调.
   void _applySystemUiOverlayForPlayer() {
-    final scheme = Theme.of(context).colorScheme;
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light, // Android: 白图标
-        statusBarBrightness: Brightness.dark, // iOS: 黑背景 -> 白文字
-        systemNavigationBarColor: scheme.surfaceContainer,
-        systemNavigationBarIconBrightness: Brightness.light,
+      buildSystemUiOverlayForPlayer(
+        Theme.of(context).colorScheme,
+        Theme.of(context).brightness,
       ),
     );
   }
 
-  /// v0.3.5.4: 退出全屏 / 退出页面时还原成全 APP 默认 — 状态栏黑图标 (跟
-  /// 浅米色页面配套), 系统导航栏用 colorScheme.surfaceContainer 跟主题联动.
+  /// v0.3.7+50: 退出全屏 / 退出页面时还原成全 APP 默认.
   void _applySystemUiOverlayForApp() {
-    final scheme = Theme.of(context).colorScheme;
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: scheme.surfaceContainer,
-        systemNavigationBarIconBrightness: Brightness.dark,
+      buildSystemUiOverlayForApp(
+        Theme.of(context).colorScheme,
+        Theme.of(context).brightness,
       ),
     );
   }

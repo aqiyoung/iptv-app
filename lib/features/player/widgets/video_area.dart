@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
-import '../../../core/theme/colors.dart';
 import '../../../data/models/channel.dart';
 import '../../../services/player_service.dart';
 import 'source_picker_sheet.dart';
@@ -77,7 +76,7 @@ class LoadingOverlay extends StatelessWidget {
               child: CircularProgressIndicator(
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  IptvColors.accentTerracotta,
+                  Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
@@ -169,7 +168,7 @@ class ErrorOverlay extends ConsumerWidget {
                       icon: const Icon(Icons.swap_horiz, size: 18),
                       label: const Text('换源'),
                       style: FilledButton.styleFrom(
-                        backgroundColor: IptvColors.accentTerracotta,
+                        backgroundColor: scheme.primary,
                       ),
                     ),
                   ],

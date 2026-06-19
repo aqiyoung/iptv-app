@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../data/category_zh.dart';
 import '../../../data/models/channel.dart';
@@ -123,11 +122,14 @@ class _ChannelChip extends StatelessWidget {
           // 文字保持 textPrimary,  整 chip 跟非选中态区分靠边框粗细 + 数字
           // 颜色 + 字重,  选中态对比度 ≥ 4.5:1 (黑字 #2A2520 on 暖米 #FFFCF6
           // ≈ 13:1).
-          color: IptvColors.bgElevated,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(10),
           border: isNext
-              ? Border.all(color: IptvColors.accentTerracotta, width: 2)
-              : Border.all(color: IptvColors.dividerWarm, width: 0.5),
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary, width: 2)
+              : Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  width: 0.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,8 +145,8 @@ class _ChannelChip extends StatelessWidget {
                   softWrap: false,
                   style: IptvTypography.caption.copyWith(
                     color: isNext
-                        ? IptvColors.accentTerracotta
-                        : IptvColors.textSecondary,
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -156,9 +158,7 @@ class _ChannelChip extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: IptvTypography.body.copyWith(
                       fontSize: 13,
-                      color: isNext
-                          ? IptvColors.textPrimary
-                          : IptvColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: isNext ? FontWeight.w600 : FontWeight.w400,
                     ),
                   ),
@@ -172,8 +172,8 @@ class _ChannelChip extends StatelessWidget {
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(
-                      color: IptvColors.accentTerracotta,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
                   )
@@ -181,8 +181,8 @@ class _ChannelChip extends StatelessWidget {
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: const BoxDecoration(
-                      color: IptvColors.textSecondary,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -193,7 +193,7 @@ class _ChannelChip extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: IptvTypography.caption.copyWith(
-                      color: IptvColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),

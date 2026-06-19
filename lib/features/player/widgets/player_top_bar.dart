@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../data/models/channel.dart';
 import '../../../features/favorites/favorite_button.dart';
@@ -167,8 +166,8 @@ class _StatusDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final color = switch (status) {
-      PlayerStatus.playing => IptvColors.accentTerracotta,
-      PlayerStatus.loading => IptvColors.accentTerracotta.withOpacity(0.7),
+      PlayerStatus.playing => scheme.primary,
+      PlayerStatus.loading => scheme.primary.withOpacity(0.7),
       PlayerStatus.error => scheme.error,
       PlayerStatus.idle => scheme.onSurfaceVariant.withOpacity(0.38),
     };

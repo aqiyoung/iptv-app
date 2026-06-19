@@ -17,18 +17,18 @@
     "http://ivi.bupt.edu.cn/hls/btv1.m3u8"
   ],
   "CCTV1.cn": [
-    "http://69.30.245.50/live/cctv1.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8",
     "http://198.204.240.250:82/live/cctv1.m3u8",
     "http://go.bkpcp.top/mg/cctv1",
     "http://ivi.bupt.edu.cn/hls/cctv1.m3u8"
   ],
   "CCTV2.cn": [
-    "http://74.91.26.218:82/live/cctv2hd.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv2_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv2",
     "http://ivi.bupt.edu.cn/hls/cctv2.m3u8"
   ],
   "CCTV3.cn": [
-    "http://74.91.26.218:82/live/cctv3hd.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv3_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv3",
     "http://ivi.bupt.edu.cn/hls/cctv3.m3u8"
   ],
@@ -42,27 +42,25 @@
     "http://192.151.150.154/live/cctv4k.m3u8"
   ],
   "CCTV5.cn": [
-    "http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226019/index.m3u8",
-    "http://ott.mobaibox.com/PLTV/3/224/3221226019/index.m3u8"
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv5_1/index.m3u8"
   ],
   "CCTV5Plus.cn": [
-    "http://74.91.26.218:82/live/cctv5plus.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv51_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv5plus",
     "http://198.204.240.250:82/live/cctv5+.m3u8"
   ],
   "CCTV6.cn": [
-    "http://69.30.245.50/live/cctv6.m3u8",
     "http://198.204.240.250:82/live/cctv6.m3u8",
     "http://go.bkpcp.top/mg/cctv6",
     "http://ivi.bupt.edu.cn/hls/cctv6.m3u8"
   ],
   "CCTV7.cn": [
-    "http://74.91.26.218:82/live/cctv7hd.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv7_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv7",
     "http://ivi.bupt.edu.cn/hls/cctv7.m3u8"
   ],
   "CCTV8.cn": [
-    "http://74.91.26.218:82/live/cctv8hd.m3u8",
+    "http://198.204.240.250:82/live/cctv8.m3u8",
     "http://go.bkpcp.top/mg/cctv8",
     "http://ivi.bupt.edu.cn/hls/cctv8.m3u8"
   ],
@@ -75,41 +73,39 @@
     "http://go.bkpcp.top/mg/cctv9"
   ],
   "CCTV10.cn": [
-    "http://74.91.26.218:82/live/cctv10hd.m3u8",
+    "https://cdn4.skygo.mn/live/disk1/CCTV-10/HLSv3-FTA/CCTV-10.m3u8",
     "http://go.bkpcp.top/mg/cctv10",
     "http://ivi.bupt.edu.cn/hls/cctv10.m3u8"
   ],
   "CCTV11.cn": [
-    "http://74.91.26.218:82/live/cctv11hd.m3u8",
     "https://xykt-fix.github.io/play/a02b/index.m3u8",
     "http://go.bkpcp.top/mg/cctv11"
   ],
   "CCTV12.cn": [
-    "http://74.91.26.218:82/live/cctv12hd.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv12_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv12",
     "http://ivi.bupt.edu.cn/hls/cctv12.m3u8"
   ],
   "CCTV13.cn": [
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv13_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv13",
-    "https://cdn3.163189.xyz/163189/cctv13",
     "http://ivi.bupt.edu.cn/hls/cctv13.m3u8"
   ],
   "CCTV14.cn": [
-    "http://74.91.26.218:82/live/cctv14hd.m3u8",
+    "https://cdn4.skygo.mn/live/disk1/CCTV-14/HLSv3-FTA/CCTV-14.m3u8",
     "http://go.bkpcp.top/mg/cctv14",
     "http://ivi.bupt.edu.cn/hls/cctv14.m3u8"
   ],
   "CCTV15.cn": [
     "https://xykt-fix.github.io/play/a02e/index.m3u8",
-    "http://74.91.26.218:82/live/cctv15hd.m3u8",
     "http://go.bkpcp.top/mg/cctv15"
   ],
   "CCTV16.cn": [
-    "http://74.91.26.218:82/live/cctv16hd.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv16_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv16"
   ],
   "CCTV17.cn": [
-    "http://74.91.26.218:82/live/cctv17hd.m3u8",
+    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv17_1/index.m3u8",
     "http://go.bkpcp.top/mg/cctv17",
     "http://ivi.bupt.edu.cn/hls/cctv17.m3u8"
   ],
@@ -144,8 +140,8 @@
     "https://stream.hrbtv.net/yspd/playlist.m3u8"
   ],
   "HebeiTV.cn": [
-    "https://event.pull.hebtv.com/live/live101.m3u8",
-    "http://118.81.195.79:9003/hls/29/index.m3u8"
+    "http://118.81.195.79:9003/hls/29/index.m3u8",
+    "http://183.207.248.71/gitv/live1/G_HEBEI/G_HEBEI"
   ],
   "HunanTV.cn": [
     "http://hlsal-ldvt.qing.mgtv.com/nn_live/nn_x64/dWlwPTEyNy4wLjAuMSZ1aWQ9cWluZy1jbXMmbm5fdGltZXpvbmU9OCZjZG5leF9pZD1hbF9obHNfbGR2dCZ1dWlkPTliODY4NmU5ZTM2YzYwMmMmZT02OTE0NjA0JnY9MSZpZD1ITldTWkdTVCZzPTcwN2RiYTc2YzJjNmJmMTQ4MmUyZGYzOWU2NWM3YWFi/HNWSZGST.m3u8"
@@ -287,7 +283,8 @@
     "http://125.210.152.18:9090/live/FXZL_750.m3u8"
   ],
   "JilinSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/34/index.m3u8"
+    "http://118.81.195.79:9003/hls/34/index.m3u8",
+    "http://39.134.115.163:8080/PLTV/88888910/224/3221225730/index.m3u8"
   ],
   "HezhengTV.cn": [
     "http://117.156.28.119/270000001111/1110000149/index.m3u8"
@@ -349,42 +346,22 @@
     "http://223.110.245.149/ott.js.chinamobile.com/PLTV/3/224/3221225804/index.m3u8"
   ],
   "GuangdongSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/26/index.m3u8",
-    "http://39.134.115.163:8080/PLTV/88888910/224/3221225698/index.m3u8"
-  ],
-  "GuangxiTV.cn": [
-    "http://118.81.195.79:9003/hls/27/index.m3u8",
-    "http://183.207.248.71/gitv/live1/G_GUANGXI/G_GUANGXI"
-  ],
-  "HubeiSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/32/index.m3u8",
-    "http://39.134.115.163:8080/PLTV/88888910/224/3221225704/index.m3u8"
-  ],
-  "HainanSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/28/index.m3u8",
-    "http://39.134.115.163:8080/PLTV/88888910/224/3221225701/index.m3u8"
-  ],
-  "HenanTVSatellite.cn": [
-    "http://118.81.195.79:9003/hls/30/index.m3u8",
-    "http://39.134.115.163:8080/PLTV/88888910/224/3221225706/index.m3u8"
-  ],
-  "HebeiTV.cn": [
-    "http://118.81.195.79:9003/hls/29/index.m3u8",
-    "http://183.207.248.71/gitv/live1/G_HEBEI/G_HEBEI"
-  ],
-  "GansuTV.cn": [
-    "http://118.81.195.79:9003/hls/25/index.m3u8",
-    "http://39.134.115.163:8080/PLTV/88888910/224/3221225728/index.m3u8"
-  ],
-  "JilinSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/34/index.m3u8",
-    "http://39.134.115.163:8080/PLTV/88888910/224/3221225730/index.m3u8"
-  ],
-  "GuangdongSatelliteTV.cn": [
     "http://118.81.195.79:9003/hls/26/index.m3u8"
   ],
   "GuangxiTV.cn": [
     "http://118.81.195.79:9003/hls/27/index.m3u8"
+  ],
+  "HubeiSatelliteTV.cn": [
+    "http://118.81.195.79:9003/hls/32/index.m3u8"
+  ],
+  "HainanSatelliteTV.cn": [
+    "http://118.81.195.79:9003/hls/28/index.m3u8"
+  ],
+  "HenanTVSatellite.cn": [
+    "http://118.81.195.79:9003/hls/30/index.m3u8"
+  ],
+  "GansuTV.cn": [
+    "http://118.81.195.79:9003/hls/25/index.m3u8"
   ],
   "YanbianSatelliteTV.cn": [
     "http://scgctvshow.sctv.com/hdlive/kangba/1.m3u8",
@@ -429,15 +406,6 @@
     "http://39.134.115.163:8080/PLTV/88888910/224/3221225705/index.m3u8",
     "http://39.134.115.163:8080/PLTV/88888910/224/3221225746/index.m3u8"
   ],
-  "HenanTVSatellite.cn": [
-    "http://118.81.195.79:9003/hls/30/index.m3u8"
-  ],
-  "HainanSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/28/index.m3u8"
-  ],
-  "HubeiSatelliteTV.cn": [
-    "http://118.81.195.79:9003/hls/32/index.m3u8"
-  ],
   "ChuzhouPublicChannel.cn": [
     "http://live.cztv.cc:85/live/ggpd.m3u8"
   ],
@@ -447,9 +415,6 @@
   "ChuzhouScienceEducationChannel.cn": [
     "http://live.cztv.cc:85/live/sjpd.m3u8",
     "http://183.167.193.45:1935/live/cztvkj/playlist.m3u8"
-  ],
-  "GansuTV.cn": [
-    "http://118.81.195.79:9003/hls/25/index.m3u8"
   ],
   "BaichengTV.cn": [
     "https://stream2.jlntv.cn/baicheng1/sd/live.m3u8"
@@ -505,5 +470,8 @@
   "HeilongjiangTV.cn": [
     "http://223.110.245.161/ott.js.chinamobile.com/PLTV/3/224/3221227492/index.m3u8",
     "http://183.207.248.71/gitv/live1/G_HEILONGJIANG/G_HEILONGJIANG"
+  ],
+  "CCTV4.cn": [
+    "https://xykt-fix.github.io/play/a02a/index.m3u8"
   ]
 }

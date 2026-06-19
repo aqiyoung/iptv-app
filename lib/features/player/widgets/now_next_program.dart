@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../data/models/channel.dart';
 import '../../../data/models/epg.dart';
@@ -80,7 +79,9 @@ class _ProgramCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionLabel(text: '正在直播', accent: IptvColors.accentTerracotta),
+            _SectionLabel(
+                text: '正在直播',
+                accent: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 6),
             Text(
               current?.title ?? '暂无节目信息',
@@ -100,26 +101,28 @@ class _ProgramCard extends StatelessWidget {
                 '${_fmt(current!.start.toLocal())} – '
                 '${_fmt(current!.end.toLocal())}  '
                 '·  剩余 ${_remaining(current!.end, now)}',
-                style: IptvTypography.caption
-                    .copyWith(color: IptvColors.textSecondary),
+                style: IptvTypography.caption.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
             if (next != null) ...[
               const SizedBox(height: 12),
-              _SectionLabel(text: '即将播出', accent: IptvColors.accentClay),
+              _SectionLabel(
+                  text: '即将播出',
+                  accent: Theme.of(context).colorScheme.secondary),
               const SizedBox(height: 4),
               Text(
                 next!.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: IptvTypography.body
-                    .copyWith(color: IptvColors.textSecondary),
+                style: IptvTypography.body.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 2),
               Text(
                 '${_fmt(next!.start.toLocal())} – ${_fmt(next!.end.toLocal())}',
-                style: IptvTypography.caption
-                    .copyWith(color: IptvColors.textSecondary),
+                style: IptvTypography.caption.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
           ],
@@ -162,7 +165,7 @@ class _SectionLabel extends StatelessWidget {
         Text(
           text,
           style: IptvTypography.caption.copyWith(
-            color: IptvColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -188,9 +191,9 @@ class _ProgressBar extends StatelessWidget {
       child: LinearProgressIndicator(
         value: pct,
         minHeight: 3,
-        backgroundColor: IptvColors.dividerWarm,
-        valueColor:
-            const AlwaysStoppedAnimation<Color>(IptvColors.accentTerracotta),
+        backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+        valueColor: AlwaysStoppedAnimation<Color>(
+            Theme.of(context).colorScheme.primary),
       ),
     );
   }
@@ -210,16 +213,16 @@ class _EmptyState extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.live_tv,
-                size: 18, color: IptvColors.accentTerracotta),
+            Icon(Icons.live_tv,
+                size: 18, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 isLoading
                     ? '节目单加载中…'
                     : '${channel.displayName} · 实时直播 (节目单待接入)',
-                style: IptvTypography.body
-                    .copyWith(color: IptvColors.textSecondary),
+                style: IptvTypography.body.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
           ],
