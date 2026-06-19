@@ -17,6 +17,7 @@
     "http://ivi.bupt.edu.cn/hls/btv1.m3u8"
   ],
   "CCTV1.cn": [
+    "http://198.204.240.250:82/live/cctv1.m3u8",
     "http://74.91.26.218:82/live/cctv1hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV1"
   ],
@@ -33,6 +34,7 @@
     "http://go.bkpcp.top/mg/CCTV4Asia"
   ],
   "CCTV4K.cn": [
+    "http://198.204.240.250:82/live/cctv4k.m3u8",
     "http://74.91.26.218:82/live/cctv4k.m3u8",
     "http://go.bkpcp.top/mg/CCTV4K"
   ],
@@ -45,6 +47,7 @@
     "http://go.bkpcp.top/mg/CCTV5Plus"
   ],
   "CCTV6.cn": [
+    "http://198.204.240.250:82/live/cctv6.m3u8",
     "http://74.91.26.218:82/live/cctv6hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV6"
   ],
@@ -53,6 +56,7 @@
     "http://go.bkpcp.top/mg/CCTV7"
   ],
   "CCTV8.cn": [
+    "http://198.204.240.250:82/live/cctv8.m3u8",
     "http://74.91.26.218:82/live/cctv8hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV8"
   ],
@@ -61,14 +65,17 @@
     "http://go.bkpcp.top/mg/CCTV8K"
   ],
   "CCTV9.cn": [
+    "https://xykt-fix.github.io/Y77.m3u8",
     "http://74.91.26.218:82/live/cctv9hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV9"
   ],
   "CCTV10.cn": [
+    "https://cdn4.skygo.mn/live/disk1/CCTV-10/HLSv3-FTA/CCTV-10.m3u8",
     "http://74.91.26.218:82/live/cctv10hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV10"
   ],
   "CCTV11.cn": [
+    "https://xykt-fix.github.io/play/a02b/index.m3u8",
     "http://74.91.26.218:82/live/cctv11hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV11"
   ],
@@ -81,10 +88,12 @@
     "http://go.bkpcp.top/mg/CCTV13"
   ],
   "CCTV14.cn": [
+    "https://cdn4.skygo.mn/live/disk1/CCTV-14/HLSv3-FTA/CCTV-14.m3u8",
     "http://74.91.26.218:82/live/cctv14hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV14"
   ],
   "CCTV15.cn": [
+    "https://xykt-fix.github.io/play/a02e/index.m3u8",
     "http://74.91.26.218:82/live/cctv15hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV15"
   ],
@@ -459,6 +468,7 @@
     "http://183.207.248.71/gitv/live1/G_HEILONGJIANG/G_HEILONGJIANG"
   ],
   "CCTV4.cn": [
+    "https://xykt-fix.github.io/play/a02a/index.m3u8",
     "http://74.91.26.218:82/live/cctv4hd.m3u8",
     "http://go.bkpcp.top/mg/CCTV4"
   ]

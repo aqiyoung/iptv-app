@@ -12,10 +12,10 @@ class IptvColors {
   static const Color bgElevated = Color(0xFFFFFCF6);
 
   /// 主色 — 赤陶 Terracotta
-  static const Color accentTerracotta = Color(0xFFC96442);
+  static const Color accentTerracotta = Color(0xFFE5473A);
 
   /// 主色深色版 — 紫砂 Clay
-  static const Color accentClay = Color(0xFFA85234);
+  static const Color accentClay = Color(0xFFB83A2A);
 
   /// 主文字 — 深棕
   static const Color textPrimary = Color(0xFF2A2520);
