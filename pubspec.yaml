@@ -140,12 +140,14 @@ dependencies:
   path_provider: ^2.1.0
   # v0.3.7.2 (6/19): 运行时读 pubspec.yaml 版本号 — 之前 main.dart const 写死
   # '0.3.5+37' 从 v0.3.5+37 后一直没改, 设置页永远显示老版本号.
-  package_info_plus: ^5.0.0
+  # 重要: wakelock_plus 1.3.3 要 package_info_plus >=6.0.0 <9.0.0, 必须 ^8.0.0.
+  # 6/18 卡 6 注释说 9.x 跟 Flutter 3.24 不兼容,  现在 Flutter 3.29.3 也不能用 9.x.
+  package_info_plus: ^8.0.0
 
 dependency_overrides:
   # 卡 6 修复: package_info_plus 9.x 跟 Flutter 3.24 Gradle plugin 不兼容
-  # (v0.3.7.2 6/19: 移到 dependencies 段,  dependencies 里 pinned 5.0.0 足够)
-  # package_info_plus: 5.0.0  # v0.3.7.2 已移到 dependencies
+  # (v0.3.7.2 6/19: 移到 dependencies 段 ^8.0.0,  跟 wakelock_plus 1.3.3 兼容)
+  # package_info_plus: 5.0.0  # v0.3.7.2 已移到 dependencies ^8.0.0
   # screen_brightness_android 2.x 的 compilerOptions 块在 release.yml 用 python 注释掉 (不锁版)
   # wakelock_plus 1.4+ 用 flutter.compileSdkVersion (Flutter 3.35+) 跟 Flutter 3.24 不兼容
   wakelock_plus: 1.3.3
