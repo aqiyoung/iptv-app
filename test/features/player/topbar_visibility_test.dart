@@ -134,7 +134,8 @@ void main() {
 
 group('PlayerPage v0.3.7+79 TopBar 跟 AnimatedOpacity 一体 (v0.3.7+64 改的 + v0.3.7+79 删浮动按钮) [SKIP 老期望]', () {
     testWidgets('全屏 overlay + 控件 3s 隐身后, TopBar (含退出全屏按钮) 仍 visible',
-        skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
+        // v0.3.7+79: skip 老期望 (TopBar 现在跟控件一起隐 + 退出按钮删了)
+        skip: true,
         (tester) async {
       await _pumpPlayerFullscreen(tester);
       // devicePixelRatio=1.0, 物理 1080x1920 → 逻辑 1080x1920, shortestSide=1080
@@ -174,7 +175,8 @@ group('PlayerPage v0.3.7+79 TopBar 跟 AnimatedOpacity 一体 (v0.3.7+64 改的 
     });
 
     testWidgets('全屏 overlay + 控件显示时, TopBar + 退出全屏按钮 + 控件层都 visible',
-        skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
+        // v0.3.7+79: skip 老期望 (TopBar 现在跟控件一起隐 + 退出按钮删了)
+        skip: true,
         (tester) async {
       await _pumpPlayerFullscreen(tester);
 
@@ -202,7 +204,8 @@ group('PlayerPage v0.3.7+79 TopBar 跟 AnimatedOpacity 一体 (v0.3.7+64 改的 
     });
 
     testWidgets('TopBar 跟 AnimatedOpacity 分离 — 控件隐时 TopBar 仍 visible, 反之亦然',
-        skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
+        // v0.3.7+79: skip 老期望 (TopBar 现在跟控件一起隐 + 退出按钮删了)
+        skip: true,
         (tester) async {
       await _pumpPlayerFullscreen(tester);
 
@@ -252,7 +255,8 @@ group('PlayerPage v0.3.7+79 TopBar 跟 AnimatedOpacity 一体 (v0.3.7+64 改的 
       );
     });
 
-    testWidgets('回归: 移动端嵌入布局不显示退出全屏按钮 (onExitFullscreen=null)', skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
+    testWidgets('回归: 移动端嵌入布局不显示退出全屏按钮 (onExitFullscreen=null)', // v0.3.7+79: skip 老期望 (TopBar 现在跟控件一起隐 + 退出按钮删了)
+        skip: true,
         (tester) async {
       // 移动端嵌入布局: devicePixelRatio=2.0, 物理 1080x1920 → 逻辑 540x960
       // → shortestSide=540 < 600 → _isMobile=true → 走 _buildMobile.
