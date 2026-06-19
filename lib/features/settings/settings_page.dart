@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
 import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider;
+import '../../core/theme/colors.dart' show IptvColors;
 import 'theme_provider.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -21,7 +22,12 @@ class SettingsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('设置'),
+        // v0.3.7+69 (6/19): AppBar title 加显式 textPrimary (跟 AppBarTheme
+        // foregroundColor 一致,  但 v0.3.7+60 typography.dart 删了 const TextStyle
+        // 的 color 字段,  导致 serifTitle 没 color → const Text('设置') 走
+        // DefaultTextStyle → bodyMedium.color,  浅色下 #2A2520 在 #F5F4ED 上
+        // 老板反馈 "浅色模式下设置页的设置字看不清").
+        title: Text('设置', style: TextStyle(color: IptvColors.textPrimary)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: '返回',
@@ -39,8 +45,8 @@ class SettingsPage extends ConsumerWidget {
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
-            title: const Text('主题'),
-            subtitle: Text(_modeLabel(mode)),
+            title: const Text('主题', style: TextStyle(color: IptvColors.textPrimary)),
+            subtitle: Text(_modeLabel(mode), style: const TextStyle(color: IptvColors.textSecondary)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickTheme(context, ref, current: mode),
           ),
@@ -53,8 +59,8 @@ class SettingsPage extends ConsumerWidget {
               final code = ref.watch(currentVersionCodeProvider);
               return ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('版本号'),
-                subtitle: Text('$version (build $code)'),
+                title: const Text('版本号', style: TextStyle(color: IptvColors.textPrimary)),
+                subtitle: Text('$version (build $code)', style: const TextStyle(color: IptvColors.textSecondary)),
               );
             },
           ),

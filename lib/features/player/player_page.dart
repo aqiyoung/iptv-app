@@ -159,7 +159,14 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   void _toggleFullscreen() {
     setState(() => _isFullscreen = !_isFullscreen);
     if (_isFullscreen) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      // v0.3.7+69 (6/19): immersiveSticky → immersive (sticky 模式边缘
+      // 滑出再显示,  老板反馈 "状态栏横过来后没全屏沉浸").  改成 immersive
+      // 强制完全隐藏状态栏 + 导航栏,  用户要退出点浮动按钮 (v0.3.7+64 加的)
+      // 或用 Android back.
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      // v0.3.7+69: 横屏时强制 landscape,  不管系统默认.
+      // 之前 setPreferredOrientations([]) 退到默认 (portrait on phones),
+      // 老板横屏拨横后还是会回到竖屏.
       SystemChrome.setPreferredOrientations(const [
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,

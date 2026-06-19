@@ -72,9 +72,15 @@ class _GlassContainerState extends State<GlassContainer>
             color:
                 Colors.white.withOpacity(0.06), // ignore: deprecated_member_use
             borderRadius: BorderRadius.circular(widget.borderRadius),
+            // v0.3.7+69 (6/19): 边框用 theme.outlineVariant 0.4 alpha,  浅色
+            // 主题下能看见 (之前 Colors.white 0.12 在浅米色背景上几乎透明,
+            // 老板反馈 "浅色模式的首页频道分类的边框没有了").  暗色下也保留
+            // outlineVariant (M3 标准) 0.4 alpha = 跟分割线风格统一.
             border: Border.all(
-              color: Colors.white
-                  .withOpacity(0.12), // ignore: deprecated_member_use
+              color: Theme.of(context)
+                  .colorScheme
+                  .outlineVariant
+                  .withOpacity(0.4),
               width: 1,
             ),
           ),
@@ -150,9 +156,15 @@ class _GlassCardBorderState extends State<GlassCardBorder>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(widget.borderRadius),
+            // v0.3.7+69 (6/19): 边框用 theme.outlineVariant 0.4 alpha,  浅色
+            // 主题下能看见 (之前 Colors.white 0.12 在浅米色背景上几乎透明,
+            // 老板反馈 "浅色模式的首页频道分类的边框没有了").  暗色下也保留
+            // outlineVariant (M3 标准) 0.4 alpha = 跟分割线风格统一.
             border: Border.all(
-              color: Colors.white
-                  .withOpacity(0.12), // ignore: deprecated_member_use
+              color: Theme.of(context)
+                  .colorScheme
+                  .outlineVariant
+                  .withOpacity(0.4),
               width: 1,
             ),
           ),
