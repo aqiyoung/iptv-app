@@ -110,7 +110,8 @@ class IPv4Client extends http.BaseClient {
 /// 不会走 HttpOverrides (他们直接用自己持有的 HttpClient),  所以
 /// `new IPv4Client()` 跟 `HttpOverrides.global` 是互补的,  不是冲突的.
 class Ipv4HttpOverrides extends HttpOverrides {
-  const Ipv4HttpOverrides();
+  // HttpOverrides 父类没有 const 构造, 所以这里不能 const.
+  Ipv4HttpOverrides();
 
   @override
   HttpClient createHttpClient(SecurityContext? context) {
