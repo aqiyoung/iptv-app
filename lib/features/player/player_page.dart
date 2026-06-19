@@ -54,9 +54,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   @override
   void initState() {
     super.initState();
-    // 6/17 (UI 优化): 不再用 immersiveSticky (完全隐藏状态栏) — 老板反馈
-    // v0.3.5.19: 改回 immersiveSticky — 全屏时完全隐藏状态栏 + 导航栏, 视频占满屏幕
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // v0.3.7+61 (6/19): 进入播放页只边到边 (edgeToEdge) — 状态栏可见 + 透明,
+    // 不隐藏.  之前 v0.3.5.19 改回 immersiveSticky 完全隐藏状态栏 + 导航栏
+    // (line 57-58 注释),  老板 6/19 14:59 反馈 "播放页状态栏还是没修复".
+    // 全屏时 (toggleFullscreen) 才用 immersiveSticky.
+    // 状态栏颜色 (透明 + 白图标) 走 _applySystemUiOverlayForPlayer 跟主题.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // v0.3.5.4: SystemUI 样式延后到 postFrameCallback 里设置, 这样能
     // 拿到 Theme.of(context).colorScheme.surfaceContainer 跟当前主题配套.
     // 退出全屏/退出页面会在 _toggleFullscreen / dispose 里同样用主题色.

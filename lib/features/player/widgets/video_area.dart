@@ -24,12 +24,17 @@ class VideoArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      // 6/17 修容器溢出: Wrap AspectRatio 16/9 + Stack in ClipRect, 防止在
-      // 某些比例 (e.g. 21:9 曲面屏, iPad 分屏) 上 video widget 算出意外高度
-      // 溢出顶/底栏.
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
+    // v0.3.7+61 (6/19): 顶部 SafeArea 让出状态栏空间,  避免视频覆盖状态栏.
+    // 之前 ClipRect 直接包 AspectRatio,  状态栏在 edgeToEdge 模式下透明但仍
+    // 存在,  视频画面会 "画" 在状态栏背后 = 状态栏区域被视频像素取代,
+    // 老板 14:59 反馈 "播放页状态栏还是没修复" (跟 14:34 那次是同一问题).
+    // 底部不让 SafeArea 缩进,  接下方的 ChannelNowNext/控制条.
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: ClipRect(
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -51,6 +56,7 @@ class VideoArea extends StatelessWidget {
             },
           ],
         ),
+      ),
       ),
     );
   }
