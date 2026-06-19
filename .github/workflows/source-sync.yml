@@ -104,12 +104,13 @@ jobs:
           git add assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json
           MSG="chore(sources): auto-update iptv-org (upstream ${IPTV_ORG_SHA}, new ${ADDED}/dead ${DEAD})|bot=OpenClaw workflow=Source Sync"
           git commit -m "${MSG//|/ }"
-          # v0.3.7+78 fix (6/19): GHA checkout 默认是 detached HEAD, 无当前分支.
-          # git push origin main 报 "src refspec main does not match any".
-          # 修: 强制创建本地 main 分支指向 HEAD, 然后 push.
-          git branch -f main HEAD
+          # v0.3.7+79 fix (6/19): GHA checkout 是 detached HEAD,  main 是 worktree.
+          #  - v0.3.7+78 修法 git branch -f main HEAD 报
+          #    "cannot force update the branch 'main' used by worktree"
+          #  - 正确修法: 不创建本地分支,  直接 git push origin HEAD:main
+          #    (force push HEAD ref 到远端 main ref)
           git remote set-url origin https://x-access-token:${{ secrets.IPTV_CI_TOKEN }}@github.com/aqiyoung/iptv-app.git
-          git push origin main
+          git push -f origin HEAD:main
           echo "done"
       - name: telegram notify failure
         if: failure()
