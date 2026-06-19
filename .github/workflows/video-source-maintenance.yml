@@ -1,7 +1,3 @@
-# Video Source Maintenance
-# v0.3.7+72 (6/19): 老板要求在 GitHub 代码里增加视频源维护
-# 触发: schedule (cron 02:00 UTC), workflow_dispatch (手动), push (paths)
-
 name: Video Source Maintenance
 
 on:
@@ -10,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: '只探测, 不写文件 + 不 commit'
+        description: 'dry run only'
         type: boolean
         default: false
   push:
@@ -31,18 +27,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.IPTV_CI_TOKEN }}
           fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Python deps
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install requests
@@ -57,56 +51,44 @@ jobs:
           python3 discover_known_sources.py --workers 30 --timeout 5
 
       - name: 跑 sync_known_sources
-        if: success()
         run: |
           cd scripts
-          python3 sync_known_sources.py --max-per-channel 3
+          python3 sync_known_sources.py --max-per-channel 3 || true
 
       - name: 跑 sync_cctv_top1
-        if: success()
         run: |
           cd scripts
           python3 sync_cctv_top1.py || true
 
       - name: 跑 discover_cctv_sources
-        if: success()
         run: |
           cd scripts
           python3 discover_cctv_sources.py --workers 30 --timeout 5 || true
 
       - name: 报告变更
-        if: success()
         run: |
           echo "=== 变更统计 ==="
           git diff --stat assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json || echo "无变更"
 
       - name: Auto-commit
-        if: success()
         run: |
           git config user.email "openclaw@threel.site"
           git config user.name "小七 (OpenClaw)"
-
           if git diff --quiet assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json; then
-            echo "✅ 无变更"
+            echo "no changes"
             exit 0
           fi
-
-          echo "=== 检测到变更 ==="
+          echo "changes detected:"
           git diff --stat assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json
-
           git add assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json
-          git commit -m "chore(sources): auto-update iptv-org sources (bot=OpenClaw workflow=Video Source Maintenance)"
+          git commit -m "chore(sources): auto-update iptv-org (bot=OpenClaw)"
           git remote set-url origin https://x-access-token:${{ secrets.IPTV_CI_TOKEN }}@github.com/aqiyoung/iptv-app.git
           git push origin main
-          echo "✅ commit + push 完成"
+          echo "done"
 
-      - name: Telegram 通知 (失败)
+      - name: Telegram notify
         if: failure()
         run: |
           if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
-            curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-              -d parse_mode="Markdown" \
-              -d text="⚠️ *iptv-app Video Source Maintenance failed*
-Run: ${{ github.run_id }}"
+            curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" -d text="iptv-app source maintenance failed run=${{ github.run_id }}"
           fi
