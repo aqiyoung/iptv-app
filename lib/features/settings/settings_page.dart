@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../main.dart' show currentVersion, currentVersionCode;
+import '../../main.dart';  // v0.3.7.2: 不再 import 写死 const, 用 Provider 读运行时版本号
+import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider;
 import 'theme_provider.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -44,10 +45,18 @@ class SettingsPage extends ConsumerWidget {
             onTap: () => _pickTheme(context, ref, current: mode),
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('版本号'),
-            subtitle: Text('$currentVersion (build $currentVersionCode)'),
+          Consumer(
+            builder: (context, ref, _) {
+              // v0.3.7.2 (6/19): 运行时从 Provider 读真实版本号.
+              // 之前 const '0.3.5+37' 从 v0.3.5+37 后一直没改过.
+              final version = ref.watch(currentVersionStringProvider);
+              final code = ref.watch(currentVersionCodeProvider);
+              return ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('版本号'),
+                subtitle: Text('$version (build $code)'),
+              );
+            },
           ),
           const Divider(),
         ],

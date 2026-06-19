@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/cctv_source.dart';
@@ -17,10 +18,13 @@ import 'features/update/force_update_dialog.dart';
 import 'services/player_service.dart';
 import 'services/version_checker.dart';
 
-// v0.3.5.9: 编译期 const, 跟 pubspec 版本一致.
-// settings_page.dart / settings_page_test.dart import 这两个值显示版本号.
-const currentVersion = '0.3.5+37';
-const currentVersionCode = 37;
+// v0.3.7.2 (6/19): 不再写 const 写死的 currentVersion / currentVersionCode.
+// 从 PackageInfo 运行时读 pubspec.yaml,  每次 bump 版本自动同步到设置页.
+// 之前 const 永远显示 0.3.5+37 是 subagent 漏改的 bug.
+//
+// 旧 const 保留用作 fallback (如果 PackageInfo 读失败,  e.g. test 环境):
+// const currentVersion = '0.0.0+0';
+// const currentVersionCode = 0;
 
 void main() async {
   // 卡 7 (6/17 修复): 之前 v0.2.0 启动崩
@@ -54,6 +58,21 @@ void main() async {
   final prefs = await _loadSharedPreferencesOrMock();
   // v0.3.6+42: 加载持久化 health_score (SharedPreferences)
   await CctvSourcePicker.loadPersistedScores();
+  // v0.3.7.2 (6/19): 运行时读 pubspec.yaml 真实版本号 — 替代之前 const 写死
+  // '0.3.5+37' (subagent 漏改,  设置页永远停在老版本号).  现在每次 release
+  // bump pubspec,  设置页/版本检查/强制更新都能读到新版本号.
+  // test 环境读不到 PackageInfo,  catch + fallback 到 '0.0.0+0'.
+  String runtimeVersion;
+  int runtimeVersionCode;
+  try {
+    final info = await PackageInfo.fromPlatform();
+    runtimeVersion = '${info.version}+${info.buildNumber}';
+    runtimeVersionCode = int.tryParse(info.buildNumber) ?? 0;
+  } catch (e) {
+    runtimeVersion = '0.0.0+0';
+    runtimeVersionCode = 0;
+    debugPrint('=== PackageInfo.fromPlatform failed, fallback to 0.0.0+0: $e ===');
+  }
   // 0.3.7+20 (6/18): 后台强制更新 — 注入当前 versionCode + versionString.
   // 编译期 const 来自 pubspec.yaml,  跟 release workflow 跑出来的 APK
   // tag +versionCode 一致.  也跟 services/version_checker.dart 里 parse
@@ -61,8 +80,8 @@ void main() async {
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
-      currentVersionCodeProvider.overrideWithValue(currentVersionCode),
-      currentVersionStringProvider.overrideWithValue(currentVersion),
+      currentVersionCodeProvider.overrideWithValue(runtimeVersionCode),
+      currentVersionStringProvider.overrideWithValue(runtimeVersion),
     ],
   );
   final playerService = container.read(playerServiceProvider);
