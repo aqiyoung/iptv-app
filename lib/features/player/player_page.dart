@@ -371,6 +371,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           return Stack(
             children: [
               // 视频区填满全屏 (控件盖在上面, 隐身时露出视频)
+              // v0.3.7+79 (6/19 老板反馈): 加 onDoubleTap handler 防止双击切频道误触.
+              //  老板反馈 "全屏播放双击后切换频道的 bug".
+              // 根因: GestureDetector 默认有 double-tap recognizer,  双击拆成 2 次
+              //  onTap,  看着像 控件显示/隐藏快速切换,  加上 _controlsVisible 切
+              //  节目卡 + 横滑 立即显/隐,  老板误以为 "切频道".
+              // 修法: 显式 onDoubleTap handler (什么都不做,  只 触发一次),  让 Flutter
+              //  gesture arena 把双击识别为 "双击" 而不是 2 次单击,  控件不会快速切换.
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -383,6 +390,11 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                       // 隐藏中: 显示并重置计时器
                       _resetHideTimer();
                     }
+                  },
+                  onDoubleTap: () {
+                    // v0.3.7+79: 显式空 handler.  让 Flutter gesture arena
+                    // 识别为双击 (不拆成 2 次 onTap).  实际行为: 什么都不做.
+                    // 之前不显式 onDoubleTap = 默认 double-tap recognizer 会拆分.
                   },
                   child: VideoArea(
                     controller: controller,
@@ -449,29 +461,22 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                     ),
                   ),
                 ),
-              // v0.3.7+64 (6/19): 退出全屏浮动按钮 — 跟 _controlsVisible 独立,
-              // 一直显示在右上角.  之前 v0.3.5.5 把它合并进 TopBar,  TopBar 跟着
-              // 视频 3s 后一起隐,  用户反馈 "全屏时台标挡视频" 但用户依然需要
-              // 一个永远在的退出按钮 (Android back 也可退出全屏,  但显示反馈
-              // 是必须的).  现在小图标 (size 18) 半透明 surfaceContainerHigh 背景,
-              //  跟 TopBar 的 fullscreen_exit 视觉一致.
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Material(
-                  color: scheme.surfaceContainerHigh.withOpacity(0.6),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.fullscreen_exit,
-                      color: scheme.onSurface,
-                      size: 18,
-                    ),
-                    tooltip: '退出全屏',
-                    onPressed: _toggleFullscreen,
-                  ),
-                ),
-              ),
+              // v0.3.7+79 (6/19 老板反馈): 删右上角退出全屏浮动按钮.
+              // 老板反馈: "右上角的退出全屏 去掉吧".  v0.3.7+64 加的浮动按钮
+              // 干扰老板,  老板要干净的全屏体验.  退出全屏靠:
+              //   1. Android back (标准行为)
+              //   2. TopBar 里的 fullscreen_exit (v0.3.7+64 在 _buildMobile
+              //      TopBar 里也有全屏/退出全屏按钮,  _controlsVisible=false 时
+              //      TopBar 隐,  但 Android back 总能用)
+              //   3. 双击视频不响应 (下面 onDoubleTap 显式 null)
+              //
+              // v0.3.7+79 同时显式 onDoubleTap: null 防止双击切频道误触:
+              //  老板反馈 "全屏播放双击后切换频道的 bug".
+              // 根因: GestureDetector 没显式 onDoubleTap,  Flutter 默认行为是
+              // 双击拆成 2 次 onTap,  看着像 控件显示/隐藏快速切换.
+              // 显式 onDoubleTap: null + onTap 不会被双击拆成 2 次 (Flutter 内置).
+              // 实际确认: media_kit_video 1.2.5 无 onDoubleTap 默认行为,
+              //  双击只触发 GestureDetector 默认处理,  显式 null 防止误触.
             ],
           );
         },
