@@ -1,0 +1,172 @@
+# Video Source Maintenance
+# v0.3.7+69 (6/19): 老板要求在 GitHub 代码里增加视频源维护
+#
+# 职责:
+#  1. 每天 02:00 UTC 跑 discover_known_sources.py 抓 iptv-org cn.m3u
+#  2. 跑 sync_known_sources.py 合并到 assets/data/known_sources.json
+#  3. 跑 sync_cctv_top1.py 同步 CCTV 频道健康分
+#  4. 跑 discover_cctv_sources.py 重测 CCTV 源
+#  5. 如果 assets/data/known_sources.json 或 assets/data/cctv_sources.json 有变化,
+#     auto-commit 到 main (小七 OpenClaw bot identity)
+#  6. 失败发 Telegram 通知 (可选,  看 secrets 配置)
+#
+# 老板 6/19 17:37 反馈: "zvec 占用空间吗? 放到我们的项目目录" - 这条 workflow
+# 跟 zvec 无关,  单纯维护 iptv 源数据.  zvec 集成见 backend/vector_search_v2.py.
+#
+# 触发方式:
+#  - schedule: 每天 02:00 UTC 自动跑
+#  - workflow_dispatch: 手动触发 (跑得快点验证用)
+#  - push: assets/data/iptv_*.json 改了后自动再跑一遍
+
+name: Video Source Maintenance
+
+on:
+  schedule:
+    # 每天 02:00 UTC 跑 (北京 10:00,  老板刚到办公室时源已更新)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '只探测, 不写文件 + 不 commit'
+        type: boolean
+        default: false
+  push:
+    paths:
+      - 'scripts/discover_known_sources.py'
+      - 'scripts/sync_known_sources.py'
+      - 'scripts/discover_cctv_sources.py'
+      - 'scripts/sync_cctv_top1.py'
+      - 'assets/data/known_sources.json'
+      - 'assets/data/cctv_candidates.json'
+
+# 防止并发: 同一时间只能跑一个
+concurrency:
+  group: video-source-maintenance
+  cancel-in-progress: false
+
+jobs:
+  discover-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.IPTV_CI_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          # 探测脚本只需 requests,  ipython 不需要
+          pip install requests
+
+      - name: 准备 iptv 探测目录
+        run: |
+          mkdir -p assets/data scripts
+
+      - name: 跑 discover_known_sources (抓 iptv-org cn.m3u)
+        id: discover_known
+        run: |
+          cd scripts
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "🧪 DRY RUN — 只探测不写"
+            python3 discover_known_sources.py --workers 30 --timeout 5 || true
+            echo "dry_run=true" >> $GITHUB_OUTPUT
+          else
+            python3 discover_known_sources.py --workers 30 --timeout 5
+
+      - name: 跑 sync_known_sources (合并到 known_sources.json)
+        if: steps.discover_known_outcome != 'failure'
+        run: |
+          cd scripts
+          if [ "${{ inputs.dry_run }}" != "true" ]; then
+            python3 sync_known_sources.py --max-per-channel 3
+          else
+            python3 sync_known_sources.py --dry-run --max-per-channel 3
+
+      - name: 跑 sync_cctv_top1 (同步 CCTV 健康分)
+        if: steps.discover_known_outcome != 'failure'
+        run: |
+          cd scripts
+          if [ "${{ inputs.dry_run }}" != "true" ]; then
+            python3 sync_cctv_top1.py || true
+          else
+            python3 sync_cctv_top1.py --dry-run || true
+
+      - name: 跑 discover_cctv_sources (重测 CCTV 源)
+        if: steps.discover_known_outcome != 'failure'
+        run: |
+          cd scripts
+          if [ "${{ inputs.dry_run }}" != "true" ]; then
+            python3 discover_cctv_sources.py --workers 30 --timeout 5 || true
+          fi
+
+      - name: 报告变更 (diff stat)
+        if: steps.discover_known_outcome != 'failure'
+        run: |
+          echo "=== 变更统计 ==="
+          git diff --stat assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json || echo "无变更"
+
+      - name: Auto-commit 变更
+        if: steps.discover_known_outcome != 'failure' && inputs.dry_run != 'true'
+        run: |
+          # 配置 git bot identity
+          git config user.email "openclaw@threel.site"
+          git config user.name "小七 (OpenClaw)"
+
+          # 检查是否有变更
+          if git diff --quiet assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json; then
+            echo "✅ 无变更 — iptv 源都还活着,  不用 commit"
+            exit 0
+          fi
+
+          # 有变更 — 统计 + commit + push
+          echo "=== 检测到变更 ==="
+          git diff --stat assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json
+          echo ""
+
+          # 构造 commit message 列出死源 + 新源
+          DEAD=$(git diff assets/data/known_sources.json | grep -E '^\+' | grep -c "http" || true)
+          ADDED=$(git diff --reverse assets/data/known_sources.json | grep -E '^\+' | grep -c "http" || true)
+          echo "新增源: $ADDED, 删除源: $DEAD"
+
+          git add assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json
+          git commit -m "chore(sources): auto-update iptv-org sources (discover at $(date -u +'%Y-%m-%dT%H:%M:%SZ'))
+
+新增源: $ADDED
+删除源: $DEAD
+
+bot=OpenClaw workflow=Video Source Maintenance
+cron: daily 02:00 UTC
+iptv-org commit: $(curl -sS https://api.github.com/repos/iptv-org/iptv/commits/master 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get(\"sha\",\"?\")[:7])' 2>/dev/null || echo 'unknown')"
+
+          # push (用 IPTV_CI_TOKEN secrets)
+          git remote set-url origin https://x-access-token:${{ secrets.IPTV_CI_TOKEN }}@github.com/aqiyoung/iptv-app.git
+          git push origin main
+          echo "✅ commit + push 完成"
+
+      - name: 失败通知 (Telegram)
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
+            curl -sS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+              -d parse_mode="Markdown" \
+              -d text="⚠️ *iptv-app Video Source Maintenance failed*
+
+Workflow: ${{ github.workflow }}
+Run: ${{ github.run_id }}
+Commit: ${{ github.sha }}
+See: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "✅ Telegram 通知已发"
+          else
+            echo "Telegram secrets 未配置,  跳过通知"
+          fi
