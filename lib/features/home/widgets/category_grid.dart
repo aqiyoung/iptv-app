@@ -153,13 +153,13 @@ class ContinueWatchingCard extends StatelessWidget {
           ? TvFocus(
               onTap: onTap,
               borderRadius: 14,
-              child: _buildContent(),
+              child: _buildContent(context),
             )
-          : _buildContent(),
+          : _buildContent(context),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     return Material(
       color: Theme.of(context).colorScheme.primary,
       borderRadius: BorderRadius.circular(14),

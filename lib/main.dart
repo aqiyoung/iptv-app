@@ -129,13 +129,11 @@ void _applySystemUiOverlay() {
   // v0.3.7+59 (6/19): 启动时默认 overlay 跟当前主题走 — 浅色主题用深状态栏图标 +
   // 米色导航栏; 暗色主题用白状态栏图标 + 深色导航栏.  之前 v0.3.7+50 写死浅色,
   // 暗色主题下状态栏图标深色在深背景上看不清, 导航栏还是米色扮眼.
-  // main() 启动时还没 build widget tree, 拿不到 Theme.  用 platformBrightness
+  // main() 启动时还没 build widget tree, 拿不到 Theme.  用系统 platformBrightness
   // 近似:  系统是暗色 -> 默认 APP 应该 light 主题 (用户没设过),  手动切换主题后
   // PlayerPage._applySystemUiOverlayForApp() 会重设.  这是 fallback.
-  final isSystemDark = MediaQuery.platformBrightnessOf(
-    WidgetsBinding.instance.platformDispatcher.views.first,
-  ) == Brightness.dark;
-  final isDark = isSystemDark;  // 启动时默认跟系统, 之后被页面 override
+  final isDark = WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+      Brightness.dark;
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

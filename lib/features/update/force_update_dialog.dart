@@ -123,7 +123,7 @@ class _ForceUpdateDialogContentState
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isDark
-                    ? theme.colorScheme.surfaceContainerHighestHigh
+                    ? theme.colorScheme.surfaceContainerHighest
                     : theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
@@ -149,7 +149,7 @@ class _ForceUpdateDialogContentState
                   minHeight: 6,
                   backgroundColor:
                       isDark ? theme.colorScheme.outline : theme.colorScheme.outlineVariant,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
+                  valueColor: AlwaysStoppedAnimation<Color>(
                     theme.colorScheme.primary,
                   ),
                 ),
