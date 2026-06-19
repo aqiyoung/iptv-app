@@ -3,11 +3,22 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/data/models/channel.dart';
+import 'package:sanyelive/data/cctv_source.dart';
 import 'package:sanyelive/services/player_service.dart';
 import 'package:sanyelive/services/source_failover.dart';
 
 void main() {
+  // v0.3.7+55: 之前的测试会因为 CctvSourcePicker.recordFailure 调用
+  // SharedPreferences.getInstance() 而报 "Binding has not yet been
+  // initialized" — 因为 recordFailure 在失败时持久化 health_score.
+  // PlayerService.play() 失败路径会触发这条.  加 setUp mock 一下.
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   group('SourceFailover.play', () {
     test('第一个源成功 → 立即返回第一个', () async {
       final opener = _ScriptedOpener([
