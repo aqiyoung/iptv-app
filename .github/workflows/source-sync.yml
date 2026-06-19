@@ -104,6 +104,10 @@ jobs:
           git add assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json
           MSG="chore(sources): auto-update iptv-org (upstream ${IPTV_ORG_SHA}, new ${ADDED}/dead ${DEAD})|bot=OpenClaw workflow=Source Sync"
           git commit -m "${MSG//|/ }"
+          # v0.3.7+78 fix (6/19): GHA checkout 默认是 detached HEAD, 无当前分支.
+          # git push origin main 报 "src refspec main does not match any".
+          # 修: 强制创建本地 main 分支指向 HEAD, 然后 push.
+          git branch -f main HEAD
           git remote set-url origin https://x-access-token:${{ secrets.IPTV_CI_TOKEN }}@github.com/aqiyoung/iptv-app.git
           git push origin main
           echo "done"
