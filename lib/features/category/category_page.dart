@@ -56,6 +56,10 @@ class CategoryPage extends ConsumerWidget {
             ],
           ),
         ),
+        if (categoryId == 'cctv')
+          const SliverToBoxAdapter(
+            child: _CctvUnavailableBanner(),
+          ),
         if (filtered.isEmpty)
           const SliverFillRemaining(
             hasScrollBody: false,
@@ -224,6 +228,52 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text('该分类暂无频道', style: IptvTypography.serifTitle),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// v0.3.6+49: CCTV 源不可用提示 — 公开网络上找不到长期稳定的明文 HLS 源.
+/// 在 CCTV 分类页顶部显示一个 card, 说明现状 + 下一步.
+class _CctvUnavailableBanner extends StatelessWidget {
+  const _CctvUnavailableBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: scheme.outline.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline,
+                color: scheme.onSurfaceVariant, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('暂无可用 CCTV 源',
+                      style: IptvTypography.sansTitle.copyWith(
+                          color: scheme.onSurface, fontSize: 14)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '央视源在公开网络上很少有长期稳定的明文流（多需 DRM 密钥）。\n'
+                    '当前可点频道会多源切换尝试, 大部分会失败。',
+                    style: IptvTypography.caption
+                        .copyWith(color: scheme.onSurfaceVariant, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
