@@ -64,7 +64,7 @@ class _SourcePickerContent extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(height: 1),
+            const Divider(height: 0.5, thickness: 0.5),
             Flexible(
               child: sources.isEmpty
                   ? const Padding(

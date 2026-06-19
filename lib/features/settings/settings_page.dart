@@ -44,7 +44,7 @@ class SettingsPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickTheme(context, ref, current: mode),
           ),
-          const Divider(),
+          Divider(height: 0.5, thickness: 0.5, color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),),
           Consumer(
             builder: (context, ref, _) {
               // v0.3.7.2 (6/19): 运行时从 Provider 读真实版本号.
@@ -58,7 +58,7 @@ class SettingsPage extends ConsumerWidget {
               );
             },
           ),
-          const Divider(),
+          Divider(height: 0.5, thickness: 0.5, color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),),
         ],
       ),
     );

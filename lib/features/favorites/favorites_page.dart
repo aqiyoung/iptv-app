@@ -129,7 +129,7 @@ class FavoritesPage extends ConsumerWidget {
                     style: IptvTypography.serifTitle,
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(height: 0.5, thickness: 0.5),
                 ListTile(
                   leading: Icon(
                     Icons.delete_outline,
