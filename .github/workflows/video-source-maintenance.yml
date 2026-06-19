@@ -71,11 +71,14 @@ jobs:
         run: |
           mkdir -p assets/data scripts
 
+      - name: 决定 dry run
+        id: dry_run_check
+        run: echo "DRY_RUN=$([ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.dry_run || 'false' }}" = "true" ] && echo true || echo false)" >> $GITHUB_OUTPUT
       - name: 跑 discover_known_sources (抓 iptv-org cn.m3u)
         id: discover_known
         run: |
           cd scripts
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "${{ steps.dry_run_check.outputs.DRY_RUN }}" = "true" ]; then
             echo "🧪 DRY RUN — 只探测不写"
             python3 discover_known_sources.py --workers 30 --timeout 5 || true
             echo "dry_run=true" >> $GITHUB_OUTPUT
@@ -86,7 +89,7 @@ jobs:
         if: steps.discover_known_outcome != 'failure'
         run: |
           cd scripts
-          if [ "${{ inputs.dry_run }}" != "true" ]; then
+          if [ "${{ steps.dry_run_check.outputs.DRY_RUN }}" != "true" ]; then
             python3 sync_known_sources.py --max-per-channel 3
           else
             python3 sync_known_sources.py --dry-run --max-per-channel 3
@@ -95,7 +98,7 @@ jobs:
         if: steps.discover_known_outcome != 'failure'
         run: |
           cd scripts
-          if [ "${{ inputs.dry_run }}" != "true" ]; then
+          if [ "${{ steps.dry_run_check.outputs.DRY_RUN }}" != "true" ]; then
             python3 sync_cctv_top1.py || true
           else
             python3 sync_cctv_top1.py --dry-run || true
@@ -104,7 +107,7 @@ jobs:
         if: steps.discover_known_outcome != 'failure'
         run: |
           cd scripts
-          if [ "${{ inputs.dry_run }}" != "true" ]; then
+          if [ "${{ steps.dry_run_check.outputs.DRY_RUN }}" != "true" ]; then
             python3 discover_cctv_sources.py --workers 30 --timeout 5 || true
           fi
 
@@ -115,7 +118,7 @@ jobs:
           git diff --stat assets/data/known_sources.json assets/data/cctv_sources.json assets/data/candidates.json || echo "无变更"
 
       - name: Auto-commit 变更
-        if: steps.discover_known_outcome != 'failure' && inputs.dry_run != 'true'
+        if: steps.discover_known_outcome != 'failure' && steps.dry_run_check.outputs.DRY_RUN != 'true'
         run: |
           # 配置 git bot identity
           git config user.email "openclaw@threel.site"
