@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'colors.dart';
-
 /// 新中式字体 — 衬线标题 + 系统无衬线正文
 /// 衬线：Georgia (iOS/Android 自带，无须打包字体)
 class IptvTypography {
@@ -10,13 +8,20 @@ class IptvTypography {
   static const String serifFamily = 'Georgia';
   static const String sansFamily = 'Roboto'; // Android 默认无衬线
 
+  /// v0.3.7+60 (6/19): 删 color 字段 — 让 Flutter Text widget 走 defaultTextStyle
+  /// / Theme.of(context).textTheme 自动适配浅色 + 暗色.  之前 const TextStyle
+  /// 写死 color: IptvColors.textPrimary (深棕),  暗色主题下也是深棕 → 暗背景上看不清.
+  /// 之前 6/19 v0.3.7+50 修时漏了 typography.dart (const 不能用 Theme.of),  修法
+  /// 是不要在这里指定 color,  让 MaterialApp 的 textTheme.apply(bodyColor:)
+  /// 接管.  浅色主题 textTheme.bodyMedium.color 默认 = textPrimary (深棕),  暗色
+  /// 主题 = darkTextPrimary (米白).  都对.
+
   /// 衬线大标题 — 用于 Section 标题
   static const TextStyle serifHeadline = TextStyle(
     fontFamily: serifFamily,
     fontSize: 28,
     fontWeight: FontWeight.w600,
     height: 1.3,
-    color: IptvColors.textPrimary,
   );
 
   /// 衬线中标题
@@ -25,7 +30,6 @@ class IptvTypography {
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.35,
-    color: IptvColors.textPrimary,
   );
 
   /// 无衬线小标题
@@ -34,7 +38,6 @@ class IptvTypography {
     fontSize: 16,
     fontWeight: FontWeight.w600,
     height: 1.4,
-    color: IptvColors.textPrimary,
   );
 
   /// 正文
@@ -43,7 +46,6 @@ class IptvTypography {
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.5,
-    color: IptvColors.textPrimary,
   );
 
   /// 副文字
@@ -52,6 +54,5 @@ class IptvTypography {
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.4,
-    color: IptvColors.textSecondary,
   );
 }

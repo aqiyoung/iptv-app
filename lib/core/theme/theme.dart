@@ -18,6 +18,11 @@ class IptvTheme {
         secondary: IptvColors.accentClay,
       ),
       scaffoldBackgroundColor: IptvColors.bgParchment,
+      // v0.3.7+60: light 主题也加 .apply 显式指定 IptvColors.textPrimary 颜色.
+      // 之前 6/19 v0.3.7+50 漏了 (只 dark 主题 apply),  light 下 Text 走 Material
+      // 默认 onSurface (#212121) 跟 light theme 深棕 textPrimary (#2A2520) 颜色
+      // 不一致.  现在 light + dark 都 apply 颜色,  Typography 删 color 后
+      // textTheme.color 是唯一来源.
       textTheme: const TextTheme(
         headlineLarge: IptvTypography.serifHeadline,
         titleLarge: IptvTypography.serifTitle,
@@ -25,6 +30,9 @@ class IptvTheme {
         bodyLarge: IptvTypography.body,
         bodyMedium: IptvTypography.body,
         labelSmall: IptvTypography.caption,
+      ).apply(
+        bodyColor: IptvColors.textPrimary,
+        displayColor: IptvColors.textPrimary,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: IptvColors.bgParchment,
