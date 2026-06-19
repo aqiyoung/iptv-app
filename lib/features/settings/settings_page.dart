@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../main.dart';  // v0.3.7.2: 不再 import 写死 const, 用 Provider 读运行时版本号
+// v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
 import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider;
 import 'theme_provider.dart';
 
