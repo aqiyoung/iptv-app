@@ -371,28 +371,28 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   ),
                 ),
               ),
-              // v0.3.5.5 P0 bug fix: TopBar 永远 visible (不参与 _controlsVisible
-              // 3s 隐身), 因为 TopBar 含"退出全屏"按钮 — 必须随时能点.  控件层
-              // (节目卡 + 频道横滑) 才走 _controlsVisible 隐身.
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: TopBar(
-                  channel: channel,
-                  state: state,
-                  onBack: () => context.pop(),
-                  onExitFullscreen: _toggleFullscreen,
-                ),
-              ),
+              // v0.3.7+64 (6/19 老板反馈): 全屏态下 TopBar 也参与 _controlsVisible
+              // 隐身 — 之前 v0.3.5.5 永远 visible 导致全屏时台标 (CCTV 频道名 + LIVE
+              // + 状态条 + 心形收藏) 一直显示挡视频.  现在 3s 后整体隐,  视频是
+              // 唯一视觉中心. 退出全屏按钮改成独立浮动按钮 (右上角 small icon),
+              // 全屏隐身后仍可点 (用户最关键操作).
               // 6/18 P1 hotfix: 控件层 — 整体走 _controlsVisible 隐身
-              // (TopBar 已经移到外面, 这里只剩 节目卡 + 频道横滑).
+              // (TopBar + 节目卡 + 频道横滑一起进 AnimatedOpacity).
               AnimatedOpacity(
                 opacity: _controlsVisible ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 250),
                 child: Column(
                   children: [
-                    // TopBar 已经移出去, 留 Spacer 占位让控件贴底
+                    // v0.3.7+64: TopBar 现在也进 AnimatedOpacity,  节目卡 + 横滑
+                    // 跟之前一样贴底.
+                    TopBar(
+                      channel: channel,
+                      state: state,
+                      onBack: () => context.pop(),
+                      // 6/19 改: 退出全屏按钮在 _controlsVisible=false 仍可点
+                      // (独立浮动按钮在右下角,  这个 onExitFullscreen = null).
+                      onExitFullscreen: null,
+                    ),
                     const Spacer(),
                     if (channel != null)
                       Container(
@@ -429,8 +429,29 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                     ),
                   ),
                 ),
-              // v0.3.5.5 P0 bug fix: 退出全屏按钮已经合并进 _TopBar, 这里的
-              // 单独 Positioned 删掉 (避免跟 TopBar 的退出全屏按钮重复).
+              // v0.3.7+64 (6/19): 退出全屏浮动按钮 — 跟 _controlsVisible 独立,
+              // 一直显示在右上角.  之前 v0.3.5.5 把它合并进 TopBar,  TopBar 跟着
+              // 视频 3s 后一起隐,  用户反馈 "全屏时台标挡视频" 但用户依然需要
+              // 一个永远在的退出按钮 (Android back 也可退出全屏,  但显示反馈
+              // 是必须的).  现在小图标 (size 18) 半透明 surfaceContainerHigh 背景,
+              //  跟 TopBar 的 fullscreen_exit 视觉一致.
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Material(
+                  color: scheme.surfaceContainerHigh.withOpacity(0.6),
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.fullscreen_exit,
+                      color: scheme.onSurface,
+                      size: 18,
+                    ),
+                    tooltip: '退出全屏',
+                    onPressed: _toggleFullscreen,
+                  ),
+                ),
+              ),
             ],
           );
         },
