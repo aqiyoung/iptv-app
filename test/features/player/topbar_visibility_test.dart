@@ -126,8 +126,15 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('PlayerPage v0.3.5.5 TopBar 永远 visible (退出全屏按钮不能 3s 隐)', () {
+  // v0.3.7+79: 退出全屏按钮 v0.3.7+64 加的右上角浮动, v0.3.7+79 删了.
+// TopBar 现在也走 _controlsVisible 3s 隐 (v0.3.7+64 改的).
+// 老测试期望 "TopBar 永远 visible" + "退出全屏按钮在 widget 树里"  不再 valid.
+// 这些 testWidgets 标 skip 留作历史 (老板想回滚能查).
+// 新测试逻辑在 fullscreen_overlay_test.dart 改写.
+
+group('PlayerPage v0.3.7+79 TopBar 跟 AnimatedOpacity 一体 (v0.3.7+64 改的 + v0.3.7+79 删浮动按钮) [SKIP 老期望]', () {
     testWidgets('全屏 overlay + 控件 3s 隐身后, TopBar (含退出全屏按钮) 仍 visible',
+        skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
         (tester) async {
       await _pumpPlayerFullscreen(tester);
       // devicePixelRatio=1.0, 物理 1080x1920 → 逻辑 1080x1920, shortestSide=1080
@@ -167,6 +174,7 @@ void main() {
     });
 
     testWidgets('全屏 overlay + 控件显示时, TopBar + 退出全屏按钮 + 控件层都 visible',
+        skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
         (tester) async {
       await _pumpPlayerFullscreen(tester);
 
@@ -194,6 +202,7 @@ void main() {
     });
 
     testWidgets('TopBar 跟 AnimatedOpacity 分离 — 控件隐时 TopBar 仍 visible, 反之亦然',
+        skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
         (tester) async {
       await _pumpPlayerFullscreen(tester);
 
@@ -243,7 +252,8 @@ void main() {
       );
     });
 
-    testWidgets('回归: 移动端嵌入布局不显示退出全屏按钮 (onExitFullscreen=null)', (tester) async {
+    testWidgets('回归: 移动端嵌入布局不显示退出全屏按钮 (onExitFullscreen=null)', skip: 'v0.3.7+79 老期望已废 — TopBar 现在跟控件一起隐, 退出按钮删了',
+        (tester) async {
       // 移动端嵌入布局: devicePixelRatio=2.0, 物理 1080x1920 → 逻辑 540x960
       // → shortestSide=540 < 600 → _isMobile=true → 走 _buildMobile.
       // _buildMobile 调 _TopBar 不传 onExitFullscreen, TopBar 内不渲染
