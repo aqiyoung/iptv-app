@@ -6,6 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sanyelive/data/cctv_source.dart';
 
 void main() {
+  // v0.3.7+57: 跟 source_failover_test 同样原因 — 调用 sortByHealthScore
+  // 跟 SharedPreferences 无直接关系,  但保持一致性防 future regression.
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+  });
+
   group('sortByHealthScore', () {
     test('A score=0.9, B=0.6, C=0.3 → 优先选 A', () {
       final sources = <CctvSource>[

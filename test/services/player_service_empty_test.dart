@@ -1,10 +1,18 @@
 // 卡 6 验证: PlayerService.play 对空 sources 立即报 error, 不让 player 卡死
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/data/models/channel.dart';
 import 'package:sanyelive/services/player_service.dart';
 import 'package:sanyelive/services/source_failover.dart';
 
 void main() {
+  // v0.3.7+57: 跟 source_failover_test 同样原因 — CctvSourcePicker.recordFailure
+  // 会调 SharedPreferences, 不 mock 就 "Binding has not yet been initialized".
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   group('PlayerService.play 空 sources', () {
     test('sources 为空 → 立即 set error, 不调 opener', () async {
       final fakeOpener = _CountingOpener();
