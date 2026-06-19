@@ -63,9 +63,25 @@ class EndpointNotifier extends Notifier<String> {
   }
 
   /// 用户改 endpoint — 持久化 + state 更新.
+  /// v0.3.7+86 (6/20 老板测试反馈): 加 URL validate, 防止老板填错 URL
+  /// (e.g. 拼写错, 缺 https://, 多余空格)  → fetch 失败 → 1h 内不重试.
+  /// validate 规则: 非空 + 是合法 http/https URL.
+  /// 返回 String? error message, null = 成功.
+  String? validateEndpoint(String url) {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return 'URL 不能为空';
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null) return 'URL 格式错误';
+    if (uri.scheme != 'http' && uri.scheme != 'https') {
+      return 'URL 必须以 http:// 或 https:// 开头';
+    }
+    if (uri.host.isEmpty) return 'URL 缺少域名';
+    return null;
+  }
+
   Future<void> setEndpoint(String url) async {
     final trimmed = url.trim();
-    if (trimmed.isEmpty) return;
+    if (validateEndpoint(trimmed) != null) return; // 验证失败, 不写
     await _prefs.setString(kEndpointPrefsKey, trimmed);
     state = trimmed;
   }

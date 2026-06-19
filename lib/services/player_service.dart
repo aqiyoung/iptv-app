@@ -82,11 +82,14 @@ class MediaKitStreamOpener implements StreamOpener {
         // 收到任何 playing 状态变化 (true or false) → 视为 open 完成
         if (!completer.isCompleted) {
           sub.cancel();
+          timer.cancel(); // v0.3.7+86: 收到事件立刻 cancel timer, 避免 timer
+          // 持有 callback 引用等到 timeout 才被 GC,  浪费资源.
           completer.complete(true);
         }
       });
       // 兜底: 如果 stream 一直没事件, 在 timeout 后算 open 完成
-      Timer(timeout, () {
+      // v0.3.7+86: timer 变量提上来,  listen 收到事件时主动 cancel.
+      final timer = Timer(timeout, () {
         if (!completer.isCompleted) {
           sub.cancel();
           // 超时前没收到任何 playing 事件, 视作失败
