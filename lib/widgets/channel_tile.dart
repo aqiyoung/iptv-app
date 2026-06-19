@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/colors.dart';
 import '../core/theme/typography.dart';
 import '../data/models/channel.dart';
 import '../features/favorites/favorite_button.dart';

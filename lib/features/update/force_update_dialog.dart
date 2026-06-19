@@ -28,7 +28,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:sanyelive/core/theme/colors.dart';
 import 'package:sanyelive/services/version_checker.dart';
 
 /// 公开入口:  main.dart 在 VersionCheckOutdated 时调.

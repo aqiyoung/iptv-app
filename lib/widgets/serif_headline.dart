@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/colors.dart';
 import '../core/theme/typography.dart';
 
 /// 衬线大标题组件 — 章节标题用
