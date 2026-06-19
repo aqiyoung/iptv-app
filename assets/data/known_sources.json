@@ -17,97 +17,84 @@
     "http://ivi.bupt.edu.cn/hls/btv1.m3u8"
   ],
   "CCTV1.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv1_1/index.m3u8",
-    "http://198.204.240.250:82/live/cctv1.m3u8",
-    "http://go.bkpcp.top/mg/cctv1",
-    "http://ivi.bupt.edu.cn/hls/cctv1.m3u8"
+    "http://74.91.26.218:82/live/cctv1hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV1"
   ],
   "CCTV2.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv2_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv2",
-    "http://ivi.bupt.edu.cn/hls/cctv2.m3u8"
+    "http://74.91.26.218:82/live/cctv2hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV2"
   ],
   "CCTV3.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv3_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv3",
-    "http://ivi.bupt.edu.cn/hls/cctv3.m3u8"
+    "http://74.91.26.218:82/live/cctv3hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV3"
   ],
   "CCTV4Asia.cn": [
     "http://74.91.26.218:82/live/cctv4hd.m3u8",
-    "http://go.bkpcp.top/mg/cctv4",
-    "http://ivi.bupt.edu.cn/hls/cctv4.m3u8"
+    "http://go.bkpcp.top/mg/CCTV4Asia"
   ],
   "CCTV4K.cn": [
-    "http://198.204.240.250:82/live/cctv4k.m3u8",
-    "http://192.151.150.154/live/cctv4k.m3u8"
+    "http://74.91.26.218:82/live/cctv4k.m3u8",
+    "http://go.bkpcp.top/mg/CCTV4K"
   ],
   "CCTV5.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv5_1/index.m3u8"
+    "http://74.91.26.218:82/live/cctv5hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV5"
   ],
   "CCTV5Plus.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv51_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv5plus",
-    "http://198.204.240.250:82/live/cctv5+.m3u8"
+    "http://74.91.26.218:82/live/cctv5plus.m3u8",
+    "http://go.bkpcp.top/mg/CCTV5Plus"
   ],
   "CCTV6.cn": [
-    "http://198.204.240.250:82/live/cctv6.m3u8",
-    "http://go.bkpcp.top/mg/cctv6",
-    "http://ivi.bupt.edu.cn/hls/cctv6.m3u8"
+    "http://74.91.26.218:82/live/cctv6hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV6"
   ],
   "CCTV7.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv7_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv7",
-    "http://ivi.bupt.edu.cn/hls/cctv7.m3u8"
+    "http://74.91.26.218:82/live/cctv7hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV7"
   ],
   "CCTV8.cn": [
-    "http://198.204.240.250:82/live/cctv8.m3u8",
-    "http://go.bkpcp.top/mg/cctv8",
-    "http://ivi.bupt.edu.cn/hls/cctv8.m3u8"
+    "http://74.91.26.218:82/live/cctv8hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV8"
   ],
   "CCTV8K.cn": [
-    "http://192.151.150.154/live/cctv8k.m3u8",
-    "http://198.204.240.250:82/live/cctv8k.m3u8"
+    "http://74.91.26.218:82/live/cctv8k.m3u8",
+    "http://go.bkpcp.top/mg/CCTV8K"
   ],
   "CCTV9.cn": [
-    "https://xykt-fix.github.io/Y77.m3u8",
-    "http://go.bkpcp.top/mg/cctv9"
+    "http://74.91.26.218:82/live/cctv9hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV9"
   ],
   "CCTV10.cn": [
-    "https://cdn4.skygo.mn/live/disk1/CCTV-10/HLSv3-FTA/CCTV-10.m3u8",
-    "http://go.bkpcp.top/mg/cctv10",
-    "http://ivi.bupt.edu.cn/hls/cctv10.m3u8"
+    "http://74.91.26.218:82/live/cctv10hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV10"
   ],
   "CCTV11.cn": [
-    "https://xykt-fix.github.io/play/a02b/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv11"
+    "http://74.91.26.218:82/live/cctv11hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV11"
   ],
   "CCTV12.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv12_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv12",
-    "http://ivi.bupt.edu.cn/hls/cctv12.m3u8"
+    "http://74.91.26.218:82/live/cctv12hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV12"
   ],
   "CCTV13.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv13_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv13",
-    "http://ivi.bupt.edu.cn/hls/cctv13.m3u8"
+    "http://74.91.26.218:82/live/cctv13hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV13"
   ],
   "CCTV14.cn": [
-    "https://cdn4.skygo.mn/live/disk1/CCTV-14/HLSv3-FTA/CCTV-14.m3u8",
-    "http://go.bkpcp.top/mg/cctv14",
-    "http://ivi.bupt.edu.cn/hls/cctv14.m3u8"
+    "http://74.91.26.218:82/live/cctv14hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV14"
   ],
   "CCTV15.cn": [
-    "https://xykt-fix.github.io/play/a02e/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv15"
+    "http://74.91.26.218:82/live/cctv15hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV15"
   ],
   "CCTV16.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv16_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv16"
+    "http://74.91.26.218:82/live/cctv16hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV16"
   ],
   "CCTV17.cn": [
-    "http://ldncctvwbcdtxy.liveplay.myqcloud.com/ldncctvwbcd/cdrmldcctv17_1/index.m3u8",
-    "http://go.bkpcp.top/mg/cctv17",
-    "http://ivi.bupt.edu.cn/hls/cctv17.m3u8"
+    "http://74.91.26.218:82/live/cctv17hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV17"
   ],
   "CETV1.cn": [
     "http://117.161.133.51:81/gitv_live/G_CETV-1/G_CETV-1.m3u8?p=GITV",
@@ -301,7 +288,7 @@
     "http://39.134.115.163:8080/PLTV/88888910/224/3221225739/index.m3u8"
   ],
   "CCTVWomensFashion.cn": [
-    "http://223.110.245.169/PLTV/4/224/3221227026/index.m3u8"
+    "http://go.bkpcp.top/mg/CCTVWomensFashion"
   ],
   "NingxiaSatelliteChannel.cn": [
     "http://183.207.248.71/gitv/live1/G_NINGXIA/G_NINGXIA",
@@ -472,6 +459,7 @@
     "http://183.207.248.71/gitv/live1/G_HEILONGJIANG/G_HEILONGJIANG"
   ],
   "CCTV4.cn": [
-    "https://xykt-fix.github.io/play/a02a/index.m3u8"
+    "http://74.91.26.218:82/live/cctv4hd.m3u8",
+    "http://go.bkpcp.top/mg/CCTV4"
   ]
 }

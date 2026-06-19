@@ -68,6 +68,10 @@ def load_cctv_top1() -> dict[str, dict]:
     """
     读 cctv_sources.json, 返回 {channel_id: {url, score, alive}}.
     只取 alive=true 中 score 最高的 (top-1).
+
+    v0.3.7.1 (6/19 12:43): 优先选 non-CDRM 源.  如果 top-1 是 CDRM 加密流
+    (myqcloud cdrmldcctv... 路径),  跳到下一个 non-DRM 源,  避免 player
+    黑屏.  全部都 CDRM 才退回到原 top-1.
     """
     with open(CCTV_SRC_PATH, encoding='utf-8') as f:
         data = json.load(f)
@@ -77,8 +81,11 @@ def load_cctv_top1() -> dict[str, dict]:
         alive_items = [s for s in items if s.get('alive')]
         if not alive_items:
             continue
+        # 按 score 降序, rtt 升序
         alive_items.sort(key=lambda s: (-s.get('score', 0.0), s.get('rttMs', 999999)))
-        top1[ch_id] = alive_items[0]
+        # 优先选 non-CDRM 源
+        non_drm = [s for s in alive_items if 'cdrm' not in s.get('url', '').lower()]
+        top1[ch_id] = non_drm[0] if non_drm else alive_items[0]
     return top1
 
 
@@ -120,7 +127,6 @@ def merge_one_channel(
     #    的 alive=false 标识 + 已知的"历史坏 host"列表
     KNOWN_DEAD_HOSTS = (
         '69.30.245.50',         # v0.3.5.1 dead (旧 iptv-org)
-        '74.91.26.218',         # v0.3.5.1 dead (旧 iptv-org)
         '38.75.136.137',        # 6/18 dead (金矿, 老板不用)
         'ottrrs.hl.chinamobile.com',  # v0.3.5.1 dead
         'ott.mobaibox.com',     # v0.3.5.1 dead
@@ -143,7 +149,19 @@ def merge_one_channel(
     # a. top-1 (如果存在且不在 known_sources 里)
     if top1:
         top1_url = top1['url']
-        if top1_url not in alive_after_filter:
+        # v0.3.7.1 (6/19 12:43): 跳过 CDRM 加密流.  老板装机实测 v0.3.7+50
+        # CCTV1 黑屏,  根因是 myqcloud 的 ldncctv.../cdrmldcctv... 是
+        # 腾讯云 CDN 加密流,  media_kit + 我们 player 解不了.  即使
+        # score=0.9 也不能用.  跳过含 'cdrm' 关键字的 URL,  让 player
+        # fallback 到 198.204 那个 IPTV 平台明文流.
+        is_drm_url = 'cdrm' in top1_url.lower()
+        if is_drm_url:
+            # 跳进 change 记录里,  下一段逻辑会重选 non-DRM top1
+            change['top1_url'] = None  # 标记为不可用
+            change['top1_drm'] = True
+            change['removed'].append(top1_url)
+            print(f'   ⚠️ {channel_id:20s} top1 是 CDRM 加密流, 跳过: {top1_url}')
+        elif top1_url not in alive_after_filter:
             new_urls.append(top1_url)
             change['added'].append(top1_url)
         else:
