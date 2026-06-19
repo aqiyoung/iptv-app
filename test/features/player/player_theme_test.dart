@@ -159,16 +159,26 @@ void main() {
           reason: 'v0.3.5.19: 暗色下全屏按钮 bg 应该 = transparent');
     });
 
-    testWidgets('视频区 Scaffold bg = Colors.black (v0.3.5.19)', (tester) async {
-      // v0.3.5.19: 视频区纯黑底, 不跟主题联动
+    testWidgets('视频区 Scaffold bg = scheme.surface (v0.3.5.20 跟主题联动)', (tester) async {
+      // v0.3.5.20: 视频区 Scaffold bg 跟主题走,  浅色=bgParchment,  暗色=darkSurface.
+      // 不是 v0.3.5.19 的纯黑底.
       await _pumpPlayer(
         tester,
         theme: IptvTheme.light(),
         physicalSize: const Size(1080, 1920),
       );
       final scaffoldLight = tester.widget<Scaffold>(find.byType(Scaffold));
-      expect(scaffoldLight.backgroundColor, equals(Colors.black),
-          reason: 'v0.3.5.19: 视频区 Scaffold bg 应 = Colors.black');
+      expect(scaffoldLight.backgroundColor, equals(IptvTheme.light().colorScheme.surface),
+          reason: 'v0.3.5.20: 视频区 Scaffold bg 应 = scheme.surface (跟主题联动)');
+      // 暗色下也验一下
+      await _pumpPlayer(
+        tester,
+        theme: IptvTheme.dark(),
+        physicalSize: const Size(1080, 1920),
+      );
+      final scaffoldDark = tester.widget<Scaffold>(find.byType(Scaffold));
+      expect(scaffoldDark.backgroundColor, equals(IptvTheme.dark().colorScheme.surface),
+          reason: 'v0.3.5.20: 暗色主题下 bg = darkSurface');
     });
   });
 }
