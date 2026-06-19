@@ -3,15 +3,24 @@
 // 一个 ListTile "主题" → 弹出 RadioListTile 选 系统 / 浅色 / 深色.
 // 复用 theme_provider, 切换后立即持久化 (SharedPreferences),
 // main.dart 的 ConsumerWidget 监听 themeModeProvider 同步给 MaterialApp.themeMode.
+//
+// v0.3.7+80 (6/19): 加 2 个 tile — "检查更新" + "关于三页直播".
+//  关于: 描述项目 + 贴 GitHub 地址 + 一键复制按钮.  不用 url_launcher 包
+//  (省 1MB + Android query intent 配置),  复制 URL 让老板自己粘贴到浏览器看.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
-import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider;
+import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider, versionCheckerProvider, VersionCheckState, VersionCheckUpToDate, VersionCheckOutdated, VersionCheckFailed;
+import '../update/force_update_dialog.dart' show ForceUpdateDialog;
 import '../../core/theme/colors.dart' show IptvColors;
 import 'theme_provider.dart';
+
+// v0.3.7+80 (6/19): GitHub 项目地址常量.  复制到剪贴板用.
+const String kGitHubRepoUrl = 'https://github.com/aqiyoung/iptv-app';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -19,14 +28,10 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        // v0.3.7+69 (6/19): AppBar title 加显式 textPrimary (跟 AppBarTheme
-        // foregroundColor 一致,  但 v0.3.7+60 typography.dart 删了 const TextStyle
-        // 的 color 字段,  导致 serifTitle 没 color → const Text('设置') 走
-        // DefaultTextStyle → bodyMedium.color,  浅色下 #2A2520 在 #F5F4ED 上
-        // 老板反馈 "浅色模式下设置页的设置字看不清").
         title: Text('设置', style: TextStyle(color: IptvColors.textPrimary)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -43,6 +48,7 @@ class SettingsPage extends ConsumerWidget {
       body: ListView(
         children: [
           const SizedBox(height: 8),
+          // ─── 主题 ─────────────────────────────────────────────────────────
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: const Text('主题', style: TextStyle(color: IptvColors.textPrimary)),
@@ -50,26 +56,209 @@ class SettingsPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickTheme(context, ref, current: mode),
           ),
-          Divider(height: 0.5, thickness: 0.5, color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),),
+          const _ThinDivider(),
+          // ─── 检查更新 ─────────────────────────────────────────────────────
+          // v0.3.7+80: 手动触发 versionCheckerProvider.notifier.checkOnStartup().
+          // 逻辑跟启动时一样: 1h 内 cache 命中跳过,  否则 fetch GitHub API.
+          // state 变化显示 SnackBar (upToDate / outdated / failed).
+          ListTile(
+            leading: const Icon(Icons.system_update_alt_outlined),
+            title: const Text('检查更新', style: TextStyle(color: IptvColors.textPrimary)),
+            subtitle: const Text(
+              '当前版本 + 最新版本对比',
+              style: TextStyle(color: IptvColors.textSecondary),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _checkUpdate(context, ref),
+          ),
+          const _ThinDivider(),
+          // ─── 关于三页直播 ─────────────────────────────────────────────────
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('关于三页直播', style: TextStyle(color: IptvColors.textPrimary)),
+            subtitle: const Text(
+              '项目介绍 + GitHub 地址',
+              style: TextStyle(color: IptvColors.textSecondary),
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showAbout(context),
+          ),
+          const _ThinDivider(),
+          // ─── 版本号 (静态展示,  从 Provider 读) ───────────────────────────
           Consumer(
             builder: (context, ref, _) {
-              // v0.3.7.2 (6/19): 运行时从 Provider 读真实版本号.
-              // 之前 const '0.3.5+37' 从 v0.3.5+37 后一直没改过.
               final version = ref.watch(currentVersionStringProvider);
               final code = ref.watch(currentVersionCodeProvider);
               return ListTile(
-                leading: const Icon(Icons.info_outline),
+                leading: const Icon(Icons.tag_outlined),
                 title: const Text('版本号', style: TextStyle(color: IptvColors.textPrimary)),
-                subtitle: Text('$version (build $code)', style: const TextStyle(color: IptvColors.textSecondary)),
+                subtitle: Text(
+                  '$version (build $code)',
+                  style: const TextStyle(color: IptvColors.textSecondary),
+                ),
               );
             },
           ),
-          Divider(height: 0.5, thickness: 0.5, color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),),
+          const SizedBox(height: 24),
+          // ─── 底部 footer (slogan,  跟 about 区分) ─────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Text(
+              '三页直播 · 极简新中式 IPTV',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: scheme.onSurfaceVariant.withOpacity(0.6),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
+  // ─── 关于对话框 ───────────────────────────────────────────────────────────
+  // v0.3.7+80: 弹一个 dialog,  描述项目 (基于 Flutter + media_kit 视频播放,
+  // 极简新中式设计,  IPTV 直播).  底部贴 GitHub 地址 + 复制按钮.
+  void _showAbout(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('关于三页直播'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '三页直播是一款 IPTV 直播 APP, 面向家用电视 / 盒子 / 手机, 极简新中式设计。',
+                style: TextStyle(color: scheme.onSurface, height: 1.6),
+              ),
+              const SizedBox(height: 16),
+              _AboutSection(
+                label: '技术栈',
+                child: Text(
+                  'Flutter (Dart) · media_kit (libmpv 内核) · Riverpod · GoRouter · '
+                  'GitHub Actions CI/CD · 自动源维护 (iptv-org 上游)。',
+                  style: TextStyle(color: scheme.onSurfaceVariant, height: 1.6),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _AboutSection(
+                label: '特性',
+                child: Text(
+                  '· 强制 IPv4 (修 wifi 加载不出来)\n'
+                  '· Source Failover 自动切源\n'
+                  '· 全屏沉浸 + 3s 自动隐控件\n'
+                  '· 浅色 / 深色 / 跟随系统三主题\n'
+                  '· 收藏本地持久化\n'
+                  '· 后台强制更新 (GitHub Releases)',
+                  style: TextStyle(color: scheme.onSurfaceVariant, height: 1.6),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _AboutSection(
+                label: '项目地址',
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerHighest.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          kGitHubRepoUrl,
+                          style: TextStyle(
+                            color: scheme.primary,
+                            fontSize: 13,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.copy_outlined, size: 18),
+                        tooltip: '复制 GitHub 地址',
+                        onPressed: () => _copyRepoUrl(ctx),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // v0.3.7+80: 复制 GitHub 地址到剪贴板 + SnackBar 提示.
+  void _copyRepoUrl(BuildContext context) {
+    Clipboard.setData(const ClipboardData(text: kGitHubRepoUrl));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('已复制 GitHub 地址, 粘贴到浏览器查看'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // ─── 检查更新 ─────────────────────────────────────────────────────────────
+  // v0.3.7+80: 调 versionCheckerProvider.notifier.checkOnStartup() —
+  // 走跟启动时一样的逻辑 (cache 命中跳过, fetch GitHub API).
+  // state 变化时用 listenManual 监听弹 SnackBar / Dialog.
+  void _checkUpdate(BuildContext context, WidgetRef ref) {
+    // 1. 显示 loading SnackBar.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('正在检查更新…'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // 2. 监听 state 变化 — 一次性, 弹 SnackBar / Dialog 后不持续触发.
+    // listenManual 在 widget dispose 时自动 cancel, 不会泄漏.
+    ref.listenManual<VersionCheckState>(
+      versionCheckerProvider,
+      (prev, next) {
+        if (next is VersionCheckUpToDate) {
+          _showUpdateSnack(context, '已是最新版本 ${next.latestVersion}');
+        } else if (next is VersionCheckOutdated) {
+          // outdated 走 ForceUpdateDialog.show() (跟启动时一致, barrierDismissible=false
+          // P0/critical 时强制更新,  老板点不过去).
+          ForceUpdateDialog.show(context);
+        } else if (next is VersionCheckFailed) {
+          _showUpdateSnack(context, '检查更新失败: ${next.reason}');
+        }
+      },
+      fireImmediately: true,
+    );
+
+    // 3. 触发 fetch (走 checkOnStartup 跟启动时一致 — 1h cache / fetch API).
+    // ⚠️ 必须用 .read(provider.notifier) 而不是 .read(provider),
+    // .notifier 拿 Notifier 实例,  才能调 checkOnStartup() 方法.
+    ref.read(versionCheckerProvider.notifier).checkOnStartup();
+  }
+
+  void _showUpdateSnack(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // ─── 主题选择对话框 (老功能保留) ──────────────────────────────────────────
   Future<void> _pickTheme(
     BuildContext context,
     WidgetRef ref, {
@@ -106,5 +295,47 @@ class SettingsPage extends ConsumerWidget {
       case ThemeMode.dark:
         return '深色';
     }
+  }
+}
+
+// ─── 内部组件 ──────────────────────────────────────────────────────────────
+
+/// v0.3.7+80: 细分割线,  跟设置页 ListTile 之间分隔用,  复用 0.5px outlineVariant.
+class _ThinDivider extends StatelessWidget {
+  const _ThinDivider();
+  @override
+  Widget build(BuildContext context) {
+    return Divider(
+      height: 0.5,
+      thickness: 0.5,
+      color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+    );
+  }
+}
+
+/// v0.3.7+80: 关于对话框里的小节 (label + content),  label 加粗.
+class _AboutSection extends StatelessWidget {
+  const _AboutSection({required this.label, required this.child});
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: scheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
+        child,
+      ],
+    );
   }
 }

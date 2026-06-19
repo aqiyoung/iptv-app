@@ -227,7 +227,7 @@ void main() {
       );
     });
 
-    testWidgets(
+    testWidgets('TV 端 (短边 >= 600): 默认走全屏覆盖, _TopBar 永远 visible (v0.3.5.5 P0 fix) [v0.3.7+79 skip]',
     // v0.3.7+79: skip 老期望 (TopBar 现在跟控件一起隐 + 退出按钮删了)
         skip: true,
         (tester) async {
