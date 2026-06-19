@@ -37,10 +37,51 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/features/settings/theme_provider.dart'
     show sharedPreferencesProvider;
 
-/// GitHub releases API endpoint — 总是拿最新 published release
-/// (不含 draft / prerelease,  除非所有 release 都是 prerelease).
-const String kGitHubReleasesUrl =
+/// GitHub releases API endpoint — 默认直连 api.github.com.
+/// v0.3.7+85 (6/20 老板反馈): 老板手机国内访问 api.github.com 经常超时,
+/// 加 endpointProvider 让用户在设置页改成国内中转 (e.g. ghproxy.net
+/// 反代 api.github.com).  持久化在 SharedPreferences.
+/// 注意:  中转服务可能只代理 raw.githubusercontent.com (ghproxy.net),
+/// 不代理 api.github.com.  需要专门代理 API 的服务.
+const String kDefaultEndpointUrl =
     'https://api.github.com/repos/aqiyoung/iptv-app/releases/latest';
+
+/// v0.3.7+85: 用户在设置页可改的 endpoint URL.  默认 api.github.com.
+/// 老板手机上改成 ghproxy.net 或自建镜像 (NAS + nginx 反代 api.github.com).
+/// SharedPreferences 持久化.
+const String kEndpointPrefsKey = 'version_checker.endpoint_url';
+
+/// 当前 endpoint URL — 默认 api.github.com.  单元测试可 overrideWithValue.
+/// 用 Notifier 实现 (跟 themeMode 一样), 改 URL 时持久化.
+class EndpointNotifier extends Notifier<String> {
+  late final SharedPreferences _prefs;
+
+  @override
+  String build() {
+    _prefs = ref.read(sharedPreferencesProvider);
+    return _prefs.getString(kEndpointPrefsKey) ?? kDefaultEndpointUrl;
+  }
+
+  /// 用户改 endpoint — 持久化 + state 更新.
+  Future<void> setEndpoint(String url) async {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty) return;
+    await _prefs.setString(kEndpointPrefsKey, trimmed);
+    state = trimmed;
+  }
+
+  /// 重置回默认 (api.github.com).
+  Future<void> resetEndpoint() async {
+    await _prefs.remove(kEndpointPrefsKey);
+    state = kDefaultEndpointUrl;
+  }
+}
+
+final endpointProvider = NotifierProvider<EndpointNotifier, String>(EndpointNotifier.new);
+
+/// 兼容旧代码 — get kGitHubReleasesUrl 改成 get endpoint.
+@Deprecated('Use endpointProvider instead')
+String get kGitHubReleasesUrl => kDefaultEndpointUrl;
 
 /// 当前 APP versionCode — 由 main.dart 在 ProviderContainer 初始化时
 /// 注入.  编译期 const (来自 pubspec.yaml),  单元测试可 mock.
@@ -229,7 +270,9 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
   // -------- private: 网络 --------
 
   Future<Map<String, dynamic>> _fetchLatestRelease() async {
-    final resp = await _dio.get<dynamic>(kGitHubReleasesUrl);
+    // v0.3.7+85: 用 endpointProvider 而不是 const URL.  让老板在设置页改.
+    final url = ref.read(endpointProvider);
+    final resp = await _dio.get<dynamic>(url);
     final data = resp.data;
     if (data is! Map<String, dynamic>) {
       throw const FormatException('GitHub API 返回非 JSON object');

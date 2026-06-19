@@ -14,7 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
-import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider, versionCheckerProvider, VersionCheckState, VersionCheckUpToDate, VersionCheckOutdated, VersionCheckFailed;
+import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider, versionCheckerProvider, VersionCheckState, VersionCheckUpToDate, VersionCheckOutdated, VersionCheckFailed, endpointProvider, kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
 import '../../core/theme/colors.dart' show IptvColors;
 import 'theme_provider.dart';
@@ -70,6 +70,30 @@ class SettingsPage extends ConsumerWidget {
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _checkUpdate(context, ref),
+          ),
+          const _ThinDivider(),
+          // ─── 更新源 ──────────────────────────────────────────────────────
+          // v0.3.7+85 (6/20 老板反馈): 老板手机国内访问 api.github.com 超时.
+          // 加可配置 endpoint URL (SharedPreferences 持久化),  让老板填
+          // ghproxy.net / 自己 NAS 镜像 / 或回默认 api.github.com.
+          // version_checker 用 endpointProvider 而不是 const kGitHubReleasesUrl.
+          Consumer(
+            builder: (context, ref, _) {
+              final endpoint = ref.watch(endpointProvider);
+              final isDefault = endpoint == kDefaultEndpointUrl;
+              return ListTile(
+                leading: const Icon(Icons.dns_outlined),
+                title: const Text('更新源', style: TextStyle(color: IptvColors.textPrimary)),
+                subtitle: Text(
+                  isDefault ? '默认 (api.github.com)' : endpoint,
+                  style: const TextStyle(color: IptvColors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _editEndpoint(context, ref),
+              );
+            },
           ),
           const _ThinDivider(),
           // ─── 关于三页直播 ─────────────────────────────────────────────────
@@ -256,6 +280,81 @@ class SettingsPage extends ConsumerWidget {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  // ─── 更新源 URL 编辑 (v0.3.7+85) ────────────────────────────────────────────
+  // 老板手机国内访问 api.github.com 经常超时,  弹 dialog 让老板填国内中转 URL.
+  // 填完调 endpointProvider.notifier.setEndpoint() 持久化.
+  Future<void> _editEndpoint(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(endpointProvider);
+    final controller = TextEditingController(text: current);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('更新源 URL'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '默认: api.github.com (国外, 国内可能超时)',
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                '国内中转: ghproxy.net 或 自建镜像 (NAS + nginx)',
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  labelText: '更新源 URL',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                autofocus: true,
+                maxLines: 2,
+                minLines: 1,
+                keyboardType: TextInputType.url,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              // 重置默认 (api.github.com)
+              await ref.read(endpointProvider.notifier).resetEndpoint();
+              if (ctx.mounted) Navigator.of(ctx).pop('reset');
+            },
+            child: const Text('重置默认'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final url = controller.text.trim();
+              if (url.isEmpty) return;
+              await ref.read(endpointProvider.notifier).setEndpoint(url);
+              if (ctx.mounted) Navigator.of(ctx).pop(url);
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result == 'reset' ? '已重置为默认 api.github.com' : '已保存: $result'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   // ─── 主题选择对话框 (老功能保留) ──────────────────────────────────────────
