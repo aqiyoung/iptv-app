@@ -1,0 +1,37 @@
+name: Source Sync
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/discover_known_sources.py'
+      - 'scripts/sync_known_sources.py'
+      - 'scripts/discover_cctv_sources.py'
+      - 'scripts/sync_cctv_top1.py'
+      - 'assets/data/known_sources.json'
+      - 'assets/data/cctv_candidates.json'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.IPTV_CI_TOKEN }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - run: mkdir -p scripts
+      - name: discover_known_sources
+        run: cd scripts && python3 discover_known_sources.py --workers 30 --timeout 5
+      - name: sync_known_sources
+        run: cd scripts && python3 sync_known_sources.py --max-per-channel 3 || true
+      - name: sync_cctv_top1
+        run: cd scripts && python3 sync_cctv_top1.py || true
+      - name: discover_cctv_sources
+        run: cd scripts && python3 discover_cctv_sources.py --workers 30 --timeout 5 || true
