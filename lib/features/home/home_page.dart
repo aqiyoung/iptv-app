@@ -183,10 +183,10 @@ class _AppHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
       child: Row(
         children: [
-          // v0.3.7+82 (6/19 老板反馈): 换 home 顶部 logo — 米色背景 + 红色 "3"
-          // 衬线字体 + 红色边框.  跟 launcher icon v0.3.7+81 视觉一致
-          // (米色 #F5F4ED + 主题红 #E5473A).  之前 Icons.live_tv 白图标
-          // 单调普通,  缺品牌气质.
+          // v0.3.7+82 (6/19 老板反馈): 换 home 顶部 logo — 米色背景 + TV 直播 icon
+          // + 红色边框.  v0.3.7+82 第一版用 "3" 字符 (三页直播语义),  老板 22:22
+          // 反馈 "展示为 TV 直播的类型图标 不要 3" — 改用 Icons.live_tv_rounded
+          // (TV + 心率红线,  Material 自带,  语义直白: 直播电视).
           Container(
             width: 36,
             height: 36,
@@ -202,17 +202,13 @@ class _AppHeader extends StatelessWidget {
                 width: 1.0,
               ),
             ),
-            // 居中 "3" 字符 (Georgia 衬线,  跟主题 typography 一致).
-            alignment: Alignment.center,
-            child: Text(
-              '3',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-                fontFamily: 'Georgia',
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                height: 1.0, // 1.0 让 "3" 在小尺寸里视觉居中
-              ),
+            // v0.3.7+82 second: TV 直播 icon (Material Icons.live_tv_rounded).
+            // 之前 _isMobile=true 老版本用 white Icons.live_tv 单调,  改成
+            // primary 颜色 + 米色背景 = 跟主题一致 (亮一点 + 红).
+            child: Icon(
+              Icons.live_tv_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 22,
             ),
           ),
           const SizedBox(width: 12),
