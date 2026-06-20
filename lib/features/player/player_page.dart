@@ -410,39 +410,42 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               // 全屏隐身后仍可点 (用户最关键操作).
               // 6/18 P1 hotfix: 控件层 — 整体走 _controlsVisible 隐身
               // (TopBar + 节目卡 + 频道横滑一起进 AnimatedOpacity).
+              // v0.3.8+107 (6/20 老板反馈 16:38 "全屏上白边和左边白边"):
+              // 之前只有 Container(半透明黑) 包 节目卡+横滑,  TopBar 区域
+              // 透明渲染在 Scaffold background 上.  某些设备在 immersive 模式
+              // 状态栏不完全隐,  状态栏区域泄露是白色,  老板看到 "上白边".
+              // 修法: 整控件层 Column 外面包 Container(半透明黑 0.55) =
+              // 整控件一致.  删内部重复的 Container.
               AnimatedOpacity(
                 opacity: _controlsVisible ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 250),
-                child: Column(
-                  children: [
-                    // v0.3.7+64: TopBar 现在也进 AnimatedOpacity,  节目卡 + 横滑
-                    // 跟之前一样贴底.
-                    TopBar(
-                      channel: channel,
-                      state: state,
-                      onBack: () => context.pop(),
-                      // 6/19 改: 退出全屏按钮在 _controlsVisible=false 仍可点
-                      // (独立浮动按钮在右下角,  这个 onExitFullscreen = null).
-                      onExitFullscreen: null,
-                    ),
-                    const Spacer(),
-                    if (channel != null)
-                      Container(
-                        color: Colors.black.withValues(alpha: 0.55),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            NowNextProgram(channel: channel),
-                            NextChannelsStrip(
-                              currentChannelId: channel.id,
-                              allChannels: channels,
-                              onChannelTap: _switchTo,
-                            ),
-                          ],
-                        ),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      // v0.3.7+64: TopBar 现在也进 AnimatedOpacity,  节目卡 + 横滑
+                      // 跟之前一样贴底.
+                      TopBar(
+                        channel: channel,
+                        state: state,
+                        onBack: () => context.pop(),
+                        // 6/19 改: 退出全屏按钮在 _controlsVisible=false 仍可点
+                        // (独立浮动按钮在右下角,  这个 onExitFullscreen = null).
+                        onExitFullscreen: null,
                       ),
-                    const SizedBox(height: 24),
-                  ],
+                      const Spacer(),
+                      if (channel != null)
+                        NowNextProgram(channel: channel),
+                      if (channel != null)
+                        NextChannelsStrip(
+                          currentChannelId: channel.id,
+                          allChannels: channels,
+                          onChannelTap: _switchTo,
+                        ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
               // 隐藏中提示: 右下角小点 (随时点一下又可以看控件)
