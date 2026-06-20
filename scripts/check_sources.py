@@ -208,6 +208,11 @@ def main() -> int:
         help='v0.3.5.3 release: 每个 CCTV 主频道 (CCTV1-17, 5+, 4K) 必须有 cctvSource 且至少 1 条 alive, 否则 exit 1',
     )
     parser.add_argument(
+        '--allow-empty-cctv',
+        action='store_true',
+        help='v0.3.8+108 (6/20): --require-cctv 时, 接受 cctvSource 为空的 CCTV 主频道 (老板同意清空, 播放页 failover 多源尝试). 只拦"有 cctvSource 但全部 dead"的频道.',
+    )
+    parser.add_argument(
         '--quiet',
         action='store_true',
         help='只打 dead 源, 不打 alive 列表',
@@ -318,6 +323,9 @@ def main() -> int:
     # v0.3.5.3 (6/18) 加: --require-cctv 强制 18 个 CCTV 主频道有 cctvSource
     # 且至少 1 条 alive.  这是 v0.3.5.3 release gate, 老板 14:02 拍板
     # "去找央视的源", release 前必须确认 cctvSource 字段有数据.
+    # v0.3.8+108 (6/20): 老板同意 v0.3.8+108 删 11 个 CCTV 主频道的 cctvSource
+    # (公开 m3u 全 404, 不值得硬填).  --allow-empty-cctv 时, 接受空 cctvSource
+    # = "本频道本 release 故意放弃", 只拦"有 cctvSource 但全部 dead".
     if args.require_cctv:
         # 重新过滤, 只看 18 个 CCTV 主频道的 cctvSource 字段
         cctv_main = [c for c in channels if is_cctv_main(c)]
@@ -327,7 +335,9 @@ def main() -> int:
             cid = ch.get('id', '?')
             cctv_srcs = ch.get('cctvSource', [])
             if not cctv_srcs:
-                missing_cctv_source.append(cid)
+                # v0.3.8+108: --allow-empty-cctv 时, 空 cctvSource 不算缺失
+                if not args.allow_empty_cctv:
+                    missing_cctv_source.append(cid)
                 continue
             # 看 cctvSource 里是否有 alive 的
             cctv_alive = [r for r in alive if r[0] == cid and r[1] in cctv_srcs]
@@ -349,12 +359,21 @@ def main() -> int:
                     f'   cctvSource 全部 dead: {", ".join(no_alive_cctv_source)}',
                     file=sys.stderr,
                 )
+            if args.allow_empty_cctv and missing_cctv_source:
+                # v0.3.8+108: --allow-empty-cctv 时, missing 频道是被允许的"故意空"
+                # 但 no_alive_cctv_source 仍然 fail (有 cctvSource 但全 dead)
+                if not no_alive_cctv_source:
+                    print(
+                        f'\n✅ --require-cctv + --allow-empty-cctv: {len(cctv_main)} 个 CCTV 主频道, {len(missing_cctv_source)} 个故意空 (OK), {len([c for c in cctv_main if c.get("cctvSource")])} 个有源全部 alive',
+                        file=sys.stderr,
+                    )
+                    return 0
             return 1
         # CCTV 主频道全部 OK
-        print(
-            f'\n✅ --require-cctv: {len(cctv_main)} 个 CCTV 主频道全部有 cctvSource 且至少 1 条 alive',
-            file=sys.stderr,
-        )
+        msg = f'\n✅ --require-cctv: {len(cctv_main)} 个 CCTV 主频道全部有 cctvSource 且至少 1 条 alive'
+        if args.allow_empty_cctv:
+            msg += ' (--allow-empty-cctv: 但本 release 无空频道)'
+        print(msg, file=sys.stderr)
         return 0
 
     # 默认行为: 任何 dead 都 exit 1 (开发期/手动调用)

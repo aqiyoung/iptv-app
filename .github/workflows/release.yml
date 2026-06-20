@@ -130,14 +130,17 @@ jobs:
         # v0.3.5.3 (6/18): 老板 14:02 拍板 "去找央视的源", 拿到 18 频道公共源.
         # 加 --require-cctv 闸: 18 个 CCTV 主频道必须 cctvSource 字段 + alive.
         # 卡住会 block v0.3.5.3 release — 必须有源才出 APK.
+        # v0.3.8+108 (6/20): 老板同意 CCTV2/3/5/5+/7/9/11/12/15/16/17 等 11 个
+        # CCTV 主频道 cctvSource 清空 (公开 m3u 全 404, 播放页走多源 failover).
+        # 加 --allow-empty-cctv, 接受"故意空"的 cctvSource; 只拦"有源但全 dead".
         run: |
           set -e
           # v0.3.5.1: 走 --quiet 只打 dead (不阻 release)
           python3 scripts/check_sources.py --quiet || echo "⚠️ check_sources.py 有 dead 源 (不阻 release, 见 PR #7)"
           echo "✅ check_sources.py 跑完 (v0.3.5.1, 不阻 release)"
-          # v0.3.5.3: 走 --require-cctv 强拦 (CCTV 主频道必须有 cctvSource)
-          python3 scripts/check_sources.py --require-cctv
-          echo "✅ --require-cctv 闸通过 (v0.3.5.3, 18 个 CCTV 主频道有 cctvSource + alive)"
+          # v0.3.5.3 + v0.3.8+108: --require-cctv 强拦 + --allow-empty-cctv 放行空 cctvSource
+          python3 scripts/check_sources.py --require-cctv --allow-empty-cctv
+          echo "✅ --require-cctv --allow-empty-cctv 闸通过 (v0.3.8+108, 7 个 CCTV 主频道有源 + 11 个故意空)"
 
       - name: Build APK (release, signed)
         # 卡 6: 明确 target-platform android-arm64, 减少体积 (电视/手机都是 arm64).
