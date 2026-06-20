@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
+import '../../core/theme/colors.dart';
 import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider, versionCheckerProvider, VersionCheckState, VersionCheckUpToDate, VersionCheckOutdated, VersionCheckFailed, endpointProvider, kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
@@ -37,7 +38,14 @@ class SettingsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('设置'),
+        title: const Text(
+          '设置',
+          // v0.3.8+103 (6/20 15:46 老板反馈): 显式 color: textPrimary.
+          // 之前 AppBar title 靠 theme.appBarTheme.titleTextStyle = serifTitle
+          // (没 hardcode color,  走 system default).  老板装 +102 后看
+          // 到"设置"是白色的看不清.  现在显式指定 color 跟 textPrimary.
+          style: TextStyle(color: IptvColors.textPrimary),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: '返回',
