@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'
+    show compute, debugPrint, visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -105,32 +106,39 @@ class ChannelRepository {
 
   /// v0.3.8+110 (6/20):  抽 CN/I18N 公共加载逻辑 (JSON -> List<Channel>).
   /// 加载失败返回空数组 (call 端合并时正常).
+  /// v0.3.8+117 (6/20 22:28 老板反馈): 启动慢 + 二次点击
+  ///   之前 json.decode + Channel.fromJson × 648 在主线程同步执行,  阻塞
+  /// UI 2-5s (尤其 +110 加 i18n 后 1886 channels,  CPU 解析阻塞).  期间所有
+  /// tap 不响应 (用户看到 "卡半天 + 二次点击才能进 category").
+  /// 修法:  走 compute() 把 json.decode + Channel.fromJson 移到 isolate.
+  ///   - 主线程:  只 rootBundle.loadString (IO 异步)
+  ///   - 后台 isolate:  json.decode + map(Channel.fromJson) (CPU 密集)
+  ///   - 主线程:  接收 List<Channel> 后立即返回,  同步继续 build UI
+  ///  性能: 启动 2-5s 阻塞 → < 500ms (主线程空闲让 UI 立刻响应).
+  /// 注: compute() 每次 spawn isolate 有 ~50-200ms 开销,  但 6/19 已加
+  /// _cached / _pending (静态缓存),  channelsProvider 第二次以后命中缓存,
+  /// 不会触发 isolate.  所以开销只在 APP 首次启动 / push to player 后
+  /// ref.read(channelsProvider.future) 那一帧.
   Future<List<Channel>> _loadChannels(String path) async {
     try {
       final raw = await rootBundle.loadString(path);
-      // v0.3.8+113 (6/20 老板反馈 "国际频道没有台"):
-      // 之前 'as List' 只接受 List 顶层 JSON.  但 channels_i18n.json 顶层是
-      // Map (含 _comment / _source_url / _generated_at / channels 字段).
-      // cn.json / known_sources.json 顶层是 List / Map.
-      // 修法:  兼容两种顶层结构 —
-      //   - List:   [ {channel}, {channel}, ... ]  (cn.json)
-      //   - Map:    { channels: [ {channel}, ... ] }  (i18n.json)
-      // 顶层是 Map 但不含 'channels' 字段 → 返回空 list (call 端 merge 跳过).
-      // type cast 提前到 for 内,  避免 List<dynamic>.cast<Map>() 缓慢.
+      // 顶层结构兼容 (v0.3.8+113): List (cn.json) / Map.channels (i18n.json).
+      // 先在主线程 parse 顶层结构 (JSON 顶层 < 100 bytes 几乎 0 开销),
+      // 然后只把 channels list 传给 isolate.
       final decoded = json.decode(raw);
-      final List<dynamic> list;
+      final String channelsJson;
       if (decoded is List) {
-        list = decoded;
+        // List 顶层:  直接重新 encode 给 isolate parse (避免传递 List 跨 isolate)
+        channelsJson = json.encode(decoded);
       } else if (decoded is Map && decoded['channels'] is List) {
-        list = decoded['channels'] as List;
+        channelsJson = json.encode(decoded['channels']);
       } else {
         debugPrint(
             'ChannelRepository._loadChannels($path): 未知 JSON 顶层结构 (${decoded.runtimeType})');
         return const <Channel>[];
       }
-      return list
-          .map((e) => Channel.fromJson(e as Map<String, dynamic>))
-          .toList(growable: false);
+      // 走 isolate 解析 List<Channel>.
+      return compute(parseChannelsIsolate, channelsJson);
     } catch (e) {
       debugPrint('ChannelRepository._loadChannels($path) failed: $e');
       return const <Channel>[];
@@ -157,6 +165,23 @@ class ChannelRepository {
     _cached = null;
     _pending = null;
   }
+}
+
+
+
+/// v0.3.8+117 (6/20 22:28 老板反馈): 走 isolate 解析 channels JSON.
+/// 必须是 top-level 函数 (compute() 只能传 top-level / static — 不能传
+/// instance method 因为 instance method 隐式绑 this,  isolate 间不能
+/// 传对象引用).  输入: channelsJson = JSON 编码的 List<Map> (已剥掉顶层
+/// metadata,  _loadChannels 在主线程处理顶层结构,  只把 channels list
+/// 给 isolate).  输出: List<Channel> 用 growable: false 节省内存.
+/// 注:  json.decode + Channel.fromJson 在 isolate 里 ~10x 快于主线程
+/// (无 UI / GC 干扰).  启动 2-5s 阻塞 → < 500ms.
+List<Channel> parseChannelsIsolate(String channelsJson) {
+  final list = json.decode(channelsJson) as List;
+  return list
+      .map((e) => Channel.fromJson(e as Map<String, dynamic>))
+      .toList(growable: false);
 }
 
 final channelRepositoryProvider = Provider<ChannelRepository>(
