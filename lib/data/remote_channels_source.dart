@@ -7,6 +7,8 @@
 ///
 /// 失败策略:  拉不到 / 超时 / 解析错 → 抛 RemoteChannelsException,
 /// caller (channelsProvider) 用本地 assets/data/channels_cn.json 兜底.
+library;
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -33,7 +35,9 @@ class RemoteChannelsSource {
     Duration timeout = const Duration(seconds: 10),
   }) async {
     // 5 个并发请求 — meta + 4 个分类.  Future.wait 让所有延迟并行.
-    final results = await Future.wait([
+    // 显式 List<Map<String, dynamic>> 让 results[i] 类型推断,  避免
+    // analyze unnecessary_cast warning.
+    final List<Map<String, dynamic>> results = await Future.wait([
       _fetchJson('meta.json', timeout),
       _fetchJson('channels/cctv.json', timeout),
       _fetchJson('channels/satellite.json', timeout),
@@ -41,11 +45,11 @@ class RemoteChannelsSource {
       _fetchJson('channels/international.json', timeout),
     ]);
     return RemoteChannelsBundle(
-      meta: results[0] as Map<String, dynamic>,
-      cctv: _parseChannels(results[1] as Map<String, dynamic>),
-      satellite: _parseChannels(results[2] as Map<String, dynamic>),
-      local: _parseChannels(results[3] as Map<String, dynamic>),
-      international: _parseChannels(results[4] as Map<String, dynamic>),
+      meta: results[0],
+      cctv: _parseChannels(results[1]),
+      satellite: _parseChannels(results[2]),
+      local: _parseChannels(results[3]),
+      international: _parseChannels(results[4]),
     );
   }
 
