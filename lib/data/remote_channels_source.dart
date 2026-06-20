@@ -67,13 +67,22 @@ class RemoteChannelsSource {
     return decoded;
   }
 
-  /// 解析 channels/{cat}.json — 顶层 { _meta, groups: { groupName: [...] } }.
-  /// flatten 4 大分类所有 group 进单一 List<Channel>.
+  /// 解析 channels/{cat}.json — 顶层 { _meta, groups|provinces|countries: { ... } }.
+  /// cctv.json 用 groups (按 CCTV 序号分).  satellite.json / local.json 用
+  /// provinces (按省/直辖市分).  international.json 用 countries (按 ISO 国家码).
+  /// 兼容二个字段名 — fetch 付一个不报错.  flatten 所有 group 进单一 List<Channel>.
   List<Channel> _parseChannels(Map<String, dynamic> json) {
-    final groups = json['groups'];
-    if (groups is! Map<String, dynamic>) {
+    // v0.3.8+126 (6/21 老板反馈 "卫视怎么还在地方分类"):
+    // 之前只查 json['groups'] — satellite/local 用 'provinces',  international
+    // 用 'countries'.  查不到 → 报 "channels JSON 缺 groups 字段",  bundle.all
+    // 退化成只含 cctv 部分.  app 读取时本地 fallback 被跳过,  CategoryGrid 拿到
+    // bundle.all (cctv only) → ChannelFilter 重新分 → "卫视" 分类里出现地方频道.
+    // 修法:  兼容 'groups' / 'provinces' / 'countries' 三个字段名.  都不在时报错.
+    final groups = (json['groups'] ?? json['provinces'] ?? json['countries'])
+        as Map<String, dynamic>?;
+    if (groups == null) {
       throw RemoteChannelsException(
-          'channels JSON 缺 groups 字段 (${json.runtimeType})');
+          'channels JSON 缺 groups/provinces/countries 字段 (${json.runtimeType})');
     }
     final all = <Channel>[];
     for (final entry in groups.entries) {
