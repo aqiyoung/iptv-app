@@ -1,1502 +1,210 @@
 {
-  "_comment": "1886 -> 492 channels. v0.3.8+116 (6/20 21:07 threely反馈: 国际频道保留热门的频道). 按 country 配额筛选: IN 150, US 150, GB 50, FR 50, DE 50, RU 30, JP 12 (全保留). 排序: name 短 + 有 logo + 非 NSFW 优先. 注: 当前 iptv-org m3u 没法拿到 popularity 字段 (只有 API 才有), 用启发式代替. 后续可换成 popularity-based.",
+  "_comment": "307 -> 110 channels. v0.3.8+116 (6/20 22:21 threely: \"国际频道筛选100来个\"). 配额: US 30 + IN 25 + GB 15 + DE 15 + FR 12 + RU 8 + JP 5 = 110. 优先: 主流关键词 (CNN/BBC/NHK/TF1...) > name 短 > 有 logo. 前两步筛选: 1886 (origin) -> 492 (country quota) -> 307 (HEAD 测源) -> 110 (主流优先).",
   "_source_url": "https://github.com/iptv-org/iptv/tree/master/streams",
   "_generated_at": "2026-06-20T18:05:00+0800",
   "channels": [
     {
-      "id": "7SMusic.in@SD",
-      "name": "7S Music (576p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "ABC.us@East",
+      "name": "ABC (720p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "7S Music (576p)"
+        "ABC (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://mumt03.tangotv.in/Dsly5z3H7SMUSIC/index.m3u8"
+        "http://41.205.93.154/ABC/index.m3u8"
       ]
     },
     {
-      "id": "9XJalwa.in@SD",
-      "name": "9X Jalwa (1080p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "Charge.us@SD",
+      "name": "Charge! (1080p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "9X Jalwa (1080p)"
+        "Charge! (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://b.jsrdn.com/strm/channels/9xjalwa/master.m3u8"
+        "https://fast-channels.sinclairstoryline.com/CHARGE/index.m3u8"
       ]
     },
     {
-      "id": "9XM.in@SD",
-      "name": "9XM (1080p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "DisneyXD.us@East",
+      "name": "Disney XD (720p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "9XM (1080p)"
+        "Disney XD (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://9xjio.wiseplayout.com/9XM/master.m3u8"
+        "http://23.237.104.106:8080/USA_DISNEY_XD/index.m3u8"
       ]
     },
     {
-      "id": "10TV.in@SD",
-      "name": "10 TV (720p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "FoxDeportes.us@SD",
+      "name": "Fox Deportes (1280p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "10 TV (720p)"
+        "Fox Deportes (1280p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://mumbai-edge.smartplaytv.in/10TV/index.m3u8"
+        "https://cors-proxy.cooks.fyi/http://23.237.104.106:8080/USA_FOX_DEPORTES/index.m3u8"
       ]
     },
     {
-      "id": "22ScopeNews.in@SD",
-      "name": "22Scope News (1080p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "FoxSports1.us@HD",
+      "name": "Fox Sports 1 (1280p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "22Scope News (1080p)"
+        "Fox Sports 1 (1280p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://thelegitpro.in/HDlive/22scope/index.fmp4.m3u8"
+        "https://cors-proxy.cooks.fyi/http://190.11.225.124:5000/live/fs1_hd/playlist.m3u8"
       ]
     },
     {
-      "id": "24News.in@SD",
-      "name": "24 News (576p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "FoxWeather.us@SD",
+      "name": "Fox Weather (720p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "24 News (576p)"
+        "Fox Weather (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://mumt07.tangotv.in/zHjX9OFlTWENTYFOURNEWS/index.m3u8"
+        "https://247wlive.foxweather.com/stream/index.m3u8"
       ]
     },
     {
-      "id": "AajTak.in@HD",
-      "name": "Aaj Tak HD (1080p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "GMTV.us@SD",
+      "name": "GMTV (1080p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Aaj Tak HD (1080p)"
+        "GMTV (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8"
+        "https://livechannel.mdc.akamaized.net/stitch/livechannel/1341/master1400000.m3u8;session=live_stream_1341"
       ]
     },
     {
-      "id": "AakaashAath.in@SD",
-      "name": "Aakaash Aath (576p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "Go2Travel.us@SD",
+      "name": "Go2Travel (1080p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Aakaash Aath (576p)"
+        "Go2Travel (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://mumt03.tangotv.in/Dsly5z3HAAKASHAATH/index.m3u8"
+        "https://go2thls.wns.live/hls/stream.m3u8"
       ]
     },
     {
-      "id": "AamarBangla.in@SD",
-      "name": "Aamar Bangla (720p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "KNBC41.us@HD",
+      "name": "KNBC-DT1 (1080p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Aamar Bangla (720p)"
+        "KNBC-DT1 (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI/amarbanglatv.stream/playlist.m3u8"
+        "https://nbculocallive.akamaized.net/hls/live/2037084/losangeles/stream1/master.m3u8"
       ]
     },
     {
-      "id": "AaryaaTV.in@SD",
-      "name": "Aaryaa TV (1080p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "NBCNewsNOW.us@SD",
+      "name": "NBC News NOW (1080p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Aaryaa TV (1080p)"
+        "NBC News NOW (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://stream.ottlive.co.in/aryatvtamil/index.m3u8"
+        "https://d1bl6tskrpq9ze.cloudfront.net/hls/master.m3u8?ads.xumo_channelId=99984003"
       ]
     },
     {
-      "id": "AasthaBhajan.in@SD",
-      "name": "Aastha Bhajan (576p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "NBCLX.us@SD",
+      "name": "NBCLX (1080p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Aastha Bhajan (576p)"
+        "NBCLX (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://mumt05.tangotv.in/87NeALx2AASTHABHAJAN/index.m3u8"
+        "https://nbculocallive.akamaized.net/hls/live/2037096/lx/use1.m3u8"
       ]
     },
     {
-      "id": "AasthaTamil.in@SD",
-      "name": "Aastha Tamil (480p)",
-      "country": "IN",
-      "region": "Asia",
+      "id": "PBSKids.us@SD",
+      "name": "PBS Kids (720p)",
+      "country": "US",
+      "region": "Americas",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Aastha Tamil (480p)"
+        "PBS Kids (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://aasthaott.akamaized.net/110923/smil:aasthatamil.smil/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "AasthaTelugu.in@SD",
-      "name": "Aastha Telugu (480p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Aastha Telugu (480p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://aasthaott.akamaized.net/110923/smil:aasthatelugu.smil/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "ABPAnanda.in@SD",
-      "name": "ABP Ananda (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ABP Ananda (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8"
-      ]
-    },
-    {
-      "id": "ABPAsmita.in@SD",
-      "name": "ABP Asmita (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ABP Asmita (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/asmita-livetv/master.m3u8"
-      ]
-    },
-    {
-      "id": "ABPGanga.in@SD",
-      "name": "ABP Ganga (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ABP Ganga (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ganga-livetv/master.m3u8"
-      ]
-    },
-    {
-      "id": "ABPMajha.in@SD",
-      "name": "ABP Majha (360p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ABP Majha (360p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://yupprestreamliveus.akamaized.net/vglive-sk-355289/majha/master.m3u8"
-      ]
-    },
-    {
-      "id": "ABPNews.in@SD",
-      "name": "ABP News (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ABP News (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d1rc86nwwc9fag.cloudfront.net/vglive-sk-472500/abpnews/master.m3u8"
-      ]
-    },
-    {
-      "id": "AdhyatmTV.in@SD",
-      "name": "Adhyatm TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Adhyatm TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://mumbai-edge.smartplaytv.in/AdhyatmTV/index.m3u8"
-      ]
-    },
-    {
-      "id": "AlankarTV.in@SD",
-      "name": "Alankar TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Alankar TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livetv.tarangplus.in/alankar-origin/live/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "AmarUjala.in@SD",
-      "name": "AmarUjala (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "AmarUjala (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://amarujala.ottlive.co.in/amarujala/index.m3u8"
-      ]
-    },
-    {
-      "id": "AmritaTV.in@SD",
-      "name": "Amrita TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Amrita TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://ddash74r36xqp.cloudfront.net/master.m3u8"
-      ]
-    },
-    {
-      "id": "AnandTV.in@SD",
-      "name": "Anand TV (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Anand TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live.legitpro.co.in/anandtv/index.m3u8"
-      ]
-    },
-    {
-      "id": "AnandaBarta.in@SD",
-      "name": "Ananda Barta (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Ananda Barta (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://account19.livebox.co.in/Anandabarta2hls/live.m3u8"
-      ]
-    },
-    {
-      "id": "ANBNews.in@SD",
-      "name": "ANB News (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ANB News (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://server.livelegitpro.in:9899/anbnews/anbnews/index.m3u8"
-      ]
-    },
-    {
-      "id": "AndyHaryana.in@SD",
-      "name": "Andy Haryana (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Andy Haryana (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://mumt03.tangotv.in/Dsly5z3HANDYHARYANA/index.m3u8"
-      ]
-    },
-    {
-      "id": "AngelTV.in@India",
-      "name": "Angel TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Angel TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://janya-digimix.akamaized.net/vglive-sk-394914/india/ngrp:angelindia_all/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "AnjanTV.in@SD",
-      "name": "Anjan TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Anjan TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://anjan.vstream.online/anjanorg/ngrp:anjan_hdall/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "AnmolCinema.in@SD",
-      "name": "Anmol Cinema (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Anmol Cinema (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://103.175.73.12:8080/live/271/271_0.m3u8"
-      ]
-    },
-    {
-      "id": "AnmolTV.in@SD",
-      "name": "Anmol TV (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Anmol TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://103.175.73.12:8080/live/256/256_0.m3u8"
-      ]
-    },
-    {
-      "id": "B4UBhojpuri.in@SD",
-      "name": "B4U Bhojpuri (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "B4U Bhojpuri (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdnb4u.wiseplayout.com/B4U_Bhojpuri/master.m3u8"
-      ]
-    },
-    {
-      "id": "B4UMusic.in@India",
-      "name": "B4U Music (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "B4U Music (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-2.pishow.tv/live/415/master.m3u8"
-      ]
-    },
-    {
-      "id": "BalleBalle.in@SD",
-      "name": "Balle Balle (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Balle Balle (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://mcncdndigital.com/balleballetv/index.m3u8"
-      ]
-    },
-    {
-      "id": "BansalNews.in@SD",
-      "name": "Bansal News (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Bansal News (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://8yzmq2gbdvax-hls-live.wmncdn.net/bansalnewstv1/live1.stream/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "Bharat24.in@SD",
-      "name": "Bharat24 (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Bharat24 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn.ottlive.co.in/bharat24/index.fmp4.m3u8"
-      ]
-    },
-    {
-      "id": "BigTV24x7.in@SD",
-      "name": "Big TV 24x7 (576i)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Big TV 24x7 (576i)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d2gvyg6lvauoko.cloudfront.net/230226/bigtvmalyalam/chunks.m3u8"
-      ]
-    },
-    {
-      "id": "BTTV.in@SD",
-      "name": "BT TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "BT TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://feeds.intoday.in/bttv/itgd.m3u8"
-      ]
-    },
-    {
-      "id": "CCV.in@SD",
-      "name": "CCV (480p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "CCV (480p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://5a1178b42cc03.streamlock.net/8212/8212/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "CNBCAwaaz.in@SD",
-      "name": "CNBC Awaaz (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "CNBC Awaaz (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://n18syndication.akamaized.net/bpk-tv/CNBC_Awaaz_NW18_MOB/output01/master.m3u8"
-      ]
-    },
-    {
-      "id": "CNBCBajar.in@SD",
-      "name": "CNBC Bajar (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "CNBC Bajar (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://n18syndication.akamaized.net/bpk-tv/CNBC_Bazaar_NW18_MOB/output01/master.m3u8"
-      ]
-    },
-    {
-      "id": "CNBCTV18.in@SD",
-      "name": "CNBC TV18 (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "CNBC TV18 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://n18syndication.akamaized.net/bpk-tv/CNBC_TV18_NW18_MOB/output01/index.m3u8"
-      ]
-    },
-    {
-      "id": "CnewsBharat.in@SD",
-      "name": "Cnews Bharat (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Cnews Bharat (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://legitpro.co.in/cnews/cnews/index.fmp4.m3u8"
-      ]
-    },
-    {
-      "id": "DDArunPrabha.in@SD",
-      "name": "DD Arun Prabha",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Arun Prabha"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-4.pishow.tv/live/32/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDBangla.in@SD",
-      "name": "DD Bangla",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Bangla"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-4.pishow.tv/live/37/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDChandana.in@SD",
-      "name": "DD Chandana",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Chandana"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-3.pishow.tv/live/28/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDJharkhand.in@SD",
-      "name": "DD Jharkhand",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Jharkhand"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-1.pishow.tv/live/1617/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDKashir.in@SD",
-      "name": "DD Kashir",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Kashir"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-6.pishow.tv/live/16/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDMalayalam.in@SD",
-      "name": "DD Malayalam",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Malayalam"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-3.pishow.tv/live/27/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDNews.in@SD",
-      "name": "DD News",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD News"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-2.pishow.tv/live/12/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDPunjabi.in@SD",
-      "name": "DD Punjabi",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Punjabi"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-4.pishow.tv/live/24/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDSahyadri.in@SD",
-      "name": "DD Sahyadri",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Sahyadri"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-3.pishow.tv/live/30/master.m3u8"
-      ]
-    },
-    {
-      "id": "DDTamil.in@SD",
-      "name": "DD Tamil",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DD Tamil"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-2.pishow.tv/live/26/master.m3u8"
-      ]
-    },
-    {
-      "id": "DesiChannel.in@SD",
-      "name": "Desi Channel (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Desi Channel (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.unlimitedcdn.com/agm-dc/desi-channel/index.m3u8"
-      ]
-    },
-    {
-      "id": "DharmSandesh.in@SD",
-      "name": "Dharm Sandesh",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Dharm Sandesh"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-2.pishow.tv/live/1455/master.m3u8"
-      ]
-    },
-    {
-      "id": "DheeranTV.in@SD",
-      "name": "Dheeran TV (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Dheeran TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live.we2live.in/dheerantv/dheerantv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DivyavaniTV.in@SD",
-      "name": "Divyavani TV (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Divyavani TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://mumbai-edge.smartplaytv.in/Divyavani/index.m3u8"
-      ]
-    },
-    {
-      "id": "ETVComedy.in@HD",
-      "name": "ETV Comedy (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ETV Comedy (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cc-wie8j8y69d2uy.akamaized.net/WWBI/Amagi/ETV_Comedy_IN/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "ETVJosh.in@HD",
-      "name": "ETV Josh (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ETV Josh (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cc-uyh1ow5zouoio.akamaized.net/WWBI/Amagi/ETV_Josh_IN/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "ETVMusic.in@HD",
-      "name": "ETV Music (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ETV Music (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cc-szivnms4rlah6.akamaized.net/WWBI/Amagi/ETV_Music_IN/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "ETVNews.in@HD",
-      "name": "ETV News (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ETV News (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cc-3448kp65yhc5w.akamaized.net/WWBI/Amagi/ETV_News_IN/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "GangaurTV.in@SD",
-      "name": "Gangaur TV (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Gangaur TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://pbgangaur.wiseplayout.com/Gangaur/master.m3u8"
-      ]
-    },
-    {
-      "id": "GoodNewsTV.in@SD",
-      "name": "GoodNews TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "GoodNews TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://bpgdlwwar3ze-hls-live.wmncdn.net/goodnews/live.stream/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "GSTV.in@SD",
-      "name": "GS TV",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "GS TV"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-4.pishow.tv/live/1462/master.m3u8"
-      ]
-    },
-    {
-      "id": "GTCNews.in@SD",
-      "name": "GTC News (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "GTC News (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://vglivessai.akamaized.net/sg/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/921cca59-daee-4f89-8c38-7ffe8de44f4c/index.m3u8"
-      ]
-    },
-    {
-      "id": "GTCPunjabi.in@SD",
-      "name": "GTC Punjabi (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "GTC Punjabi (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://gtc-yupp.vgcdn.net/vglive-sk-254807/index.m3u8"
-      ]
-    },
-    {
-      "id": "HarvestTV.in@SD",
-      "name": "Harvest TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Harvest TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://7mbd4ogkr3gx-hls-live.wmncdn.net/harvesttvlive1/bbb19eae240ec100af921d511efc86a0.sdp/index.m3u8"
-      ]
-    },
-    {
-      "id": "HarvestUSA.in@SD",
-      "name": "Harvest USA (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Harvest USA (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://7mbd4ogkr3gx-hls-live.wmncdn.net/harvestusa/d57ffba6564caea2fee3f4085f19a098.sdp/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "HebronTV.in@SD",
-      "name": "Hebron TV (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Hebron TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://account20.livebox.co.in/charleshls/live.m3u8"
-      ]
-    },
-    {
-      "id": "HighNews.in@SD",
-      "name": "High News (480p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "High News (480p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://highmedia.livebox.co.in/HIGHNEWShls/LIVE.m3u8"
-      ]
-    },
-    {
-      "id": "HindiKhabar.in@SD",
-      "name": "Hindi Khabar (396p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Hindi Khabar (396p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d1msejlow1t3l4.cloudfront.net/fta/hindikhabar/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "HNN24x7.in@SD",
-      "name": "HNN 24x7 (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "HNN 24x7 (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://ott.livelegitpro.in:9899/hnnnews/hnnnews/tracks-v1/index.fmp4.m3u8"
-      ]
-    },
-    {
-      "id": "HornbillTV.in@SD",
-      "name": "Hornbill TV (396p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Hornbill TV (396p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d1msejlow1t3l4.cloudfront.net/fta/hornbilltv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "IndiaTV.in@SD",
-      "name": "India TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "India TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://pl-indiatvnews.akamaized.net/out/v1/db79179b608641ceaa5a4d0dd0dca8da/index.m3u8"
-      ]
-    },
-    {
-      "id": "IndywoodTV.in@SD",
-      "name": "Indywood TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Indywood TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://43wrzjnpqoxe-hls-live.wmncdn.net/indywood/indywoodtv/index.m3u8"
-      ]
-    },
-    {
-      "id": "INH24x7.in@SD",
-      "name": "INH 24x7 (396p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "INH 24x7 (396p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d1msejlow1t3l4.cloudfront.net/fta/inh24x7/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "IsaiAruvi.in@SD",
-      "name": "Isai Aruvi (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Isai Aruvi (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://ptuf.ridsys.in/riptv/live/KALAIGNAR_ISAI_ARUVI/index.m3u8"
-      ]
-    },
-    {
-      "id": "JaihindTV.in@SD",
-      "name": "Jaihind TV (396p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Jaihind TV (396p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://yuppnimrestreammum.akamaized.net/260723/smil:jaihind1.smil/playlist.m3u8?hdnts=st=1735898689~exp=1835898688~acl=*~hmac=f5fe24724fe05481e3841f9eb5ab8efdee0a3dd83645ae9dcf45703f525bab7b"
-      ]
-    },
-    {
-      "id": "JanamTV.in@SD",
-      "name": "Janam TV (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Janam TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://yuppmedtaorire.akamaized.net/v1/master/a0d007312bfd99c47f76b77ae26b1ccdaae76cb1/janamtv_nim_https/140622/janamtv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "JoyTV.in@SD",
-      "name": "Joy TV (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Joy TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://ktismaservers.in:3412/live/joytvlive.m3u8"
-      ]
-    },
-    {
-      "id": "KalikaTV.in@SD",
-      "name": "Kalika TV (576p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Kalika TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://server.applelive.in/kalikatv/kalikatv.m3u8"
-      ]
-    },
-    {
-      "id": "KaumudyTV.in@SD",
-      "name": "Kaumudy TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Kaumudy TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://oqgdrkxby4rm-hls-live.5centscdn.com/kaumudytv/live.stream/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KCLTV.in@SD",
-      "name": "KCL TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KCL TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://kcltv.livebox.co.in/kclhls/live.m3u8"
-      ]
-    },
-    {
-      "id": "KolkataTV.in@SD",
-      "name": "Kolkata TV (1080p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Kolkata TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn.ottlive.co.in/kolkatatv/index.m3u8"
-      ]
-    },
-    {
-      "id": "KTVBangla.in@SD",
-      "name": "KTV Bangla (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KTV Bangla (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://server.livelegitpro.in:9899/tribetv/tribetv/index.m3u8"
-      ]
-    },
-    {
-      "id": "LifeTV.in@SD",
-      "name": "Life TV (720p)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Life TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://lifetv.livebox.co.in/lifetvhls/lifetv.m3u8"
-      ]
-    },
-    {
-      "id": "MadhaTV.in@SD",
-      "name": "Madha TV",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Madha TV"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-3.pishow.tv/live/1265/master.m3u8"
-      ]
-    },
-    {
-      "id": "MahaPunjabi.in@SD",
-      "name": "Maha Punjabi",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Maha Punjabi"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-4.pishow.tv/live/1521/master.m3u8"
-      ]
-    },
-    {
-      "id": "MakkalTV.in@SD",
-      "name": "Makkal TV (576i)",
-      "country": "IN",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Makkal TV (576i)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://5k8q87azdy4v-hls-live.wmncdn.net/MAKKAL/271ddf829afeece44d8732757fba1a66.sdp/playlist.m3u8"
+        "https://livestream.pbskids.org/out/v1/14507d931bbe48a69287e4850e53443c/est.m3u8"
       ]
     },
     {
@@ -1514,23 +222,6 @@
       "is_nsfw": false,
       "sources": [
         "https://live.enhdtv.com:8081/8150/index.m3u8"
-      ]
-    },
-    {
-      "id": "ABC.us@East",
-      "name": "ABC (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ABC (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://41.205.93.154/ABC/index.m3u8"
       ]
     },
     {
@@ -1823,1380 +514,428 @@
       ]
     },
     {
-      "id": "ATXN3.us@SD",
-      "name": "ATXN3 (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AajTak.in@HD",
+      "name": "Aaj Tak HD (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "ATXN3 (1080p)"
+        "Aaj Tak HD (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://cdn-atxn-01.vos360.video/Content/HLS/Live/channel(c55d1594-ad62-7434-aa17-4d71adb80f99)/index.m3u8"
+        "https://feeds.intoday.in/aajtak/api/aajtakhd/master.m3u8"
       ]
     },
     {
-      "id": "AvangTV.us@SD",
-      "name": "Avang TV (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "ABPAnanda.in@SD",
+      "name": "ABP Ananda (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Avang TV (1080p)"
+        "ABP Ananda (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://hls.avang.live/hls/stream.m3u8"
+        "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ananda-livetv/master.m3u8"
       ]
     },
     {
-      "id": "AXNWhite.us@SD",
-      "name": "AXN White [Not 24/7]",
-      "country": "US",
-      "region": "Americas",
+      "id": "ABPAsmita.in@SD",
+      "name": "ABP Asmita (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "AXN White [Not 24/7]"
+        "ABP Asmita (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "http://315e5a5d.ottrast.com/iptv/MM4E93NGF5LADZ/6950/index.m3u8"
+        "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/asmita-livetv/master.m3u8"
       ]
     },
     {
-      "id": "BIGCivicChannel.us@SD",
-      "name": "BIG Civic Channel",
-      "country": "US",
-      "region": "Americas",
+      "id": "ABPGanga.in@SD",
+      "name": "ABP Ganga (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BIG Civic Channel"
+        "ABP Ganga (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://reflect-brookline-interactive-group.cablecast.tv/live-5/live/stream-2/live.m3u8"
+        "https://d2l4ar6y3mrs4k.cloudfront.net/live-streaming/ganga-livetv/master.m3u8"
       ]
     },
     {
-      "id": "Binge.us@SD",
-      "name": "Binge",
-      "country": "US",
-      "region": "Americas",
+      "id": "ABPMajha.in@SD",
+      "name": "ABP Majha (360p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Binge"
+        "ABP Majha (360p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://videostack1.cdnstream1.com:1936/binge-tv/binge-tv/playlist.m3u8"
+        "https://yupprestreamliveus.akamaized.net/vglive-sk-355289/majha/master.m3u8"
       ]
     },
     {
-      "id": "BMCHDTV.us@SD",
-      "name": "BMC-HD TV (720p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "ABPNews.in@SD",
+      "name": "ABP News (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BMC-HD TV (720p)"
+        "ABP News (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://livestream.telvue.com/belmontmedia4/f7b44cfafd5c52223d5498196c8a2e7b.sdp/playlist.m3u8"
+        "https://d1rc86nwwc9fag.cloudfront.net/vglive-sk-472500/abpnews/master.m3u8"
       ]
     },
     {
-      "id": "BounceXL.us@SD",
-      "name": "Bounce XL (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "CNBCAwaaz.in@SD",
+      "name": "CNBC Awaaz (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Bounce XL (1080p)"
+        "CNBC Awaaz (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-bouncexl-tablo/playlist.m3u8"
+        "https://n18syndication.akamaized.net/bpk-tv/CNBC_Awaaz_NW18_MOB/output01/master.m3u8"
       ]
     },
     {
-      "id": "BPXTVRadio.us@SD",
-      "name": "BPX TV Radio",
-      "country": "US",
-      "region": "Americas",
+      "id": "ETVComedy.in@HD",
+      "name": "ETV Comedy (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BPX TV Radio"
+        "ETV Comedy (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://video1.getstreamhosting.com:1936/8212/8212/playlist.m3u8"
+        "https://cc-wie8j8y69d2uy.akamaized.net/WWBI/Amagi/ETV_Comedy_IN/playlist.m3u8"
       ]
     },
     {
-      "id": "BXArts.us@SD",
-      "name": "BX Arts (720p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "ETVJosh.in@HD",
+      "name": "ETV Josh (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BX Arts (720p)"
+        "ETV Josh (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://reflect-stream-bronxnet.cablecast.tv/live-19/live/stream-2/live.m3u8"
+        "https://cc-uyh1ow5zouoio.akamaized.net/WWBI/Amagi/ETV_Josh_IN/playlist.m3u8"
       ]
     },
     {
-      "id": "BXCulture.us@SD",
-      "name": "BX Culture (720p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "ETVMusic.in@HD",
+      "name": "ETV Music (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BX Culture (720p)"
+        "ETV Music (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://reflect-stream-bronxnet.cablecast.tv/live-7/live/stream-3/live.m3u8"
+        "https://cc-szivnms4rlah6.akamaized.net/WWBI/Amagi/ETV_Music_IN/playlist.m3u8"
       ]
     },
     {
-      "id": "BXInform.us@SD",
-      "name": "BX Inform (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "ETVNews.in@HD",
+      "name": "ETV News (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BX Inform (1080p)"
+        "ETV News (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://reflect-stream-bronxnet.cablecast.tv/live-8/live/stream-4/live.m3u8"
+        "https://cc-3448kp65yhc5w.akamaized.net/WWBI/Amagi/ETV_News_IN/playlist.m3u8"
       ]
     },
     {
-      "id": "BXInspire.us@SD",
-      "name": "BX Inspire (720p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "IndiaTV.in@SD",
+      "name": "India TV (720p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BX Inspire (720p)"
+        "India TV (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://reflect-stream-bronxnet.cablecast.tv/live-18/live/stream-7/live.m3u8"
+        "https://pl-indiatvnews.akamaized.net/out/v1/db79179b608641ceaa5a4d0dd0dca8da/index.m3u8"
       ]
     },
     {
-      "id": "BXOmni.us@SD",
-      "name": "BX Omni (720p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "7SMusic.in@SD",
+      "name": "7S Music (576p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "BX Omni (720p)"
+        "7S Music (576p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://reflect-stream-bronxnet.cablecast.tv/live-16/live/stream-1/live.m3u8"
+        "https://mumt03.tangotv.in/Dsly5z3H7SMUSIC/index.m3u8"
       ]
     },
     {
-      "id": "CameraSmileTV.us@SD",
-      "name": "Camera Smile (480p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "9XJalwa.in@SD",
+      "name": "9X Jalwa (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Camera Smile (480p)"
+        "9X Jalwa (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://rpn.bozztv.com/gusa/gusa-camerasmile/index.m3u8"
+        "https://b.jsrdn.com/strm/channels/9xjalwa/master.m3u8"
       ]
     },
     {
-      "id": "CampSpoopy.us@SD",
-      "name": "Camp Spoopy (576p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "9XM.in@SD",
+      "name": "9XM (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Camp Spoopy (576p)"
+        "9XM (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://stream.ads.ottera.tv/playlist.m3u8?network_id=269"
+        "https://9xjio.wiseplayout.com/9XM/master.m3u8"
       ]
     },
     {
-      "id": "CANTV19.us@SD",
-      "name": "CAN TV19 (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "10TV.in@SD",
+      "name": "10 TV (720p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "CAN TV19 (1080p)"
+        "10 TV (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://cantv.streamguys1.com/cantv/cantv19hls/playlist.m3u8"
+        "https://mumbai-edge.smartplaytv.in/10TV/index.m3u8"
       ]
     },
     {
-      "id": "CANTV21.us@SD",
-      "name": "CAN TV21 (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "22ScopeNews.in@SD",
+      "name": "22Scope News (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "CAN TV21 (1080p)"
+        "22Scope News (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://cantv.streamguys1.com/cantv/cantv21hls/playlist.m3u8"
+        "https://thelegitpro.in/HDlive/22scope/index.fmp4.m3u8"
       ]
     },
     {
-      "id": "CatholicTV.us@SD",
-      "name": "Catholic TV (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "24News.in@SD",
+      "name": "24 News (576p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Catholic TV (1080p)"
+        "24 News (576p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://catholictvhd-lh.akamaized.net/hls/live/2043390/CTVLiveHD/master.m3u8"
+        "https://mumt07.tangotv.in/zHjX9OFlTWENTYFOURNEWS/index.m3u8"
       ]
     },
     {
-      "id": "CBNEspanol.us@SD",
-      "name": "CBN Espanol (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AakaashAath.in@SD",
+      "name": "Aakaash Aath (576p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "CBN Espanol (1080p)"
+        "Aakaash Aath (576p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://fastly.live.brightcove.com/6383462549112/us-east-1/734546207001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiczFpM3ZpLmVncmVzcy50N2M3emwiLCJhY2NvdW50X2lkIjoiNzM0NTQ2MjA3MDAxIiwiZWhuIjoiZmFzdGx5LmxpdmUuYnJpZ2h0Y292ZS5jb20iLCJpc3MiOiJibGl2ZS1wbGF5YmFjay1zb3VyY2UtYXBpIiwic3ViIjoicGF0aG1hcHRva2VuIiwiYXVkIjpbIjczNDU0NjIwNzAwMSJdLCJqdGkiOiI2MzgzNDYyNTQ5MTEyIn0.g04lznsvgqgIXQt2ZH0H_tWtIeTsMgGjVORsjOJ0T6U/playlist-hls.m3u8"
+        "https://mumt03.tangotv.in/Dsly5z3HAAKASHAATH/index.m3u8"
       ]
     },
     {
-      "id": "CBNFamily.us@SD",
-      "name": "CBN Family (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AamarBangla.in@SD",
+      "name": "Aamar Bangla (720p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "CBN Family (1080p)"
+        "Aamar Bangla (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://fastly.live.brightcove.com/6380399588112/us-east-1/734546207001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiczFpM3ZpLmVncmVzcy50N2M3emwiLCJhY2NvdW50X2lkIjoiNzM0NTQ2MjA3MDAxIiwiZWhuIjoiZmFzdGx5LmxpdmUuYnJpZ2h0Y292ZS5jb20iLCJpc3MiOiJibGl2ZS1wbGF5YmFjay1zb3VyY2UtYXBpIiwic3ViIjoicGF0aG1hcHRva2VuIiwiYXVkIjpbIjczNDU0NjIwNzAwMSJdLCJqdGkiOiI2MzgwMzk5NTg4MTEyIn0.LYfIeObmX4AEStY_xCnPZwMJHXgOAPFMTKfztq-9F8U/playlist-hls.m3u8"
+        "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI/amarbanglatv.stream/playlist.m3u8"
       ]
     },
     {
-      "id": "CCX1.us@SD",
-      "name": "CCX1 (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AaryaaTV.in@SD",
+      "name": "Aaryaa TV (1080p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "CCX1 (1080p)"
+        "Aaryaa TV (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "http://reflect-ccx.cablecast.tv/live-9/live/stream-1/live.m3u8"
+        "https://stream.ottlive.co.in/aryatvtamil/index.m3u8"
       ]
     },
     {
-      "id": "Charge.us@SD",
-      "name": "Charge! (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AasthaBhajan.in@SD",
+      "name": "Aastha Bhajan (576p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Charge! (1080p)"
+        "Aastha Bhajan (576p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://fast-channels.sinclairstoryline.com/CHARGE/index.m3u8"
+        "https://mumt05.tangotv.in/87NeALx2AASTHABHAJAN/index.m3u8"
       ]
     },
     {
-      "id": "CloudflareTV.us@SD",
-      "name": "Cloudflare TV (720p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AasthaTamil.in@SD",
+      "name": "Aastha Tamil (480p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Cloudflare TV (720p)"
+        "Aastha Tamil (480p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://cloudflare.tv/hls/live.m3u8"
+        "https://aasthaott.akamaized.net/110923/smil:aasthatamil.smil/playlist.m3u8"
       ]
     },
     {
-      "id": "ClubbingTV.us@France",
-      "name": "Clubbing TV France",
-      "country": "US",
-      "region": "Americas",
+      "id": "AasthaTelugu.in@SD",
+      "name": "Aastha Telugu (480p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Clubbing TV France"
+        "Aastha Telugu (480p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://d1j2csarxnwazk.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-uze1m6xh4fiyr-ssai-prd/master.m3u8"
+        "https://aasthaott.akamaized.net/110923/smil:aasthatelugu.smil/playlist.m3u8"
       ]
     },
     {
-      "id": "Comet.us@SD",
-      "name": "Comet (1080p)",
-      "country": "US",
-      "region": "Americas",
+      "id": "AdhyatmTV.in@SD",
+      "name": "Adhyatm TV (720p)",
+      "country": "IN",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Comet (1080p)"
+        "Adhyatm TV (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://fast-channels.sinclairstoryline.com/COMET/index.m3u8"
-      ]
-    },
-    {
-      "id": "CookingPanda.us@SD",
-      "name": "Cooking Panda (576p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Cooking Panda (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream-us-east-1.getpublica.com/playlist.m3u8?network_id=46"
-      ]
-    },
-    {
-      "id": "COStv.us@SD",
-      "name": "COStv",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "COStv"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://irctv.cablecast.tv/live/stream-1/live.m3u8"
-      ]
-    },
-    {
-      "id": "CourtTV.us@SD",
-      "name": "Court TV (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Court TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-courttv-tablo/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DMTV.us@SD",
-      "name": "Del Mar TV (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Del Mar TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d25ykpi2vxhoyc.cloudfront.net/delmar-cdn/dmtv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DerryTV17.us@SD",
-      "name": "DerryTV 17 (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DerryTV 17 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.telvue.com/derrynh1/f7b44cfafd5c52223d5498196c8a2e7b.sdp/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DerryTV23.us@SD",
-      "name": "DerryTV 23 (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DerryTV 23 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.telvue.com/derrynh2/f7b44cfafd5c52223d5498196c8a2e7b.sdp/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DidgahTV.us@SD",
-      "name": "Didgah TV (576p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Didgah TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://media.streambrothers.com:1936/8276/8276/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DisneyXD.us@East",
-      "name": "Disney XD (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Disney XD (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://23.237.104.106:8080/USA_DISNEY_XD/index.m3u8"
-      ]
-    },
-    {
-      "id": "DocumentaryPlus.us@US",
-      "name": "Documentary+ (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Documentary+ (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://ef79b15c8c7c46c7a9de9d33001dbd07.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-859-DOCUMENTARYPLUS-DOCUMENTARYPLUS/mt/documentaryplus/859/hls/master/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "ExtremaTV.us@SD",
-      "name": "Extrema TV (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Extrema TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://livestreamcdn.net:1935/ExtremaTV/ExtremaTV/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "FashionFinds.us@SD",
-      "name": "Fashion Finds (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Fashion Finds (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://qvc-amd-live.akamaized.net/hls/live/2034113/lsqvc5us/master.m3u8"
-      ]
-    },
-    {
-      "id": "FlowersTVUSA.us@SD",
-      "name": "Flowers TV USA",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Flowers TV USA"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://yuppmedtaorire.akamaized.net/v1/master/a0d007312bfd99c47f76b77ae26b1ccdaae76cb1/flowers_nim_https/050522/flowers/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "FoxDeportes.us@SD",
-      "name": "Fox Deportes (1280p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Fox Deportes (1280p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cors-proxy.cooks.fyi/http://23.237.104.106:8080/USA_FOX_DEPORTES/index.m3u8"
-      ]
-    },
-    {
-      "id": "FoxSports1.us@HD",
-      "name": "Fox Sports 1 (1280p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Fox Sports 1 (1280p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cors-proxy.cooks.fyi/http://190.11.225.124:5000/live/fs1_hd/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "FoxWeather.us@SD",
-      "name": "Fox Weather (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Fox Weather (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://247wlive.foxweather.com/stream/index.m3u8"
-      ]
-    },
-    {
-      "id": "FTFSports.us@SD",
-      "name": "FTF Sports (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "FTF Sports (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://1657061170.rsc.cdn77.org/HLS/FTF-LINEAR.m3u8"
-      ]
-    },
-    {
-      "id": "GlobalWorldTV.us@SD",
-      "name": "GlobalWorldTV (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "GlobalWorldTV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://media.streambrothers.com:1936/8052/8052/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "GMTV.us@SD",
-      "name": "GMTV (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "GMTV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livechannel.mdc.akamaized.net/stitch/livechannel/1341/master1400000.m3u8;session=live_stream_1341"
-      ]
-    },
-    {
-      "id": "Go2Travel.us@SD",
-      "name": "Go2Travel (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Go2Travel (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://go2thls.wns.live/hls/stream.m3u8"
-      ]
-    },
-    {
-      "id": "GritXtra.us@SD",
-      "name": "Grit Xtra (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Grit Xtra (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-gritxtra-tablo/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "HollyWire.us@SD",
-      "name": "HollyWire (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "HollyWire (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://bozztv.com/hwotta/playlist/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "HSN.us@East",
-      "name": "HSN (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "HSN (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://qvc-amd-live.akamaized.net/hls/live/2034113/lshsn1us/master.m3u8"
-      ]
-    },
-    {
-      "id": "HSN2.us@SD",
-      "name": "HSN2 (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "HSN2 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://qvc-amd-live.akamaized.net/hls/live/2034113/lshsn2us/master.m3u8"
-      ]
-    },
-    {
-      "id": "HSN.us@West",
-      "name": "HSN West (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "HSN West (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://qvc-amd-live.akamaized.net/hls/live/2034113/lshsn1uswest/master.m3u8"
-      ]
-    },
-    {
-      "id": "IONPlus.us@East",
-      "name": "ION Plus (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ION Plus (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01438-ewscrippscompan-ionplus-tablo/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KCMNLD426.us@SD",
-      "name": "KCMN-LD6 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KCMN-LD6 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg02873-kravemedia-mtrspt1-distrotv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KDFW41.us@HD",
-      "name": "KDFW-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KDFW-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00488-foxdigital-fox4dallaskdfw-vizious/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KMCTTV391.us@HD",
-      "name": "KMCT-DT1 (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KMCT-DT1 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-unified-hls.streamspot.com/ingest1/4b4d895dd6/playlist.m3u8?origin=1"
-      ]
-    },
-    {
-      "id": "KMSPDT1.us@SD",
-      "name": "KMSP-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KMSP-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00488-foxdigital-kmsp-lgus/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KNBC41.us@HD",
-      "name": "KNBC-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KNBC-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://nbculocallive.akamaized.net/hls/live/2037084/losangeles/stream1/master.m3u8"
-      ]
-    },
-    {
-      "id": "KOKITV231.us@HD",
-      "name": "KOKI-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KOKI-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg02104-imagicommcommun-kokibreaking-ono/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KRIV261.us@HD",
-      "name": "KRIV-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KRIV-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00488-foxdigital-kriv-lgus/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KSAZTV101.us@HD",
-      "name": "KSAZ-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KSAZ-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00488-foxdigital-ksaz-lgus/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KTBC71.us@HD",
-      "name": "KTBC-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KTBC-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00488-foxdigital-ktbc-lgus/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KTTV111.us@HD",
-      "name": "KTTV-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KTTV-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00488-foxdigital-fox11losangeleskttv-vizious/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "KXASTV51.us@HD",
-      "name": "KXAS-DT1 (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KXAS-DT1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d368vp0qqzvkid.cloudfront.net/11603/88889706/hls/master.m3u8?ads.xumo_channelId=88889706a&ads.xumo_ifaType=&ads.xumo_providerId=3831&ads.xumo_providerName=NBCNDAL"
-      ]
-    },
-    {
-      "id": "LaQueBuenaAtlanta.us@SD",
-      "name": "La Que Buena Atlanta",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "La Que Buena Atlanta"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://streamyes.alsolnet.com/quebuenaatlanta/live/index.m3u8"
-      ]
-    },
-    {
-      "id": "LaoThaiTV.us@SD",
-      "name": "Lao-Thai TV (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Lao-Thai TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livefta.malimarcdn.com/ftaedge00/laothaius.sdp/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "LatinZone.us@SD",
-      "name": "Latin Zone TV (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Latin Zone TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn.streamingcpanel.com:3784/live/latinzonetvlive.m3u8"
-      ]
-    },
-    {
-      "id": "LGTV.us@SD",
-      "name": "LGTV (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "LGTV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.telvue.com/lexmedia3/f7b44cfafd5c52223d5498196c8a2e7b.sdp/lexmedia3/stream1/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "LIVExLIVE.us@SD",
-      "name": "LiveXLive (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "LiveXLive (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.liveone.com/lc1/p1.m3u8"
-      ]
-    },
-    {
-      "id": "LPTV.us@SD",
-      "name": "LPTV (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "LPTV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.telvue.com/lexmedia1/f7b44cfafd5c52223d5498196c8a2e7b.sdp/lexmedia1/stream1/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "MBCMasrUSA.us@SD",
-      "name": "MBC Masr USA (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MBC Masr USA (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://shd-gcp-live.edgenextcdn.net/live/bitmovin-mbc-masr-usa/cd8d40acdab28aac0582faa3bd3983f1/index.m3u8"
-      ]
-    },
-    {
-      "id": "MetaleitorTV.us@SD",
-      "name": "Metaleitor TV",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Metaleitor TV"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://vs20.live.opencaster.com/metaleitortv_423d3342/index.m3u8"
-      ]
-    },
-    {
-      "id": "MohabatTV.us@SD",
-      "name": "Mohabat TV (540p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Mohabat TV (540p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://media.mohabat.tv:1935/live_transcoder/ngrp:mohabat.stream_all/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "Movies.us@SD",
-      "name": "Movies! (480p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Movies! (480p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://bozztv.com/dvrfl03/hdirect/hdirect-ovair1-movies!/index.m3u8"
-      ]
-    },
-    {
-      "id": "MSNOW.us@SD",
-      "name": "MS NOW (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MS NOW (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://41.205.93.154/MSNBC/index.m3u8"
-      ]
-    },
-    {
-      "id": "NBCNewsNOW.us@SD",
-      "name": "NBC News NOW (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NBC News NOW (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d1bl6tskrpq9ze.cloudfront.net/hls/master.m3u8?ads.xumo_channelId=99984003"
-      ]
-    },
-    {
-      "id": "NBCLX.us@SD",
-      "name": "NBCLX (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NBCLX (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://nbculocallive.akamaized.net/hls/live/2037096/lx/use1.m3u8"
-      ]
-    },
-    {
-      "id": "Newsmax2.us@SD",
-      "name": "Newsmax 2 (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Newsmax 2 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://nmxlive.akamaized.net/hls/live/529965/Live_1/index.m3u8"
-      ]
-    },
-    {
-      "id": "NewsmaxTV.us@SD",
-      "name": "Newsmax TV (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Newsmax TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://nmx1ota.akamaized.net/hls/live/2107010/Live_1/index.m3u8"
-      ]
-    },
-    {
-      "id": "Newsy.us@SD",
-      "name": "Newsy (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Newsy (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://547f72e6652371c3.mediapackage.us-east-1.amazonaws.com/out/v1/e3e6e29095844c4ba7d887f01e44a5ef/index.m3u8"
-      ]
-    },
-    {
-      "id": "Nickelodeon.us@East",
-      "name": "Nickelodeon (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Nickelodeon (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://23.237.104.106:8080/USA_NICKELODEON/index.m3u8"
-      ]
-    },
-    {
-      "id": "NRBTV.us@SD",
-      "name": "NRB TV (480p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NRB TV (480p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://uni6rtmp.tulix.tv/nrbnetwork/myStream.sdp/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "NYXT.us@SD",
-      "name": "NYXT (1080p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NYXT (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://reflect-stream-bronxnet.cablecast.tv/live-10/live/live.m3u8"
-      ]
-    },
-    {
-      "id": "PBSKids.us@SD",
-      "name": "PBS Kids (720p)",
-      "country": "US",
-      "region": "Americas",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "PBS Kids (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://livestream.pbskids.org/out/v1/14507d931bbe48a69287e4850e53443c/est.m3u8"
+        "https://mumbai-edge.smartplaytv.in/AdhyatmTV/index.m3u8"
       ]
     },
     {
@@ -3455,499 +1194,6 @@
       ]
     },
     {
-      "id": "MTA2Europe.uk@SD",
-      "name": "MTA2 Europe (720p)",
-      "country": "GB",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MTA2 Europe (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://chlivemta1.akamaized.net/hls/live/2008145/mta2/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "MTA4Africa.uk@SD",
-      "name": "MTA4 Africa (1080p)",
-      "country": "GB",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MTA4 Africa (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://chlivemta.akamaized.net/hls/live/2010555/mtaafrica1/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "MTA5Africa.uk@SD",
-      "name": "MTA5 Africa (1080p)",
-      "country": "GB",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MTA5 Africa (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://chlivemta.akamaized.net/hls/live/2010555/mtaafrica2/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "ADNTVPlus.fr@SD",
-      "name": "ADN TV+ (720p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ADN TV+ (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d3b73b34o7cvkq.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-gz2sgqzp076kf/adn.m3u8"
-      ]
-    },
-    {
-      "id": "Africa24.fr@SD",
-      "name": "Africa 24 (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Africa 24 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://africa24.vedge.infomaniak.com/livecast/ik:africa24/manifest.m3u8"
-      ]
-    },
-    {
-      "id": "BFM2.fr@HD",
-      "name": "BFM2 (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "BFM2 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://d1ib1gsg71oarf.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-scp7wda722jph/BFM2_FR.m3u8"
-      ]
-    },
-    {
-      "id": "BFMLyon.fr@SD",
-      "name": "BFM Lyon (576p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "BFM Lyon (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live-cdn-bfmtvlyo-euw1.bfmtv.bct.nextradiotv.com/master.m3u8"
-      ]
-    },
-    {
-      "id": "BFMTV.fr@SD",
-      "name": "BFM TV (576p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "BFM TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live-cdn-stream-euw1.bfmtv.bct.nextradiotv.com/master.m3u8"
-      ]
-    },
-    {
-      "id": "BrionnaisTV.fr@SD",
-      "name": "Brionnais TV (720p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Brionnais TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream2.mandarine.media/brionnaistv/brionnaistv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "Caillou.fr@SD",
-      "name": "Caillou",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Caillou"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://do7nccdsswstc.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-1aso0bc668saa/a5233c83-f772-4a81-959a-45ec7877ef61/5.m3u8"
-      ]
-    },
-    {
-      "id": "Canal32.fr@SD",
-      "name": "Canal 32 (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Canal 32 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://event.vedge.infomaniak.com/livecast/ik:canal32_4/manifest.m3u8"
-      ]
-    },
-    {
-      "id": "CanalPlusFoot.fr@SD",
-      "name": "Canal+ Foot",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Canal+ Foot"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://test.946985.filegear-sg.me/proxy/ef3174f16d4557d2"
-      ]
-    },
-    {
-      "id": "DBMTV.fr@SD",
-      "name": "DBM TV (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "DBM TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://dbmtv.vedge.infomaniak.com/livecast/dbmtv/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "DisneyJr.fr@SD",
-      "name": "Disney Jr. (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Disney Jr. (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://151.80.18.177:86/Disney_Junior_HD/index.m3u8"
-      ]
-    },
-    {
-      "id": "Equidia.fr@SD",
-      "name": "Equidia (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Equidia (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://raw.githubusercontent.com/Paradise-91/ParaTV/main/streams/equidia/live2.m3u8"
-      ]
-    },
-    {
-      "id": "France2.fr@SD",
-      "name": "France 2 (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "France 2 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://69.64.57.208/france2/mono.m3u8"
-      ]
-    },
-    {
-      "id": "France5.fr@SD",
-      "name": "France 5 (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "France 5 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://69.64.57.208/france5/mono.m3u8"
-      ]
-    },
-    {
-      "id": "Gulli.fr@SD",
-      "name": "Gulli",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Gulli"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://test.946985.filegear-sg.me/proxy/7e0a9ae6a27eee96"
-      ]
-    },
-    {
-      "id": "HANDICAPTV.fr@SD",
-      "name": "HANDICAP TV France",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "HANDICAP TV France"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://srv.webtvmanager.fr:3697/stream/play.m3u8"
-      ]
-    },
-    {
-      "id": "LittoralFMTV.fr@SD",
-      "name": "Littoral FM (720p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Littoral FM (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live.creacast.com/littoralfm-ch1/stream/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "M6Music.fr@SD",
-      "name": "M6 Music",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "M6 Music"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://test.946985.filegear-sg.me/proxy/803c517b325bfafc"
-      ]
-    },
-    {
-      "id": "MDL.fr@SD",
-      "name": "MDL (720p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MDL (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://tv.mondeduloisir.fr:1935/tixtv/smil:web.smil/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "MezzoLive.fr@SD",
-      "name": "Mezzo Live",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Mezzo Live"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://test.946985.filegear-sg.me/proxy/749755700e4ed9c6"
-      ]
-    },
-    {
-      "id": "MyGospelTV.fr@SD",
-      "name": "My Gospel TV",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "My Gospel TV"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://streamtv.cmediahosthosting.net:3046/live/mygospeltvlive.m3u8"
-      ]
-    },
-    {
-      "id": "MyZenTV.fr@SD",
-      "name": "MyZen TV (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MyZen TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdn-ue1-prod.tsv2.amagi.tv/linear/amg01255-secomcofites-my-myzen-en-plex/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "Nickelodeon.fr@SD",
-      "name": "Nickelodeon (1080p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Nickelodeon (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://151.80.18.177:86/Nickelodeon_FR/index.m3u8"
-      ]
-    },
-    {
-      "id": "NRJHits.fr@SD",
-      "name": "NRJ Hits",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NRJ Hits"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://test.946985.filegear-sg.me/proxy/a23981548880f405"
-      ]
-    },
-    {
-      "id": "P2MTV.fr@SD",
-      "name": "P2M TV (720p)",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "P2M TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://vdo2.pro-fhi.net:3207/stream/play.m3u8"
-      ]
-    },
-    {
-      "id": "RFMTV.fr@SD",
-      "name": "RFM TV [Not 24/7]",
-      "country": "FR",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "RFM TV [Not 24/7]"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://315e5a5d.ottrast.com/iptv/MM4E93NGF5LADZ/1038/index.m3u8"
-      ]
-    },
-    {
       "id": "123tv.de@SD",
       "name": "1-2-3 TV (270p)",
       "country": "DE",
@@ -4203,479 +1449,224 @@
       ]
     },
     {
-      "id": "DW.de@Arabic",
-      "name": "DW Arabic (1080p)",
-      "country": "DE",
+      "id": "BFM2.fr@HD",
+      "name": "BFM2 (1080p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "DW Arabic (1080p)"
+        "BFM2 (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://dwamdstream103.akamaized.net/hls/live/2015526/dwstream103/master.m3u8"
+        "https://d1ib1gsg71oarf.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-scp7wda722jph/BFM2_FR.m3u8"
       ]
     },
     {
-      "id": "DW.de@English",
-      "name": "DW English (1080p)",
-      "country": "DE",
+      "id": "BFMLyon.fr@SD",
+      "name": "BFM Lyon (576p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "DW English (1080p)"
+        "BFM Lyon (576p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://amg01644-amg01644c1-amgplt0343.playout.now3.amagi.tv/ts-eu-w1-n2/playlist/amg01644-amg01644c1-amgplt0343/playlist.m3u8"
+        "https://live-cdn-bfmtvlyo-euw1.bfmtv.bct.nextradiotv.com/master.m3u8"
       ]
     },
     {
-      "id": "DW.de@Espanol",
-      "name": "DW Espanol (1080p)",
-      "country": "DE",
+      "id": "BFMTV.fr@SD",
+      "name": "BFM TV (576p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "DW Espanol (1080p)"
+        "BFM TV (576p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://dwamdstream104.akamaized.net/hls/live/2015530/dwstream104/master.m3u8"
+        "https://live-cdn-stream-euw1.bfmtv.bct.nextradiotv.com/master.m3u8"
       ]
     },
     {
-      "id": "DW.de@Russian",
-      "name": "DW Russian (1080p)",
-      "country": "DE",
+      "id": "France2.fr@SD",
+      "name": "France 2 (1080p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "DW Russian (1080p)"
+        "France 2 (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://dwamdstream110.akamaized.net/hls/live/2017971/dwstream110/master.m3u8"
+        "http://69.64.57.208/france2/mono.m3u8"
       ]
     },
     {
-      "id": "EchtJetztTV.de@SD",
-      "name": "EchtJetzt TV (720p)",
-      "country": "DE",
+      "id": "France5.fr@SD",
+      "name": "France 5 (1080p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "EchtJetzt TV (720p)"
+        "France 5 (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://bibeltv03.iptv-playoutcenter.de/bibeltv03/bibeltv03.stream_all/playlist.m3u8"
+        "http://69.64.57.208/france5/mono.m3u8"
       ]
     },
     {
-      "id": "emsTVLingen.de@SD",
-      "name": "ems TV Lingen (720p)",
-      "country": "DE",
+      "id": "M6Music.fr@SD",
+      "name": "M6 Music",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "ems TV Lingen (720p)"
+        "M6 Music"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://h058.video-stream-hosting.de/ev1tv-live/_definst_/mp4:stream1.stream/playlist.m3u8"
+        "https://test.946985.filegear-sg.me/proxy/803c517b325bfafc"
       ]
     },
     {
-      "id": "Filstalwelle.de@SD",
-      "name": "Filstalwelle (1080p)",
-      "country": "DE",
+      "id": "ADNTVPlus.fr@SD",
+      "name": "ADN TV+ (720p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Filstalwelle (1080p)"
+        "ADN TV+ (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://h055.video-stream-hosting.de/filstalwelle-live/_definst_/mp4:livestream/playlist.m3u8"
+        "https://d3b73b34o7cvkq.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-gz2sgqzp076kf/adn.m3u8"
       ]
     },
     {
-      "id": "FolxMusicTelevision.de@SD",
-      "name": "FOLX Music (1080p)",
-      "country": "DE",
+      "id": "Africa24.fr@SD",
+      "name": "Africa 24 (1080p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "FOLX Music (1080p)"
+        "Africa 24 (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://cdne.folxplay.tv/folx-trz/streams/ch-4/master.m3u8"
+        "https://africa24.vedge.infomaniak.com/livecast/ik:africa24/manifest.m3u8"
       ]
     },
     {
-      "id": ".DE",
-      "name": "FrankenPlus (1080p)",
-      "country": "DE",
+      "id": "BrionnaisTV.fr@SD",
+      "name": "Brionnais TV (720p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "FrankenPlus (1080p)"
+        "Brionnais TV (720p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://stream01.welocal.stream/stream/fhd-frankenplus_119/ngrp:stream_all/playlist.m3u8"
+        "https://stream2.mandarine.media/brionnaistv/brionnaistv/playlist.m3u8"
       ]
     },
     {
-      "id": "hrfernsehen.de@SD",
-      "name": "hr-fernsehen (1080p)",
-      "country": "DE",
+      "id": "Caillou.fr@SD",
+      "name": "Caillou",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "hr-fernsehen (1080p)"
+        "Caillou"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://hrhls.akamaized.net/hls/live/2024525/hrhls/index.m3u8"
+        "https://do7nccdsswstc.cloudfront.net/v1/manifest/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-1aso0bc668saa/a5233c83-f772-4a81-959a-45ec7877ef61/5.m3u8"
       ]
     },
     {
-      "id": "HSE.de@SD",
-      "name": "HSE (1080p)",
-      "country": "DE",
+      "id": "Canal32.fr@SD",
+      "name": "Canal 32 (1080p)",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "HSE (1080p)"
+        "Canal 32 (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://hse24.akamaized.net/hls/live/2006663/hse24/playlist.m3u8"
+        "https://event.vedge.infomaniak.com/livecast/ik:canal32_4/manifest.m3u8"
       ]
     },
     {
-      "id": "HSEExtra.de@SD",
-      "name": "HSE24 Extra (1080p)",
-      "country": "DE",
+      "id": "CanalPlusFoot.fr@SD",
+      "name": "Canal+ Foot",
+      "country": "FR",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "HSE24 Extra (1080p)"
+        "Canal+ Foot"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://hse24extra.akamaized.net/hls/live/2006596/hse24extra/playlist.m3u8"
+        "https://test.946985.filegear-sg.me/proxy/ef3174f16d4557d2"
       ]
     },
     {
-      "id": "HSETrend.de@SD",
-      "name": "HSE24 Trend (576p)",
-      "country": "DE",
+      "id": "NTV.ru@SD",
+      "name": "NTV",
+      "country": "RU",
       "region": "Europe",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "HSE24 Trend (576p)"
+        "NTV"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://hse24trend.akamaized.net/hls/live/2006597/hse24trend/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "Juwelo.de@SD",
-      "name": "Juwelo (720p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Juwelo (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://sdn-global-live-streaming-packager-cache.3qsdn.com/7441/7441_264_live.m3u8"
-      ]
-    },
-    {
-      "id": "KaufBeiTV.de@SD",
-      "name": "KaufBei TV (576p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KaufBei TV (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://api.alpaca.t62a.com/hls/9103/index.m3u8"
-      ]
-    },
-    {
-      "id": "KulturMD.de@SD",
-      "name": "KulturMD (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KulturMD (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://58bd5b7a98e04.streamlock.net/medienasa-live/kulturmd_high/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "LTV.de@SD",
-      "name": "L-TV (720p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "L-TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live2.telvi.de/hls/l-tv_s1.m3u8"
-      ]
-    },
-    {
-      "id": "labor14.de@HD",
-      "name": "labor14 (720p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "labor14 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://5acade5fc0c29.streamlock.net/OKGera/tmbz_live_high.stream/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "Lausitzwelle.de@SD",
-      "name": "Lausitzwelle (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Lausitzwelle (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://h056.video-stream-hosting.de/easycast11-live/_definst_/mp4:livestreamhd2/playlist.m3u8?ref="
-      ]
-    },
-    {
-      "id": "MCTV.de@HD",
-      "name": "MC TV (720p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MC TV (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://rrr.sz.xlcdn.com/?account=mceutv&file=mc2&output=playlist.m3u8&protocol=https&service=wowza&type=live"
-      ]
-    },
-    {
-      "id": "MDF1.de@SD",
-      "name": "MDF.1 (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MDF.1 (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://58bd5b7a98e04.streamlock.net/medienasa-live/mdf1_high/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "MTV.de@SD",
-      "name": "MTV [Not 24/7]",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MTV [Not 24/7]"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://c3921155.edmonst.net/iptv/42L7TCH8YYKLBRHNPV52HBRN/31344/index.m3u8"
-      ]
-    },
-    {
-      "id": "NRWision.de@SD",
-      "name": "NRWision (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NRWision (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://fms.nrwision.de/live/ngrp:livestreamHD.stream/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "OberpfalzTV.de@SD",
-      "name": "Oberpfalz TV (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Oberpfalz TV (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://oberpfalztv.iptv-playoutcenter.de/oberpfalztv/oberpfalztv.stream_1/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "OKFlensburg.de@SD",
-      "name": "OK Flensburg (576p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "OK Flensburg (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live-cdn.oksh.de/play/hls/flensburgtv/index.m3u8"
-      ]
-    },
-    {
-      "id": "OKKiel.de@SD",
-      "name": "OK Kiel (576p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "OK Kiel (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://live-cdn.oksh.de/play/hls/kieltv/index.m3u8"
-      ]
-    },
-    {
-      "id": "OKMagdeburg.de@SD",
-      "name": "OK Magdeburg (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "OK Magdeburg (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://58bd5b7a98e04.streamlock.net/medienasa-live/ok-magdeburg_high/playlist.m3u8"
-      ]
-    },
-    {
-      "id": "OneMusicTelevision.de@SD",
-      "name": "ONE1 Music (1080p)",
-      "country": "DE",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "ONE1 Music (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://cdne.folxplay.tv/folx-trz/streams/ch-3/master.m3u8"
+        "https://stream8.cinerama.uz/1023/tracks-v1a1/mono.m3u8"
       ]
     },
     {
@@ -4798,275 +1789,20 @@
       ]
     },
     {
-      "id": "FastFunBox.ru@SD",
-      "name": "Fast&FunBox (1080p)",
-      "country": "RU",
-      "region": "Europe",
+      "id": "NHKWorldJapan.jp@SD",
+      "name": "NHK World-Japan (1080p)",
+      "country": "JP",
+      "region": "Asia",
       "categories": [
         "general"
       ],
       "alt_names": [
-        "Fast&FunBox (1080p)"
+        "NHK World-Japan (1080p)"
       ],
       "logo": "",
       "is_nsfw": false,
       "sources": [
-        "https://iptv.prosto.tv/ch120/index.m3u8"
-      ]
-    },
-    {
-      "id": "GulliGirl.ru@SD",
-      "name": "Gulli Girl (720p)",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Gulli Girl (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1445/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "IndiyskoyeKino.ru@SD",
-      "name": "Indiyskoye Kino",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Indiyskoye Kino"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1060/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "InsaytTV.ru@4K",
-      "name": "Insayt TV (2160p)",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Insayt TV (2160p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1416/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "KHL.ru@SD",
-      "name": "KHL",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KHL"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1028/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "Kino24.ru@SD",
-      "name": "Kino 24 (720p)",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Kino 24 (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://sirius.greenhosting.ru/Kino24Ru/video.m3u8"
-      ]
-    },
-    {
-      "id": "KinoHit.ru@SD",
-      "name": "KinoHit",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "KinoHit"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1055/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "Kinopokaz.ru@SD",
-      "name": "Kinopokaz",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Kinopokaz"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1057/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "Kinosvidanie.ru@SD",
-      "name": "Kinosvidanie",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Kinosvidanie"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1203/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "MCMTop.ru@SD",
-      "name": "MCM Top (576p)",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "MCM Top (576p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://iptv.prosto.tv/ch137/index.m3u8"
-      ]
-    },
-    {
-      "id": "Multilandia.ru@SD",
-      "name": "Multilandia",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Multilandia"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1440/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "MuzTV.ru@SD",
-      "name": "Muz-TV",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Muz-TV"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1200/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "MuzykaPervogo.ru@SD",
-      "name": "Muzyka Pervogo",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Muzyka Pervogo"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1201/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "NasheNovoeKino.ru@SD",
-      "name": "Nashe Novoe Kino",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Nashe Novoe Kino"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1051/tracks-v1a1/mono.m3u8"
-      ]
-    },
-    {
-      "id": "Nicktoons.ru@SD",
-      "name": "Nicktoons [Not 24/7]",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Nicktoons [Not 24/7]"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "http://315e5a5d.ottrast.com/iptv/MM4E93NGF5LADZ/849/index.m3u8"
-      ]
-    },
-    {
-      "id": "NTV.ru@SD",
-      "name": "NTV",
-      "country": "RU",
-      "region": "Europe",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NTV"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream8.cinerama.uz/1023/tracks-v1a1/mono.m3u8"
+        "https://masterpl.hls.nhkworld.jp/hls/w/live/smarttv.m3u8"
       ]
     },
     {
@@ -5136,96 +1872,11 @@
       "sources": [
         "https://d1flvb4iqlercm.cloudfront.net/live/live_1080p_2nd.m3u8"
       ]
-    },
-    {
-      "id": "JOEXDTV.jp@SD",
-      "name": "JOEX-DTV (540p)",
-      "country": "JP",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "JOEX-DTV (540p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://tvasahi.mov3.co/hls/tvasahi.m3u8"
-      ]
-    },
-    {
-      "id": "Weathernews.jp@SD",
-      "name": "Weathernews (720p)",
-      "country": "JP",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Weathernews (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://rch01e-alive-hls.akamaized.net/38fb45b25cdb05a1/out/v1/4e907bfabc684a1dae10df8431a84d21/index.m3u8"
-      ]
-    },
-    {
-      "id": "NHKWorldJapan.jp@SD",
-      "name": "NHK World-Japan (1080p)",
-      "country": "JP",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "NHK World-Japan (1080p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://masterpl.hls.nhkworld.jp/hls/w/live/smarttv.m3u8"
-      ]
-    },
-    {
-      "id": ".JP",
-      "name": "Gaki no Tsukai (English Subs) (720p)",
-      "country": "JP",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Gaki no Tsukai (English Subs) (720p)"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://hamada.gaki-no-tsukai.stream/hls/test.m3u8"
-      ]
-    },
-    {
-      "id": "ShopChannel.jp@SD",
-      "name": "Shop Channel (1080p) [Not 24/7]",
-      "country": "JP",
-      "region": "Asia",
-      "categories": [
-        "general"
-      ],
-      "alt_names": [
-        "Shop Channel (1080p) [Not 24/7]"
-      ],
-      "logo": "",
-      "is_nsfw": false,
-      "sources": [
-        "https://stream3.shopch.jp/HLS/master.m3u8"
-      ]
     }
   ],
-  "_selected_at": "2026-06-20T21:30:00+08:00",
-  "_selection_strategy": "country_quota + name_length + logo + non_nsfw",
-  "_previous_count": 492,
+  "_selected_at": "2026-06-20T22:30:00+08:00",
+  "_selection_strategy": "country_quota + mainstream_keywords + name_length + logo",
+  "_previous_count": 307,
   "_source_tested_at": "2026-06-20T22:00:00+08:00",
   "_test_strategy": "HTTP Range 0-1 HEAD probe, 200/206/304 = OK"
 }
