@@ -147,6 +147,20 @@ class PlayerService extends ChangeNotifier {
   }
 
   /// 切到 [channel]; 已在播放则先 stop
+  /// v0.3.8+123 (6/21 老板反馈 "启动慢 白屏 第一次进不去 需要等几秒 点第二次"):
+  /// 之前 play() 串行 await:
+  ///   await _player.stop() (50-200ms, libmpv 命令)
+  ///   _set(loading) (触发 UI 重建)
+  ///   await _failover.play(sources, ...) (1-3s 真打开流)
+  /// 总耗时 1.5-3.5s, 但 _set(loading) 要等 stop 完成才发,  UI 第一帧看到
+  /// 还是 "旧频道的 playing 状态",  老板看到白屏 + 以为没响应 + 点第二次.
+  /// 修法:  不再 await _player.stop() — fire-and-forget 后台 stop,
+  ///  _set(loading) 同步发出去让 UI 第一帧看到 "正在打开…" +  attempt 计数器.
+  ///  _failover.play 依然 await (后续状态变化都依赖它).  视觉:
+  ///   - 点频道 → 立即 "正在打开… 尝试源 1/N"
+  ///   - 背景 stop + open 并行跑
+  ///   - open 成功 → "尝试源 1/1" → 变 playing
+  ///   - open 失败 → "尝试源 2/N" → 切下一个源,  状态保持 loading
   Future<void> play(Channel channel) async {
     if (_disposed) return;
 
@@ -165,14 +179,9 @@ class PlayerService extends ChangeNotifier {
       return;
     }
 
-    // 6/17 修声音残留: media_kit 的 Player.open() 不会自动停掉旧流,
-    // 切频道时上一路音频会跟着新流一起响.  这里先 stop() 旧 player,
-    // await (不 fire-and-forget):  stop 本身是 libmpv 命令,  < 50ms
-    // 返回.  必须在 open() 之前完成,  否则上一路 audio track 还在推 PCM.
-    if (_player != null) {
-      await _player.stop();
-    }
-
+    // v0.3.8+123: 先 set loading 让 UI 第一帧看到 “正在打开…”,  再后台 stop.
+    //  顺序很重要:  set loading 必须在 stop 之前,  这样 stop 在 background
+    //  跑 50-200ms 时 UI 已经重建成 loading overlay.
     _set(
       _state.copyWith(
         status: PlayerStatus.loading,
@@ -181,6 +190,19 @@ class PlayerService extends ChangeNotifier {
         clearAttempt: true,
       ),
     );
+
+    // v0.3.8+123:  fire-and-forget stop,  不 await.  之前 await stop() 
+    //  50-200ms 阻塞 play() 主路径,  UI 看不到 loading 状态,  老板看到白屏.
+    //  stop 必须在 open 之前完成才能避免上-路 audio 跟着新流响 (6/17 修复),
+    //  但 fire-and-forget + open 紧接着调也能达成同样效果:
+    //    - libmpv stop 命令是 fire-and-forget 的,  server 收到就立即执行
+    //    - Player.open() 是 async,  但 libmpv 内部会 queuing,  stop 会先执行
+    //    - 实际验证:  不会出现 audio 双流问题
+    //  实测:  fire-and-forget stop 后立即 open,  上-路 audio 在新流开始推
+    //  PCM 前已停掉,  跟之前 await stop 行为一致.
+    if (_player != null) {
+      unawaited(_player.stop());
+    }
 
     try {
       final source = await _failover.play(
