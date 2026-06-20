@@ -129,6 +129,23 @@ class PlayerService extends ChangeNotifier {
   PlayerState _state = const PlayerState.idle();
   PlayerState get state => _state;
 
+  /// v0.3.8+109 (6/20 老板反馈 "点频道 半天进不去 必须点第二下"):
+  /// 立即让 state 进入 loading — 不等 addPostFrameCallback 也不等 channelsProvider.
+  /// PlayerPage.initState 调用后第一帧就看到 "正在打开…" loading.
+  /// 避免老板看到 idle UI + TopBar 空态 → 以为没响应 → 再点一次.
+  /// 状态从 idle/error → loading.  已是 playing/loading 跳过 (避免重置 attempt 计数器).
+  void primeLoadingState() {
+    if (_disposed) return;
+    if (_state.status == PlayerStatus.idle ||
+        _state.status == PlayerStatus.error) {
+      _set(_state.copyWith(
+        status: PlayerStatus.loading,
+        clearError: true,
+        clearAttempt: true,
+      ));
+    }
+  }
+
   /// 切到 [channel]; 已在播放则先 stop
   Future<void> play(Channel channel) async {
     if (_disposed) return;

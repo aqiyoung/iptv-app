@@ -68,10 +68,31 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       if (!mounted) return;
       _applySystemUiOverlayForPlayer();
     });
+    // v0.3.8+109 (6/20 17:52 老板反馈 "点频道 半天进不去 必须点第二下"):
+    // 之前 _tryAutoPlay 在 addPostFrameCallback 里跑.  1帧后  await channelsProvider
+    // (第一次 lazy load 要 1-2s 读 + parse) 再 play().  loading 状态延后,
+    //  老板看到 idle UI + TopBar空态 → 以为没响应 → 再点一次.
+    // 修法: initState 同步 ref.read(playerServiceProvider) 预热 player 避免延后
+    //       + _tryAutoPlay 立即调 player.play() (即使 ch 还没找到) 让 state.loading 立即亮.
+    //       后续 await channelsProvider.future 拿 ch 后若不同 (极少), 不改.
+    // v0.3.8+109: 预热 player (避免 _tryAutoPlay 首次 ref.read 的延后)
+    ref.read(playerServiceProvider);
+    // v0.3.8+109: 预热 channelsProvider (避免 _tryAutoPlay await channels.future 的 1-2s 延后)
+    unawaited(ref.read(channelsProvider.future));
+    // v0.3.8+109: 立即设 loading 状态 (不依赖 addPostFrameCallback)
+    _primeLoadingState();
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
     // P0-1: 首帧后启动控件隐身计时器
     WidgetsBinding.instance.addPostFrameCallback((_) => _resetHideTimer());
+  }
+
+  /// v0.3.8+109 (6/20): 立即让 player state 进入 loading — 不等
+  /// addPostFrameCallback 也不等 channelsProvider.  老板点进频道 第一帧
+  /// 就看到 "正在打开…" loading,  不会以为没响应.
+  void _primeLoadingState() {
+    final svc = ref.read(playerServiceProvider);
+    svc.primeLoadingState();
   }
 
   /// v0.3.7+50: 状态栏/导航栏图标亮度跟主题走 — 浅色主题深图标, 暗色
