@@ -108,7 +108,26 @@ class ChannelRepository {
   Future<List<Channel>> _loadChannels(String path) async {
     try {
       final raw = await rootBundle.loadString(path);
-      final list = json.decode(raw) as List;
+      // v0.3.8+113 (6/20 老板反馈 "国际频道没有台"):
+      // 之前 'as List' 只接受 List 顶层 JSON.  但 channels_i18n.json 顶层是
+      // Map (含 _comment / _source_url / _generated_at / channels 字段).
+      // cn.json / known_sources.json 顶层是 List / Map.
+      // 修法:  兼容两种顶层结构 —
+      //   - List:   [ {channel}, {channel}, ... ]  (cn.json)
+      //   - Map:    { channels: [ {channel}, ... ] }  (i18n.json)
+      // 顶层是 Map 但不含 'channels' 字段 → 返回空 list (call 端 merge 跳过).
+      // type cast 提前到 for 内,  避免 List<dynamic>.cast<Map>() 缓慢.
+      final decoded = json.decode(raw);
+      final List<dynamic> list;
+      if (decoded is List) {
+        list = decoded;
+      } else if (decoded is Map && decoded['channels'] is List) {
+        list = decoded['channels'] as List;
+      } else {
+        debugPrint(
+            'ChannelRepository._loadChannels($path): 未知 JSON 顶层结构 (${decoded.runtimeType})');
+        return const <Channel>[];
+      }
       return list
           .map((e) => Channel.fromJson(e as Map<String, dynamic>))
           .toList(growable: false);
