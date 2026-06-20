@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
 import '../../../data/category_zh.dart';
 import '../../../data/models/channel.dart';
@@ -112,25 +113,20 @@ class _ChannelChip extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        width: 116,
+        // v0.3.8+104 (6/20 15:36 老板反馈): chip 宽度 116→108,  让
+        // 02/03 频道名能显示完整.  之前 116px 装下 "CCTV+ 1 (1.0)" 还够,
+        // 但 "CCTV-1 综合" 被截.  现在 108 + 字号 12,  80% 频道能装下.
+        width: 108,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          // 6/17 (反色看不清): 之前 isNext 用 terracotta.withOpacity(0.12)
-          // 配 textPrimary,  在 player 页 (黑底 Scaffold) 上实际渲染成
-          // 近黑底 + 深棕字,  对比度严重不足 (WCAG AA 需 4.5:1).
-          // 改为 bgElevated 暖米底 + 2dp 砖红边框 + 砖红数字/源点 +
-          // 文字保持 textPrimary,  整 chip 跟非选中态区分靠边框粗细 + 数字
-          // 颜色 + 字重,  选中态对比度 ≥ 4.5:1 (黑字 #2A2520 on 暖米 #FFFCF6
-          // ≈ 13:1).
-          // v0.3.8+99 (6/20 14:03 老板反馈): 删边框线.
-          // 之前选中态用 2dp primary 边框区分,  非选中用 0.5dp outlineVariant.
-          // 现在改成靠背景色区分:
-          //   - 选中 (isNext): bgElevated + primary 数字 + bold
-          //   - 非选中: surface + outline 数字 + regular
-          // 效果跟有边框等价但更极简.
+          // v0.3.8+104: 统一所有 chip bg,  选中和非选中区别靠 bg 色.
+          // 之前选中: surfaceContainerHighest (白,  跟黑底 scaffold 获眼
+          // "白卡浮起");  非选中: surface (米色,  跟黑底反差小).
+          // 现在所有 chip = bgElevated 浅一档米色 (#FFFCF6) — 统一
+          // 容器.  选中加 accent 0.12α 浅红 overlay 表示"下一频道".
           color: isNext
-              ? Theme.of(context).colorScheme.surfaceContainerHighest
-              : Theme.of(context).colorScheme.surface,
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
+              : IptvColors.bgElevated,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -142,13 +138,13 @@ class _ChannelChip extends StatelessWidget {
                 Text(
                   (index + 1).toString().padLeft(2, '0'),
                   // 6/17 修: 软包禁 + maxLines=1, 防止 01 在某些字体下被
-                  // 截到 chip 边缘外造成“超出容器”错觉
+                  // 截到 chip 边缘外造成"超出容器"错觉
                   maxLines: 1,
                   softWrap: false,
+                  // v0.3.8+104: 数字全部 primary + w700 统一,  不靠 isNext
+                  // 区分.  选中态靠 chip bg (accent 0.12α) 区分.
                   style: IptvTypography.caption.copyWith(
-                    color: isNext
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -158,10 +154,12 @@ class _ChannelChip extends StatelessWidget {
                     channel.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    // v0.3.8+104: 字号 13→12 让 02/03 频道名装下.
+                    // 之前 13 字号 108 宽 chip 装不下 "CCTV-1 综合" (5 汉字).
                     style: IptvTypography.body.copyWith(
-                      fontSize: 13,
+                      fontSize: 12,
                       color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: isNext ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
