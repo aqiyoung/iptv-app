@@ -16,7 +16,8 @@ import 'package:go_router/go_router.dart';
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
 import '../../services/version_checker.dart' show currentVersionStringProvider, currentVersionCodeProvider, versionCheckerProvider, VersionCheckState, VersionCheckUpToDate, VersionCheckOutdated, VersionCheckFailed, endpointProvider, kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
-import 'theme_provider.dart';
+// v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
+// 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
 
 // v0.3.8+93 (6/20 P1-1): settings_page 所有 IptvColors 颜色 (textPrimary
 //   / textSecondary) 都改走 colorScheme.onSurface / onSurfaceVariant,  跟
@@ -31,7 +32,7 @@ class SettingsPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(themeModeProvider);
+    // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色. 不再 watch themeModeProvider.
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -60,23 +61,9 @@ class SettingsPage extends ConsumerWidget {
         // 参见 iOS Settings.app + Material 3 cards 设计语言.
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          // ─── 卡片 1: 外观 ──────────────────────────────────────────────
-          const _SettingsGroupLabel(label: '外观'),
-          const SizedBox(height: 6),
-          _SettingsCard(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.palette_outlined),
-                title: const Text('主题'),
-                subtitle: Text(_modeLabel(mode)),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _pickTheme(context, ref, current: mode),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ─── 卡片 2: 系统 ──────────────────────────────────────────────
+          // v0.3.8+102 (6/20 15:02 老板反馈): 删"外观 / 主题"卡片 (锁死浅色).
+          // 之前这里有 主题 tile + _pickTheme 对话框. 现在直接跳到"系统".
+          // ─── 卡片 1: 系统 ──────────────────────────────────────────────
           const _SettingsGroupLabel(label: '系统'),
           const SizedBox(height: 6),
           _SettingsCard(
@@ -385,44 +372,6 @@ class SettingsPage extends ConsumerWidget {
     }
   }
 
-  // ─── 主题选择对话框 (老功能保留) ──────────────────────────────────────────
-  Future<void> _pickTheme(
-    BuildContext context,
-    WidgetRef ref, {
-    required ThemeMode current,
-  }) async {
-    final picked = await showDialog<ThemeMode>(
-      context: context,
-      builder: (ctx) {
-        return SimpleDialog(
-          title: const Text('选择主题'),
-          children: [
-            for (final mode in ThemeMode.values)
-              RadioListTile<ThemeMode>(
-                title: Text(_modeLabel(mode)),
-                value: mode,
-                groupValue: current,
-                onChanged: (v) => Navigator.of(ctx).pop(v),
-              ),
-          ],
-        );
-      },
-    );
-    if (picked != null && picked != current) {
-      await ref.read(themeModeProvider.notifier).setMode(picked);
-    }
-  }
-
-  static String _modeLabel(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return '跟随系统';
-      case ThemeMode.light:
-        return '浅色';
-      case ThemeMode.dark:
-        return '深色';
-    }
-  }
 }
 
 // ─── 内部组件 ──────────────────────────────────────────────────────────────

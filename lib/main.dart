@@ -13,6 +13,11 @@ import 'core/http/ipv4_client.dart';
 import 'core/router/router.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/theme.dart';
+// v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.
+// theme_provider.dart 保留文件 (老 prefs key 兼容), 但 main.dart 不再 watch
+// themeModeProvider / ThemeModeNotifier.  sharedPreferencesProvider 仍需 import —
+// main.dart line ~86 用它 override + version_checker.dart 也用它.
+// 之前一轮删 import 导致 build 挂 (lib/main.dart:86 Undefined name), 这里再加回.
 import 'features/settings/theme_provider.dart';
 import 'features/update/force_update_dialog.dart';
 import 'services/player_service.dart';
@@ -132,24 +137,16 @@ void _applySystemUiOverlay(SharedPreferences prefs) {
   // v0.3.7+59 (6/19): 启动时默认 overlay 跟当前主题走 — 浅色主题用深状态栏图标 +
   // 米色导航栏; 暗色主题用白状态栏图标 + 深色导航栏.  之前 v0.3.7+50 写死浅色,
   // 暗色主题下状态栏图标深色在深背景上看不清, 导航栏还是米色扮眼.
-  // v0.3.8+93 (6/20 P1-3): 从 prefs 读持久化 ThemeMode,  不用 system
-  // platformBrightness 近似 — 用户切过暗色后启动不再闪.
-  // ThemeMode.system: 跟 system 走.  light/dark: 强制跟随.  undefined: 当 system.
-  final stored = prefs.getString(ThemeModeNotifier.kThemeModeKey);
-  final platformIsDark = WidgetsBinding.instance.platformDispatcher
-          .platformBrightness ==
-      Brightness.dark;
-  final isDark = stored == 'dark' || (stored != 'light' && platformIsDark);
+  // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  之前用
+  // 持久化 themeMode 控制 status bar / nav bar 颜色,  现在强制浅色.
+  // prefs 参数保留但暂未用 (其他功能如 favorite / endpoint / version cache 还用).
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-      systemNavigationBarColor: isDark
-          ? IptvColors.darkSurface
-          : IptvColors.bgParchment,
-      systemNavigationBarIconBrightness:
-          isDark ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: IptvColors.bgParchment,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 }
@@ -186,8 +183,8 @@ class IptvApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 0.3.6+19: 监听 themeModeProvider, 切换后 MaterialApp 立刻用新 themeMode.
-    final themeMode = ref.watch(themeModeProvider);
+    // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换.  themeMode 锁死 light.
+    // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode.
     // 0.3.7+20 (6/18): 后台强制更新 — 监听 versionCheckerProvider,
     // 检测到 outdated 时弹 ForceUpdateDialog.  ref.listen 的 context
     // 是 MaterialApp 内部 context,  Navigator.of(context, rootNavigator:true)
@@ -203,8 +200,10 @@ class IptvApp extends ConsumerWidget {
       title: '三页直播',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
+      // v0.3.8+102: 删主题切换, 锁死 light.  darkTheme 保留 (避免 widget
+      // 期望 ThemeMode.dark 找不到).  themeMode 强制 light.
       darkTheme: IptvTheme.dark(),
-      themeMode: themeMode,
+      themeMode: ThemeMode.light,
       routerConfig: buildRouter(playerObserver: playerObserver),
       builder: (context, child) =>
           _ErrorBoundary(child: child ?? const SizedBox()),
