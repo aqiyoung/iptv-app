@@ -35,10 +35,21 @@ class PlayerPage extends ConsumerStatefulWidget {
 }
 
 class _PlayerPageState extends ConsumerState<PlayerPage> {
-  // v0.3.8+113 (6/20 老板要求):  控件层永远可见 — 删 _hideControlsTimer /
-  // _hideAfter / _controlsVisible.  之前 3s 后自动隐 + 右下角小点提示.
-  // 老板要:  点一下也要显示台标和返回 + 退出全屏 (永远显示).
-  // 现在所有控件是静态 widget,  不需隐/显切换.
+  // v0.3.8+114 (6/20 老板 20:37 反馈):
+  //   - +113 删 _hideControlsTimer 是错的! 老板明确要 "点一下出来 +
+  //     3s 自动隐" 逻辑.  之前 v0.3.5.5 设计 + +111 修切频道 bug 的
+  //     IgnorePointer 才是老板要的行为.
+  //   - 删右下角 6×6 px 小点提示 — 老板问 "是什么",  3s 自动隐已足够.
+  //   - TopBar.onExitFullscreen = _toggleFullscreen — 老板要 TopBar
+  //     永远显示台标 + 返回 + 退出全屏按钮.
+  //   - 保留 IgnorePointer + AnimatedOpacity —  控件隐时防切频道 bug.
+  // 现在:
+  //   - 点视频 → 显示控件 (TopBar + 节目卡 + 横滑),  3s 后自动隐
+  //     (TopBar 例外 — 永远显示).
+  //   - TopBar 永远显示 (不参与 3s 隐).  节目卡 + 横滑进 AnimatedOpacity.
+  bool _controlsVisible = true;
+  Timer? _hideControlsTimer;
+  static const _hideAfter = Duration(seconds: 3);
 
 // P2-2 (6/18): 移动端嵌入布局 ↔ 全屏覆盖 之间的状态机.
   bool _isFullscreen = false;
@@ -82,7 +93,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     _primeLoadingState();
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
-    // v0.3.8+113:  删控件隐身计时器 — 控件永远可见.
+    // v0.3.8+114:  恢复控件隐身计时器 — 点屏幕显示 + 3s 自动隐.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resetHideTimer());
   }
 
   /// v0.3.8+109 (6/20): 立即让 player state 进入 loading — 不等
@@ -116,7 +128,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
 
   @override
   void dispose() {
-    // v0.3.8+113:  删控件隐身计时器取消 — 不再需要.
+    // v0.3.8+114:  恢复取消隐身计时器.
+    _hideControlsTimer?.cancel();
     // P2-2: 离开页面时如果还在全屏, 还原 system chrome.
     if (_isFullscreen) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -157,7 +170,18 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     super.dispose();
   }
 
-  /// v0.3.8+113:  删 _resetHideTimer — 控件永远可见,  不再需隐/显切换.
+  /// P0-1: 重置隐身计时器 — 用户任何输入 (D-pad / 触屏) 都调这个.
+  void _resetHideTimer() {
+    if (!mounted) return;
+    _hideControlsTimer?.cancel();
+    if (!_controlsVisible) {
+      setState(() => _controlsVisible = true);
+    }
+    _hideControlsTimer = Timer(_hideAfter, () {
+      if (!mounted) return;
+      setState(() => _controlsVisible = false);
+    });
+  }
 
   /// P2-2: 切真全屏 ↔ 退出.  全屏: immersiveSticky + landscape + 状态栏透
   /// 明 + 白图标, 让视频占满整个屏幕并隐藏状态栏/导航栏.  退出: edgeToEdge
@@ -165,7 +189,9 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   /// v0.3.5.4: 退出全屏时 nav bar 用 colorScheme.surfaceContainer 跟主题联动.
   void _toggleFullscreen() {
     setState(() => _isFullscreen = !_isFullscreen);
-    // v0.3.8+113:  删 _resetHideTimer 调用 — 控件永远可见,  不需手动重置.
+    // v0.3.8+114:  恢复 _resetHideTimer 调用 — 切全屏时立即让控件可见
+    // (避免老板等 3s 自动隐的第 2 次点击被误判为退出全屏).
+    _resetHideTimer();
     if (_isFullscreen) {
       // v0.3.7+69 (6/19): immersiveSticky → immersive (sticky 模式边缘
       // 滑出再显示,  老板反馈 "状态栏横过来后没全屏沉浸").  改成 immersive
@@ -382,13 +408,21 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               Positioned.fill(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  // v0.3.8+113 (6/20 老板反馈 "我要的点一下也要显示台标和返回"):
-                  // 之前 onTap 切控件显隐 + 3s Timer 自动隐 + 右下角小点提示.
-                  // 老板要:  点一下也要显示台标和返回 + 退出全屏按钮 (永远可见).
-                  // 修法:  onTap 不再有任何动作, 控件层始终可见.
-                  // 控件层独立渲染在视频上面, GestureDetector 仅拦截 hit test
-                  // 让 video 不响应 touch (避免误触切源).
-                  onTap: () {},
+                  // v0.3.8+114: 恢复 +111 之前的设计 — onTap 切控件显隐.
+                  // 老板 20:37 反馈: "你那点一下出来, 等 3 秒它自动隐藏,
+                  // 这个必须要有的, 要不然一直挂着不好看".  +113 删 3s 隐
+                  // 是错的逻辑.  恢复 +111 的 IgnorePointer + AnimatedOpacity
+                  // 设计 (3s 自动隐 + 防切频道 bug).
+                  onTap: () {
+                    if (_controlsVisible) {
+                      // 显示中: 立即隐藏, 不重置计时器
+                      _hideControlsTimer?.cancel();
+                      setState(() => _controlsVisible = false);
+                    } else {
+                      // 隐藏中: 显示并重置计时器
+                      _resetHideTimer();
+                    }
+                  },
                   onDoubleTap: () {
                     // v0.3.7+79: 显式空 handler.  让 Flutter gesture arena
                     // 识别为双击 (不拆成 2 次 onTap).  实际行为: 什么都不做.
@@ -421,36 +455,71 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               // IgnorePointer(ignoring: !_controlsVisible).
               // 修法:  AnimatedOpacity 外包 IgnorePointer,  invisible 时控件
               // 整体不响应 tap.  visible 时跟之前一样.
-              // v0.3.8+113 (6/20 老板要求):  控件层永远可见 — 删 IgnorePointer + AnimatedOpacity
-              //  + 右下角小点提示.  之前 +111 加 IgnorePointer 是为修控件隐藏时
-              //  NextChannelsStrip InkWell 仍响应 tap → 左下/右下切频道. 现在控件永远可见,
-              //  点视频区 = onTap 空 handler (不再切控件), 点控件 = 控件本身响应.
-              // 台标 + 返回 + 退出全屏 + 节目卡 + 频道横滑一直显示.  避免自动隐 + 隐藏中
-              // 提示小点 + 隐藏时 Opacity 不挡 hit test 的三重问题.
-              Container(
-                color: Colors.black.withValues(alpha: 0.55),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    // TopBar 永远显示.  包含返回按钮 (onBack) + 台标 (LIVE + 频道名)
-                    // + 退出全屏按钮 (onExitFullscreen).
-                    TopBar(
-                      channel: channel,
-                      state: state,
-                      onBack: () => context.pop(),
-                      onExitFullscreen: _toggleFullscreen,
-                    ),
-                    const Spacer(),
-                    if (channel != null)
-                      NowNextProgram(channel: channel),
-                    if (channel != null)
-                      NextChannelsStrip(
-                        currentChannelId: channel.id,
-                        allChannels: channels,
-                        onChannelTap: _switchTo,
+              // v0.3.8+114 (6/20 老板 20:37 反馈):
+              //   - 老板要: 点一下显示控件 + 3s 自动隐 (恢复 +111 设计)
+              //   - TopBar 永远显示 (不参与 3s 隐) — 含台标 + 返回 + 退出全屏
+              //   - 节目卡 + 横滑进 AnimatedOpacity — 3s 自动隐
+              //   - IgnorePointer 防切频道 bug (控件隐时)
+              //   - 删右下角 6×6 px 小点 (老板问 "是什么", 不需要了)
+              //
+              // 结构:
+              //   Stack
+              //     ├── [0] 视频区 GestureDetector (onTap 切显隐)
+              //     ├── [1] TopBar (永远显示, 无 opacity wrap)
+              //     └── [2] IgnorePointer + AnimatedOpacity (节目卡 + 横滑)
+              //
+              // 为什么不把 TopBar 也放进 AnimatedOpacity?
+              //   老板 20:25 反馈 "点一下也要显示台标和返回 + 退出全屏按钮".
+              //   这意味着 TopBar 必须永远显示 (或只被 IgnorePointer 跟 AnimatedOpacity 控制).
+              //   选 "永远显示" — 避免隐藏时老板找不到退出按钮 / 返回按钮.
+
+              // [1] TopBar — 永远显示,  在最上层 (Stack 顺序最前 = 最后渲染 = 最上面).
+              // 单独 AnimatedOpacity (always 1) 让它在控件层切换时保持稳定.
+              // (不用 IgnorePointer 因为 TopBar 永远 visible, 一直要响应 tap).
+              Padding(
+                padding: const EdgeInsets.only(top: 0),
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  child: TopBar(
+                    channel: channel,
+                    state: state,
+                    onBack: () => context.pop(),
+                    onExitFullscreen: _toggleFullscreen,
+                  ),
+                ),
+              ),
+              // [2] 节目卡 + 频道横滑 — IgnorePointer + AnimatedOpacity 一起,
+              //  3s 自动隐 + 防切频道 bug. 不用 ignorePointer for TopBar 因为
+              //  TopBar 在 [1] 已经独立渲染.
+              // 关键:  Column 让 AnimatedOpacity 占据屏幕下方,  TopBar [1] 在上方
+              //  永远显示.  Positioned 放底部 — NowNextProgram + NextChannelsStrip.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: IgnorePointer(
+                  ignoring: !_controlsVisible,
+                  child: AnimatedOpacity(
+                    opacity: _controlsVisible ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 250),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      padding: const EdgeInsets.only(bottom: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (channel != null)
+                            NowNextProgram(channel: channel),
+                          if (channel != null)
+                            NextChannelsStrip(
+                              currentChannelId: channel.id,
+                              allChannels: channels,
+                              onChannelTap: _switchTo,
+                            ),
+                        ],
                       ),
-                    const SizedBox(height: 24),
-                  ],
+                    ),
+                  ),
                 ),
               ),
               // v0.3.7+79 (6/19 老板反馈): 删右上角退出全屏浮动按钮.
