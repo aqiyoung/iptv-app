@@ -39,17 +39,6 @@ class ChannelTile extends StatelessWidget {
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            // v0.3.7+63 (6/19): 分割线 1px 改 0.5px + 50% alpha,  浅色下
-            // 没那么生硬,  深色下也能看见.  老板 15:15 反馈 "分割线不好看"
-            // (跟 14:34 14:55 频道列表截图相关,  1px outlineVariant 浅色显突兀).
-            border: Border(
-              bottom: BorderSide(
-                color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
-                width: 0.5,
-              ),
-            ),
-          ),
           child: Row(
             children: [
               SizedBox(
