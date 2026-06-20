@@ -3,7 +3,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sanyelive/core/theme/colors.dart';
 
 /// 状态栏/导航栏图标亮度跟主题走 — 浅色主题深图标, 暗色主题白图标.
 /// v0.3.7+59:  systemNavigationBarColor 不用 scheme.surfaceContainer (M3 API 在

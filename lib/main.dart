@@ -104,6 +104,16 @@ void main() async {
     ],
   );
   final playerService = container.read(playerServiceProvider);
+  // v0.3.8+124 (6/21 老板反馈 "启动慢 白屏 第一次进不去 点第二次"):
+  // 之前 +109 在 player_page.initState 里 ref.read(playerServiceProvider) +
+  // ref.read(channelsProvider.future) 预热了服务层,  但 media_kit 的
+  // Player() + VideoController() 还要在 player_page 里 ref.watch 才创建,
+  // 这两个都是 libmpv init,  第一次创建阻塞主线程 300-800ms.
+  // 修法:  main 里 预热 mediaKitPlayerProvider + mediaKitVideoControllerProvider,
+  //  启 app 后这俩 provider 已构建好,  进 player_page 只 ref.watch,  零初始化.
+  // 三个 provider 一起预热:  Player + VideoController + PlayerService.
+  container.read(mediaKitPlayerProvider); // 创建 Player (200-400ms)
+  container.read(mediaKitVideoControllerProvider); // 创建 VideoController (300-800ms)
   // 路由观察器: 离开 /player/* 时 stop + dispose.
   final playerObserver = PlayerRouteObserver(playerService);
   // APP 生命周期观察器: paused/inactive/hidden → pause, detached → stop+dispose.
