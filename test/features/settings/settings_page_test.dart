@@ -94,7 +94,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('主题'), findsOneWidget);
+      // v0.3.8+102 (6/20 老板反馈): 删主题切换 tile ("主题" 文字不存在了,
+      // 主题锁死浅色).  保留 "版本号" 验证.  如果以后加回主题, 补回
+      // expect(find.text('主题'), findsOneWidget).
       expect(find.text('版本号'), findsOneWidget);
     });
   });
