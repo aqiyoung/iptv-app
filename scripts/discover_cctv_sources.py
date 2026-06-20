@@ -165,19 +165,29 @@ _sub_stream_cache: dict[str, bool] = {}
 
 def _sub_stream_alive(master_url: str) -> bool:
     """
-    检查 master m3u8 的 sub-stream 是否能开. 返回 True/False.
+    检查 master m3u8 的 sub-stream 是否能开 + 第一个 .ts segment 头是
+    MPEG-TS sync byte 0x47. 返回 True/False.
 
     逻辑:
       1. GET master (已经查过 alive)
       2. 解析 #EXT-X-STREAM-INF 找子 m3u8 URL
-      3. GET 子 m3u8 看是否 200 + 实际有内容
+      3. GET 子 m3u8 找第一个 .ts segment URL
+      4. GET 第一个 .ts,  头 4 字节是 MPEG-TS sync (0x47 0x40 ...) 算活
 
+    v0.3.8+108 (6/20 老板反馈 CCTV1 花屏+有声音):
+      之前 _sub_stream_alive 只看 sub-stream m3u8 头 200 OK,  不验 TS 段.
+      但 tencent_cloud / 198.204 / 74.91 这类假活 m3u8: 表面 200 + #EXTM3U,
+      但 第一个 .ts segment 实际返回 HTML 404 页面.  换 master 路径、
+      再换 sub m3u8 都还是 HTML.  唯一准确验证是拉第一个 .ts 段看 0x47 sync byte.
+      验证失败 = m3u8 看上去活但实际拼不上完整视频,  fail-over 跳过.
     央视官方 CDN (ldncctvwbcdtxy.liveplay.myqcloud.com) 对国外 IP:
       master 200 OK, sub-stream 404 — geo-blocked 特征
     GitHub Pages 跳转 (xykt-fix.github.io):
-      master 200, sub-stream (CMCC token 跳转) 通常 OK
+      master 200, sub-stream (CMCC token 跳转) 264788.xyz 现在 假活 (HTML 404)
     198.204.240.250:82:
-      master 就是 sub-stream (单文件 m3u8), 自动 OK
+      master 就是 sub-stream (单文件 m3u8),  验第一个 .ts
+    74.91.26.218:82:
+      假活:  m3u8 200 + #EXTM3U,  但 segment 是 HTML 404.  验证不通过.
     """
     if master_url in _sub_stream_cache:
         return _sub_stream_cache[master_url]
@@ -188,28 +198,75 @@ def _sub_stream_alive(master_url: str) -> bool:
         with urllib.request.urlopen(req, timeout=4) as resp:
             content = resp.read(4096).decode('utf-8', errors='replace')
 
-        # 找 sub-stream URL
-        sub_url = _extract_sub_url(content, master_url)
-        if not sub_url:
-            # 没有 sub-stream, 本身是单文件 m3u8 (198.204.240.250 风格)
-            _sub_stream_cache[master_url] = True
-            return True
+        # 递归找第一个 .ts segment URL
+        seg_url = _find_first_ts_url(content, master_url)
+        if not seg_url:
+            # 找不到 .ts 段,  当 dead (单文件 m3u8 但没 .ts 引用)
+            _sub_stream_cache[master_url] = False
+            return False
 
-        # HEAD sub-stream
+        # 拉第一个 .ts 段,  验 MPEG-TS sync byte 0x47
         try:
-            sub_req = urllib.request.Request(sub_url, method='GET')
-            sub_req.add_header('User-Agent', 'discover_cctv_sources.py/1.0')
-            with urllib.request.urlopen(sub_req, timeout=4) as sub_resp:
-                sub_content = sub_resp.read(512)
-                ok = sub_resp.getcode() == 200 and sub_content[:1] not in (b'<', b'{')
-                _sub_stream_cache[master_url] = ok
-                return ok
+            seg_req = urllib.request.Request(seg_url, method='GET')
+            seg_req.add_header('User-Agent', 'discover_cctv_sources.py/1.0')
+            with urllib.request.urlopen(seg_req, timeout=4) as seg_resp:
+                seg_first = seg_resp.read(4)
+                is_ts = len(seg_first) >= 1 and seg_first[0] == 0x47
+                _sub_stream_cache[master_url] = is_ts
+                return is_ts
         except (urllib.error.HTTPError, urllib.error.URLError, socket.timeout, TimeoutError):
             _sub_stream_cache[master_url] = False
             return False
     except Exception:
         _sub_stream_cache[master_url] = False
         return False
+
+
+def _find_first_ts_url(content: str, base_url: str) -> str | None:
+    """
+    从 m3u8 body 递归找第一个 .ts segment URL.
+
+    支持:
+      1. 单文件 m3u8 (198.204.240.250 风格): 直接含 .ts 引用
+      2. master m3u8: 含 #EXT-X-STREAM-INF 跳到 sub m3u8,  sub m3u8 含 .ts
+    """
+    import re
+    # 先看是不是单文件 m3u8 (有 .ts 引用)
+    ts_match = re.search(r'^(?!#)(.+\.ts)$', content, re.MULTILINE)
+    if ts_match:
+        ts_rel = ts_match.group(1).strip()
+        if ts_rel.startswith('http'):
+            return ts_rel
+        # 相对路径
+        from urllib.parse import urljoin
+        return urljoin(base_url, ts_rel)
+
+    # master m3u8: 找 #EXT-X-STREAM-INF 后下一行的 sub m3u8 URL
+    lines = content.splitlines()
+    sub_url = None
+    for i, line in enumerate(lines):
+        if '#EXT-X-STREAM-INF' in line and i + 1 < len(lines):
+            sub_rel = lines[i + 1].strip()
+            if sub_rel.endswith('.m3u8'):
+                if sub_rel.startswith('http'):
+                    sub_url = sub_rel
+                else:
+                    from urllib.parse import urljoin
+                    sub_url = urljoin(base_url, sub_rel)
+                break
+
+    if not sub_url:
+        return None
+
+    # 递归拉 sub m3u8 找 .ts
+    try:
+        req = urllib.request.Request(sub_url, method='GET')
+        req.add_header('User-Agent', 'discover_cctv_sources.py/1.0')
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            sub_content = resp.read(4096).decode('utf-8', errors='replace')
+            return _find_first_ts_url(sub_content, sub_url)
+    except Exception:
+        return None
 
 
 def _extract_sub_url(content: str, master_url: str) -> str | None:

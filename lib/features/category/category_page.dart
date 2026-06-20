@@ -56,10 +56,10 @@ class CategoryPage extends ConsumerWidget {
             ],
           ),
         ),
-        if (categoryId == 'cctv')
-          const SliverToBoxAdapter(
-            child: _CctvUnavailableBanner(),
-          ),
+        // v0.3.8+108 (6/20 老板反馈): 删 _CctvUnavailableBanner.
+        // 之前 v0.3.7+62 加这个 banner 是为了告诉老板 CCTV 公开源难搞.
+        // 但老板今天说 "去掉吧" — 看到就烦.  现在直接进频道列表,
+        // 播放页 failover 多个候选源尝试.
         if (filtered.isEmpty)
           const SliverFillRemaining(
             hasScrollBody: false,
@@ -247,49 +247,7 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-/// v0.3.6+49: CCTV 源不可用提示 — 公开网络上找不到长期稳定的明文 HLS 源.
-/// 在 CCTV 分类页顶部显示一个 card, 说明现状 + 下一步.
-class _CctvUnavailableBanner extends StatelessWidget {
-  const _CctvUnavailableBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(12),
-          // v0.3.8+99 (6/20 14:03 老板反馈): 删边框线,  靠 surfaceContainerHigh
-          // 背景色 + 圆角 区分,  不要线.
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.info_outline,
-                color: scheme.onSurfaceVariant, size: 24),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('暂无可用 CCTV 源',
-                      style: IptvTypography.sansTitle.copyWith(
-                          color: scheme.onSurface, fontSize: 14)),
-                  const SizedBox(height: 4),
-                  Text(
-                    '央视源在公开网络上很少有长期稳定的明文流（多需 DRM 密钥）。\n'
-                    '当前可点频道会多源切换尝试, 大部分会失败。',
-                    style: IptvTypography.caption
-                        .copyWith(color: scheme.onSurfaceVariant, height: 1.5),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// v0.3.8+108 (6/20 老板反馈): 删 _CctvUnavailableBanner class.
+// 之前 v0.3.6+49 加这个 banner 是为了告诉老板 CCTV 公开源难搞.
+// 但老板今天说 "去掉吧" — 看到就烦.  直接进频道列表,
+// 播放页 failover 多个候选源尝试.
