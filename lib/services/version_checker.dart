@@ -37,21 +37,39 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/features/settings/theme_provider.dart'
     show sharedPreferencesProvider;
 
-/// GitHub releases API endpoint — 默认直连 api.github.com.
+/// GitHub releases API endpoint — 默认国内中转 gh-proxy.com.
 /// v0.3.7+85 (6/20 老板反馈): 老板手机国内访问 api.github.com 经常超时,
-/// 加 endpointProvider 让用户在设置页改成国内中转 (e.g. ghproxy.net
-/// 反代 api.github.com).  持久化在 SharedPreferences.
-/// 注意:  中转服务可能只代理 raw.githubusercontent.com (ghproxy.net),
-/// 不代理 api.github.com.  需要专门代理 API 的服务.
+/// v0.3.7+92 (6/20 08:42 老板反馈): 老板手机上 '更新提示网络错误',  加 endpointProvider
+///   还不够,  默认 endpoint 必须本身是国内可达的.  测试下来:
+///     - gh-proxy.com/api.github.com/...  (600ms,  OK)
+///     - ghproxy.com/https://api.github.com/...  (timeout,  废)
+///     - mirror.ghproxy.com/...  (timeout,  废)
+///     - api.npmmirror.com/...  (DNS 解析不到)
+///     - gh-proxy.net/...  (域名被劫持到广告,  废)
+///     - cf-workers-proxy-9e9.pages.dev/...  (已拄,  protective registration)
+///     - github.moeyy.cn/...  (DNS 解析不到)
+///   唯一可靠 = https://gh-proxy.com/api.github.com/...  (Cloudflare CDN,  河南郑州高防)
+///   格式: 不要带 https://,  直接 https://gh-proxy.com/api.github.com/...
+///   (不要试 https://gh-proxy.com/https://api.github.com/...,  403 rate limit)
 const String kDefaultEndpointUrl =
-    'https://api.github.com/repos/aqiyoung/iptv-app/releases/latest';
+    'https://gh-proxy.com/api.github.com/repos/aqiyoung/iptv-app/releases/latest';
 
-/// v0.3.7+85: 用户在设置页可改的 endpoint URL.  默认 api.github.com.
-/// 老板手机上改成 ghproxy.net 或自建镜像 (NAS + nginx 反代 api.github.com).
+/// v0.3.7+85: 用户在设置页可改的 endpoint URL.
+/// v0.3.7+92: 默认 endpoint 改为 gh-proxy.com (代理 api.github.com,
+///   国内 600ms).  老板手机国内直连 api.github.com 超时.
+///   老板还是能改成 gh-proxy.net / 自建镜像 (NAS + nginx 反代 api.github.com).
 /// SharedPreferences 持久化.
 const String kEndpointPrefsKey = 'version_checker.endpoint_url';
 
-/// 当前 endpoint URL — 默认 api.github.com.  单元测试可 overrideWithValue.
+/// v0.3.7+92: 老默认 endpoint (api.github.com 直连) — 用于迁移.
+/// 老板已装 +85~+91 版本,  prefs 里可能存了老 URL,  build() 会
+/// 检测到然后升级到 gh-proxy.com.  kLegacyEndpointUrl 是常量化.
+/// 迁移后这个常量可删 (加个 v0.3.8 + N release 清理).
+const String kLegacyEndpointUrl =
+    'https://api.github.com/repos/aqiyoung/iptv-app/releases/latest';
+
+/// 当前 endpoint URL — 默认 gh-proxy.com 代理 api.github.com.
+/// 单元测试可 overrideWithValue.
 /// 用 Notifier 实现 (跟 themeMode 一样), 改 URL 时持久化.
 class EndpointNotifier extends Notifier<String> {
   late final SharedPreferences _prefs;
@@ -59,7 +77,19 @@ class EndpointNotifier extends Notifier<String> {
   @override
   String build() {
     _prefs = ref.read(sharedPreferencesProvider);
-    return _prefs.getString(kEndpointPrefsKey) ?? kDefaultEndpointUrl;
+    // v0.3.7+92 (6/20 08:42 老板反馈): 老板已装 +85~+91 时在 prefs 里存了老默认
+    // api.github.com 直连 (国内超时).  APP 升级到 +92 后,  启动时检测到 prefs 里的
+    // URL == 老默认,  自动迁移到新默认 gh-proxy.com (国内 600ms 响应).
+    // 手动填的中转 URL (e.g. NAS 自建镜像) 不动.
+    final stored = _prefs.getString(kEndpointPrefsKey);
+    if (stored == null) return kDefaultEndpointUrl;
+    if (stored == kLegacyEndpointUrl) {
+      // 老默认,  迁移到新默认
+      // ignore: discarded_futures
+      _prefs.setString(kEndpointPrefsKey, kDefaultEndpointUrl);
+      return kDefaultEndpointUrl;
+    }
+    return stored;
   }
 
   /// 用户改 endpoint — 持久化 + state 更新.
@@ -86,7 +116,7 @@ class EndpointNotifier extends Notifier<String> {
     state = trimmed;
   }
 
-  /// 重置回默认 (api.github.com).
+  /// 重置回默认 (gh-proxy.com 代理 api.github.com).
   Future<void> resetEndpoint() async {
     await _prefs.remove(kEndpointPrefsKey);
     state = kDefaultEndpointUrl;

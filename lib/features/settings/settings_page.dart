@@ -73,9 +73,9 @@ class SettingsPage extends ConsumerWidget {
           ),
           const _ThinDivider(),
           // ─── 更新源 ──────────────────────────────────────────────────────
-          // v0.3.7+85 (6/20 老板反馈): 老板手机国内访问 api.github.com 超时.
-          // 加可配置 endpoint URL (SharedPreferences 持久化),  让老板填
-          // ghproxy.net / 自己 NAS 镜像 / 或回默认 api.github.com.
+          // v0.3.7+92 (6/20 08:42 老板反馈): 默认 endpoint 改为 gh-proxy.com
+          //   (代理 api.github.com),  国内 600ms 响应.  老板还是能在设置页手动改
+          //   (重置默认 / 填别的代理 / 填自建镜像).
           // version_checker 用 endpointProvider 而不是 const kGitHubReleasesUrl.
           Consumer(
             builder: (context, ref, _) {
@@ -85,7 +85,7 @@ class SettingsPage extends ConsumerWidget {
                 leading: const Icon(Icons.dns_outlined),
                 title: const Text('更新源', style: TextStyle(color: IptvColors.textPrimary)),
                 subtitle: Text(
-                  isDefault ? '默认 (api.github.com)' : endpoint,
+                  isDefault ? '默认 (gh-proxy.com 代理 api.github.com)' : endpoint,
                   style: const TextStyle(color: IptvColors.textSecondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -282,8 +282,10 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  // ─── 更新源 URL 编辑 (v0.3.7+85) ────────────────────────────────────────────
-  // 老板手机国内访问 api.github.com 经常超时,  弹 dialog 让老板填国内中转 URL.
+  // ─── 更新源 URL 编辑 (v0.3.7+85, v0.3.7+92) ────────────────────────────────────────────
+  // v0.3.7+85: 老板手机国内访问 api.github.com 经常超时, 弹 dialog 让老板填国内中转 URL.
+  // v0.3.7+92: 默认 endpoint 改为 gh-proxy.com (代理 api.github.com),
+  //   国内 600ms.  老板还是能在 dialog 里改 (填别的代理 / 填自建镜像 / 重置回默认).
   // 填完调 endpointProvider.notifier.setEndpoint() 持久化.
   Future<void> _editEndpoint(BuildContext context, WidgetRef ref) async {
     final current = ref.read(endpointProvider);
@@ -298,12 +300,12 @@ class SettingsPage extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '默认: api.github.com (国外, 国内可能超时)',
+                '默认: gh-proxy.com 代理 api.github.com (国内 600ms)',
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 8),
               const Text(
-                '国内中转: ghproxy.net 或 自建镜像 (NAS + nginx)',
+                '其他中转: gh-proxy.com / 自建镜像 (NAS + nginx)',
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 16),
@@ -325,7 +327,7 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () async {
-              // 重置默认 (api.github.com)
+              // 重置默认 (gh-proxy.com)
               await ref.read(endpointProvider.notifier).resetEndpoint();
               if (ctx.mounted) Navigator.of(ctx).pop('reset');
             },
@@ -350,7 +352,7 @@ class SettingsPage extends ConsumerWidget {
     if (result != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result == 'reset' ? '已重置为默认 api.github.com' : '已保存: $result'),
+          content: Text(result == 'reset' ? '已重置为默认 gh-proxy.com 代理' : '已保存: $result'),
           duration: const Duration(seconds: 2),
         ),
       );
