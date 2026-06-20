@@ -248,18 +248,30 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   ),
                 )
               else
-                SliverList.builder(
-                  itemCount: _results.length,
-                  itemBuilder: (context, i) {
-                    final ch = _results[i];
-                    final isSelected = i == _selectedIndex;
-                    return _SearchResultTile(
-                      channel: ch,
-                      isSelected: isSelected,
-                      channelNumber: (i + 1).toString().padLeft(2, '0'),
-                      onTap: () => _goToPlayer(ch),
-                    );
-                  },
+                // v0.3.8+101 (6/20 15:02 老板反馈): _SearchResultTile 跟
+                // ChannelTile 风格统一 (独立容器 + 间隔).  list 加 padding
+                // + item 间插 SizedBox(10).  跟 category/favorites 一致.
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  sliver: SliverList.builder(
+                    itemCount: _results.length,
+                    itemBuilder: (context, i) {
+                      final ch = _results[i];
+                      final isSelected = i == _selectedIndex;
+                      final tile = _SearchResultTile(
+                        channel: ch,
+                        isSelected: isSelected,
+                        channelNumber: (i + 1).toString().padLeft(2, '0'),
+                        onTap: () => _goToPlayer(ch),
+                      );
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: i == _results.length - 1 ? 0 : 10,
+                        ),
+                        child: tile,
+                      );
+                    },
+                  ),
                 ),
             ],
           ),
@@ -285,18 +297,24 @@ class _SearchResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    return Container(
-      color: isSelected
-          // ignore: deprecated_member_use
-          ? accent.withOpacity(0.08)
-          : Colors.transparent,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
+    // v0.3.8+101 (6/20 15:02 老板反馈): 每个 _SearchResultTile 升级为
+    // 独立容器 (浅一档米色 + 圆角 12).  选中态: accent 0.08 alpha bg
+    // (区分).  非选中: bgElevated (#FFFCF6).  跟 ChannelTile 一致.
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                // ignore: deprecated_member_use
+                ? accent.withOpacity(0.12)
+                : const Color(0xFFFFFCF6), // bgElevated
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
               children: [
                 SizedBox(
                   width: 48,
@@ -358,12 +376,11 @@ class _SearchResultTile extends StatelessWidget {
                         letterSpacing: 1.0,
                       ),
                     ),
-                  ),
+                ),
               ],
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }

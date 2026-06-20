@@ -72,8 +72,11 @@ class FavoritesPage extends ConsumerWidget {
           return const _EmptyState();
         }
         // 6/17 v0.2.3 P1-5: TV 端 TvFocus 拿焦点环.  手机端不变.
+        // v0.3.8+101 (6/20 15:02 老板反馈): ChannelTile 现在是独立容器
+        // (浅一档米色 + 圆角 12),  list 加 padding + item 间插 SizedBox(10).
         final isTv = context.deviceTier == DeviceTier.tv;
         return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           itemCount: ordered.length,
           itemBuilder: (context, i) {
             final ch = ordered[i];
@@ -88,11 +91,17 @@ class FavoritesPage extends ConsumerWidget {
                 onTap: () => context.push('/player/${ch.id}'),
               ),
             );
-            if (!isTv) return tile;
+            final wrapped = Padding(
+              padding: EdgeInsets.only(
+                bottom: i == ordered.length - 1 ? 0 : 10,
+              ),
+              child: tile,
+            );
+            if (!isTv) return wrapped;
             return TvFocus(
               autofocus: i == 0,
               onTap: () => context.push('/player/${ch.id}'),
-              borderRadius: 0,
+              borderRadius: 12,
               child: tile,
             );
           },

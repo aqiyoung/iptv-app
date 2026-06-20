@@ -34,11 +34,22 @@ class ChannelTile extends StatelessWidget {
     final favName = channel?.name ?? channelName;
 
     return Material(
-      color: Theme.of(context).colorScheme.surface,
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Container(
+          // v0.3.8+101 (6/20 15:02 老板反馈): 每个 ChannelTile 改成独立容器
+          // (浅一档米色 + 圆角 12),  外层 list 用 SizedBox 间隔.  之前是 list+
+          // divider 风格,  +99/+100 删了 border 和 Divider,  但视觉上
+          // "看不出来是个容器" (老板原话).  现在用 bgElevated (#FFFCF6) 跟
+          // Scaffold 背景 (bgParchment #F5F4ED) 区分,  让用户"看得出来是
+          // 容器".  跟 settings page 的 _SettingsCard 是同一套语言.
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFCF6), // bgElevated, 浅一档米色
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Row(
             children: [
               SizedBox(

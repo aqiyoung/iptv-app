@@ -70,26 +70,38 @@ class CategoryPage extends ConsumerWidget {
             builder: (context) {
               // 6/17 v0.2.3 P1-5: TV 端 TvFocus 套住 ChannelTile
               final isTv = context.deviceTier == DeviceTier.tv;
-              return SliverList.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, i) {
-                  final ch = filtered[i];
-                  final tile = ChannelTile(
-                    channel: ch,
-                    channelNumber: (i + 1).toString().padLeft(2, '0'),
-                    channelName: ch.name,
-                    country: ch.country,
-                    isLive: ch.sources.isNotEmpty,
-                    onTap: () => context.push('/player/${ch.id}'),
-                  );
-                  if (!isTv) return tile;
-                  return TvFocus(
-                    autofocus: i == 0,
-                    onTap: () => context.push('/player/${ch.id}'),
-                    borderRadius: 0,
-                    child: tile,
-                  );
-                },
+              // v0.3.8+101 (6/20 15:02 老板反馈): ChannelTile 现在是独立
+              // 容器 (浅一档米色 + 圆角 12),  list 加左右 16 padding + 上
+              // 8 下 24 padding,  item 间插 SizedBox(10) 让容器之间有间隔.
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                sliver: SliverList.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) {
+                    final ch = filtered[i];
+                    final tile = ChannelTile(
+                      channel: ch,
+                      channelNumber: (i + 1).toString().padLeft(2, '0'),
+                      channelName: ch.name,
+                      country: ch.country,
+                      isLive: ch.sources.isNotEmpty,
+                      onTap: () => context.push('/player/${ch.id}'),
+                    );
+                    final wrapped = Padding(
+                      padding: EdgeInsets.only(
+                        bottom: i == filtered.length - 1 ? 0 : 10,
+                      ),
+                      child: tile,
+                    );
+                    if (!isTv) return wrapped;
+                    return TvFocus(
+                      autofocus: i == 0,
+                      onTap: () => context.push('/player/${ch.id}'),
+                      borderRadius: 12,
+                      child: wrapped,
+                    );
+                  },
+                ),
               );
             },
           ),
