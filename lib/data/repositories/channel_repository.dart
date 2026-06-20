@@ -6,6 +6,10 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/channel.dart';
+// v0.3.8+125 (6/21 老板拍):  远程频道数据源 — 优先用 aqiyoung/iptv-channels-organized
+// 分类 JSON (每周一 cron 自动生成),  失败 fallback 本地 assets/data/channels_cn.json.
+// 单独抽 remote_channels_source.dart 让 channel_repository 保持 focused on assets.
+import '../remote_channels_source.dart';
 
 /// 把 [known] 里跟 channel.id 匹配的 URL 列表追加到 [c].sources 后面,
 /// 去重但保留首次出现的顺序.  不修改传入的 channel, 返回新实例.
@@ -188,7 +192,34 @@ final channelRepositoryProvider = Provider<ChannelRepository>(
   (ref) => const ChannelRepository(),
 );
 
+/// v0.3.8+125 (6/21 老板拍):  远程优先 + 本地 fallback 合并 provider.
+///
+/// 策略:
+///   1. main() 启动时已经 fire-and-forget 预热 remoteChannelsProvider.
+///   2. 这里 await remoteChannelsProvider.future — 已成功就直接用远程 bundle.all.
+///   3. 远程失败 / 超时 / 4xx → 自动 fallback 到 ChannelRepository.loadBundled()
+///      (assets/data/channels_cn.json + channels_i18n.json + known_sources merge).
+///
+/// 测试兼容:  单元测试 overrideWith(channelsProvider, fake data) 直接替换 body,
+/// 完全不走 remote.  集成测试需要真实 http 行为时 overrideWith remoteChannelsProvider.
 final channelsProvider = FutureProvider<List<Channel>>((ref) async {
-  final repo = ref.watch(channelRepositoryProvider);
-  return repo.loadBundled();
+  // 1. 尝试远程 — 10s 超时已经在 RemoteChannelsSource 里硬编, 这里再 .timeout
+  //    兜一层 12s 给 Future.guard 留余量 (避免 remote hang 整个启动).
+  try {
+    final bundle = await ref
+        .watch(remoteChannelsProvider.future)
+        .timeout(const Duration(seconds: 12));
+    debugPrint(
+        'channelsProvider: using remote bundle (${bundle.all.length} channels, '
+        'cctv=${bundle.cctv.length} sat=${bundle.satellite.length} '
+        'local=${bundle.local.length} intl=${bundle.international.length}, '
+        'stamp=${bundle.iptvAppStamp})');
+    return bundle.all;
+  } catch (e) {
+    // 2. 远程失败 — fallback 本地 assets.
+    debugPrint(
+        'channelsProvider: remote fetch failed, falling back to local assets: $e');
+    final repo = ref.watch(channelRepositoryProvider);
+    return repo.loadBundled();
+  }
 });

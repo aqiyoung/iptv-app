@@ -13,6 +13,7 @@ import 'core/http/ipv4_client.dart';
 import 'core/router/router.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/theme.dart';
+import 'data/remote_channels_source.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.
 // theme_provider.dart 保留文件 (老 prefs key 兼容), 但 main.dart 不再 watch
 // themeModeProvider / ThemeModeNotifier.  sharedPreferencesProvider 仍需 import —
@@ -71,6 +72,12 @@ void main() async {
   // v0.3.7+50 (6/19): DNS + TCP 预热 — 启动时后台跑,  让用户首切频道时
   // 跳过 DNS lookup + TCP handshake, 硬延迟砍半. fire-and-forget, 不阻塞.
   unawaited(DnsWarmup.warmup(_warmupHostnames()));
+  // v0.3.8+125 (6/21 老板拍):  远程频道预热 — 后台拉一次
+  // aqiyoung/iptv-channels-organized 分类 JSON,  失败静默吞掉,  fallback
+  // 本地 assets/data.  channelsProvider 内部 await remoteChannelsProvider.future,
+  // 第一次 await 这时已 resolve → 直接用远程;  远程超时则 fallback 本地.
+  // 不阻塞 runApp,  fire-and-forget.  不在 wait list 里 (主流程不等它).
+  unawaited(_prewarmRemoteChannels());
   // Global error widget builder - set once, not on every rebuild
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
@@ -153,6 +160,23 @@ List<String> _warmupHostnames() => const <String>[
   '118.81.195.79', //  北京卫视
   'ottrrs.hl.chinamobile.com', //  CCTV5 移动源
 ];
+
+/// v0.3.8+125 (6/21):  启动预热 remote channels — 后台 fire-and-forget.
+/// 失败静默,  channelsProvider 会自动 fallback 本地 assets/data.
+/// 用独立 short-lived container — 不污染 main() 主 container 状态.
+Future<void> _prewarmRemoteChannels() async {
+  try {
+    final warmContainer = ProviderContainer();
+    try {
+      await warmContainer.read(remoteChannelsProvider.future);
+      debugPrint('_prewarmRemoteChannels: remote fetched OK');
+    } finally {
+      warmContainer.dispose();
+    }
+  } catch (e) {
+    debugPrint('_prewarmRemoteChannels: failed (will use local fallback): $e');
+  }
+}
 
 void _applySystemUiOverlay(SharedPreferences prefs) {
   // v0.3.7+59 (6/19): 启动时默认 overlay 跟当前主题走 — 浅色主题用深状态栏图标 +
