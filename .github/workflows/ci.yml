@@ -71,7 +71,8 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
       - name: Run tests
-        # v0.3.8+124 (6/21 老板反理: 临时 skip.  11 个测试历史 fail (bot sync
-        # 改了 channels 后频道数变了 + withOpacity 迁移 .withValues 后颜色
-        # alpha 表达变了).  不阻塞出包,  后续 PR 单独修.
-        run: flutter test || echo "tests failed but continuing — see TEST-FAIL.md"
+        # v0.3.8+125 (6/21): 恢复 fatal — 11 个 test fail 全部修通 (commit 323384f).
+        # 之前 v0.3.8+124 临时 || echo skip 不阻塞出包,  现在恢复严格检查:
+        # 任何 test fail 都会阻断 CI (跟 analyze --no-fatal-infos 一致,
+        #  info 级 lint 不阻断,  但 test 必须 0 fail).
+        run: flutter test
