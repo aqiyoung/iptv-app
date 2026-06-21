@@ -51,6 +51,15 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   Timer? _hideControlsTimer;
   static const _hideAfter = Duration(seconds: 3);
 
+  // v0.3.8+127 (6/21 老板反馈 "启动白屏几秒后出现的"):
+  // +125 移 _primeLoadingState 到 addPostFrameCallback (修 CI navigation_test
+  // "modify during build" 异常),  但首帧 initState 设的 player state
+  // 还是 idle,  老板看到白屏几秒才能看到 loading.  修法:  本地
+  // _isInitializing 标志,  build 时检查这个判断显示 Skeleton/player state.
+  // initState 同步设 true — 首帧就看到骨架屏 (不是空白).  postFrameCallback
+  // 跑完 _primeLoadingState 后设 false — 接管 player state loading 显示.
+  bool _isInitializing = true;
+
 // P2-2 (6/18): 移动端嵌入布局 ↔ 全屏覆盖 之间的状态机.
   bool _isFullscreen = false;
 
@@ -95,9 +104,18 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     // navigation_test / player_theme_test / fullscreen_overlay_test 全部 fail).
     // addPostFrameCallback 在第一帧 drawFrame 后才跑, 这时 player service
     // 立刻变 loading,  老板点频道第二帧看到 "正在打开…"  UI.
+    // v0.3.8+127 (6/21 老板反馈 "启动白屏几秒后出现"):
+    // +125 改为 postFrameCallback 后,  首帧 UI 看不到 loading 状态 (还是 idle
+    // 或初始状态),  老板看到空白骨架屏几秒后才看到 "正在打开…".  修法:
+    // initState 同步设 _isInitializing = true (本地状态),  build 看到
+    // _isInitializing=true 就显示 Skeleton widget (本地),  不依赖 player state.
+    // postFrameCallback 跑 _primeLoadingState 后立即 setState(false) 接管
+    // player state 监听,  首帧就是 Skeleton (不是空白).
+    // v0.3.8+127: setState(false) 接管后 player state.loading 接管渲染.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _primeLoadingState();
+      setState(() => _isInitializing = false);
     });
     // 进入页面时尝试播放
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryAutoPlay());
@@ -199,21 +217,30 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   /// 明 + 白图标, 让视频占满整个屏幕并隐藏状态栏/导航栏.  退出: edgeToEdge
   /// + portrait (默认) + 还原成全 APP 默认 (黑图标 + colorScheme nav bar).
   /// v0.3.5.4: 退出全屏时 nav bar 用 colorScheme.surfaceContainer 跟主题联动.
-  void _toggleFullscreen() {
-    setState(() => _isFullscreen = !_isFullscreen);
-    // v0.3.8+114:  恢复 _resetHideTimer 调用 — 切全屏时立即让控件可见
-    // (避免老板等 3s 自动隐的第 2 次点击被误判为退出全屏).
-    _resetHideTimer();
-    if (_isFullscreen) {
+    /// P2-2: 切真全屏 ↔ 退出.  全屏: immersiveSticky + landscape + 状态栏透
+  /// 明 + 白图标, 让视频占满整个屏幕并隐藏状态栏/导航栏.  退出: edgeToEdge
+  /// + portrait (默认) + 还原成全 APP 默认 (黑图标 + colorScheme nav bar).
+  /// v0.3.5.4: 退出全屏时 nav bar 用 colorScheme.surfaceContainer 跟主题联动.
+  /// v0.3.8+127 (6/21 老板反馈 "全屏过程变形"):
+  /// 之前 setState 跟 SystemChrome.setPreferredOrientations 是同步
+  /// setState + 异步 SystemChrome,  视频 widget 重建后屏幕方向还没切到
+  /// landscape,  看着 "过程变形".  修法:  async 函数,  先 await 系统
+  /// SystemChrome 调用完,  再 setState.  多等一帧 (await Future.delayed
+  /// 16ms) 让视频 widget 拿到新尺寸后再 rebuild.
+  Future<void> _toggleFullscreen() async {
+    final nextIsFullscreen = !_isFullscreen;
+    if (nextIsFullscreen) {
       // v0.3.7+69 (6/19): immersiveSticky → immersive (sticky 模式边缘
       // 滑出再显示,  老板反馈 "状态栏横过来后没全屏沉浸").  改成 immersive
       // 强制完全隐藏状态栏 + 导航栏,  用户要退出点浮动按钮 (v0.3.7+64 加的)
       // 或用 Android back.
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
       // v0.3.7+69: 横屏时强制 landscape,  不管系统默认.
       // 之前 setPreferredOrientations([]) 退到默认 (portrait on phones),
       // 老板横屏拨横后还是会回到竖屏.
-      SystemChrome.setPreferredOrientations(const [
+      // v0.3.8+127:  await setPreferredOrientations 完成 —  物理传感器
+      // 响应需要时间,  await 让物理方向真切换了再 setState,  避免中间状态.
+      await SystemChrome.setPreferredOrientations(const [
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
@@ -228,14 +255,14 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
         ),
       );
     } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       // v0.3.8+120 (6/20 23:27 老板反馈 "退出全屏 变竖屏了"):
       // 之前 const <DeviceOrientation>[] = 系统默认 = portrait on phones.
       // 老板横屏全屏看视频,  退出后变竖屏 = 体验断裂.
       // 修法:  退出全屏用 [portrait, landscape] 显式允许两个方向 — 系统会根据
       // 设备重力传感器决定方向 (老板拨横还是拨竖都行).  跟 +120 main.dart
       // 全局方向设置一致.
-      SystemChrome.setPreferredOrientations(const [
+      await SystemChrome.setPreferredOrientations(const [
         DeviceOrientation.portraitUp,
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
@@ -245,6 +272,16 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       // 跟当前主题联动.
       _applySystemUiOverlayForApp();
     }
+    // v0.3.8+127: SystemChrome 调用都 await 完了,  才 setState 切 _isFullscreen.
+    // 这样视频 widget rebuild 时屏幕方向已经对了,  不会出现 "过程变形".
+    if (!mounted) return;
+    setState(() => _isFullscreen = nextIsFullscreen);
+    // v0.3.8+114:  恢复 _resetHideTimer 调用 — 切全屏时立即让控件可见
+    // (避免老板等 3s 自动隐的第 2 次点击被误判为退出全屏).
+    _resetHideTimer();
+    // v0.3.8+127: 多等 1 帧 (16ms) 让视频 widget 拿到新尺寸后再 rebuild.
+    // 避免方向刚变 + 布局刚变时 视频 contain 计算用的是旧尺寸.
+    await Future<void>.delayed(const Duration(milliseconds: 16));
   }
 
   /// v0.3.8+115 (6/20 21:07 老板反馈): TopBar ← 返回按钮处理.
@@ -311,7 +348,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
     return Scaffold(
       backgroundColor: scheme.surface,
       body: SafeArea(
-        child: asyncChannels.when(
+        // v0.3.8+127 (6/21 老板反馈 "启动白屏几秒后出现"):
+        // _isInitializing=true (initState 同步设的) → 显示骨架屏,  不依赖
+        // asyncChannels.when (后者可能还在 loading).  首帧不是空白.
+        child: _isInitializing
+            ? const _PlayerPageSkeleton()
+            : asyncChannels.when(
           loading: () => Center(
             child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
           ),
@@ -601,3 +643,94 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 }
 
+
+/// v0.3.8+127 (6/21 老板反馈 "启动白屏几秒后出现"):
+/// 嵌入布局骨架屏 — 首帧显示: 16:9 黑色视频区 + 顶栏灰条 + 节目卡占位.
+/// 跟 _buildMobile data 状态布局一致,  但所有内容是灰骨架,  不是空白.
+/// postFrameCallback 跑 _primeLoadingState 后,  _isInitializing=false,
+/// build 接管显示 player state.loading.
+class _PlayerPageSkeleton extends StatelessWidget {
+  const _PlayerPageSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final skeletonColor = scheme.surfaceContainerHighest;
+    return Column(
+      children: [
+        // 16:9 黑色视频区 (跟 data 状态一致)
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ColoredBox(color: Colors.black),
+        ),
+        // 顶栏灰条 (跟 TopBar 高度一致 ~ 56 px)
+        Container(
+          height: 56,
+          color: scheme.surface,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              // 返回按钮占位
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: skeletonColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // 频道名占位
+              Container(
+                width: 120,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: skeletonColor,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // 节目卡灰条
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 当前节目卡占位
+                Container(
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // 下一档节目占位
+                Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 频道横滑占位
+                Container(
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: skeletonColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
