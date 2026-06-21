@@ -566,13 +566,20 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               // 出 控制层 (不如统一隐),  老板全屏时点视频控制台都隐,  看视频清静.
               //  +129 修法:  TopBar + 节目卡 + 横滑 统一在 _controlsVisible 控制下
               //  3s 隐.  onTap 视频区 切显示.  跟 +115 一致,  跟 +128 反.
+              // v0.3.8+130 (6/21 08:38 老板反馈 "全屏的台标 有显示了 透明的看不清 改成白色 而且没有返回按钮"):
+              // 老板说 "没有返回按钮"  — 但 TopBar 里 Icons.arrow_back 还在,  问题
+              // 是 Colors.black.withValues(alpha: 0.55) 太浅 + TopBar 文字用
+              // scheme.onSurface (浅色主题是深色)  在黑底视频上几乎隐形 — 看不到
+              // 按了.  修法:  Container 背景加深到 0.85 + TopBar 里全部强制
+              // Colors.white / Colors.white70 不靠主题.  返回按钮 + 台标 + LIVE 状态 +
+              // 时钟  全都清晰可见.
               IgnorePointer(
                 ignoring: !_controlsVisible,
                 child: AnimatedOpacity(
                   opacity: _controlsVisible ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 250),
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.55),
+                    color: Colors.black.withValues(alpha: 0.85),
                     child: SafeArea(
                       bottom: false,
                       child: TopBar(

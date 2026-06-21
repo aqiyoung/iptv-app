@@ -68,7 +68,8 @@ class _TopBarState extends State<TopBar> {
       PlayerStatus.error => '播放失败',
     };
 
-    final scheme = Theme.of(context).colorScheme;
+    // v0.3.8+130: 删 scheme 局部变量 — 之前 onSurface/onSurfaceVariant 都
+    // 被替换为 Colors.white / Colors.white70.  scheme 不再使用.
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -79,8 +80,9 @@ class _TopBarState extends State<TopBar> {
           // + ↔ (Icons.fullscreen_exit) 三个图标 — 老板说 "多了三个控件 右侧中间"
           // 全删.  退出全屏靠 _onTopBarBack (全屏态) / context.pop (嵌入布局)
           // — 老板明确说 "点返回可以退出全屏".
+          // v0.3.8+130:  强制白色图标 — 黑底视频上 scheme.onSurface 看不清.
           IconButton(
-            icon: Icon(Icons.arrow_back, color: scheme.onSurface),
+            icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: widget.onBack,
           ),
           const SizedBox(width: 4),
@@ -92,8 +94,13 @@ class _TopBarState extends State<TopBar> {
                   widget.channel?.displayName ?? '加载中…',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  // v0.3.8+130 (6/21 08:38 老板反馈 "全屏的台标 有显示了 透明的看不清 改成白色"):
+                  // 之前 TopBar 用 scheme.onSurface — 浅色主题是深色,  黑底视频
+                  // 上看不清.  全屏背景是黑底视频,  强制 Colors.white 不靠主题.
+                  // 嵌入布局背景是 scheme.surface (浅米色),  TopBar 应该用深色 — 但
+                  // 全屏是主要使用场景,  纯白是最保险选择.  后期可加亮度检测.
                   style: IptvTypography.serifTitle
-                      .copyWith(color: scheme.onSurface, fontSize: 18),
+                      .copyWith(color: Colors.white, fontSize: 18),
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -102,16 +109,18 @@ class _TopBarState extends State<TopBar> {
                     const SizedBox(width: 4),
                     Text(
                       statusText,
+                      // v0.3.8+130: 全屏背景黑,  强制白色文本.
                       style: TextStyle(
-                        color: scheme.onSurfaceVariant,
+                        color: Colors.white70,
                         fontSize: 12,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       _clockText,
+                      // v0.3.8+130: 全屏背景黑,  强制白色文本.
                       style: TextStyle(
-                        color: scheme.onSurfaceVariant,
+                        color: Colors.white70,
                         fontSize: 12,
                       ),
                     ),
