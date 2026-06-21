@@ -299,17 +299,17 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   Future<void> _tryAutoPlay() async {
-    final channels = await ref.read(channelsProvider.future);
-    if (!mounted) return;
-    final ch = _findChannel(channels, widget.channelId);
-    if (ch == null) {
-      // 频道 id 找不到, 不动 player
-      return;
-    }
-    if (!mounted) return; // 再检查一次, 避免 dispose 之后调用
-    // 卡 6: 保存 last channel id, 主页下次进入会显示「继续观看」
-    unawaited(ref.read(startupServiceProvider).saveLastChannel(ch.id));
     try {
+      final channels = await ref.read(channelsProvider.future);
+      if (!mounted) return;
+      final ch = _findChannel(channels, widget.channelId);
+      if (ch == null) {
+        // 频道 id 找不到, 不动 player
+        return;
+      }
+      if (!mounted) return; // 再检查一次, 避免 dispose 之后调用
+      // 卡 6: 保存 last channel id, 主页下次进入会显示「继续观看」
+      unawaited(ref.read(startupServiceProvider).saveLastChannel(ch.id));
       await ref.read(playerServiceProvider).play(ch);
     } catch (e) {
       debugPrint('PlayerPage._tryAutoPlay failed: $e');
@@ -354,9 +354,23 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
         child: _isInitializing
             ? const _PlayerPageSkeleton()
             : asyncChannels.when(
-          loading: () => Center(
-            child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
-          ),
+          loading: () {
+            // v0.3.8+145: 如果 player state 已经是 loading (primeLoadingState 设的),
+            // 显示 VideoArea (含 "正在打开…" loading overlay),  不是 spinner.
+            // 避免 spinner → loading overlay 的视觉跳变.
+            if (state.status == PlayerStatus.loading ||
+                state.status == PlayerStatus.error) {
+              return _buildVideoAreaWithChannel(
+                controller: controller,
+                state: state,
+                channel: null, // channel 数据还没到, VideoArea 只显示 overlay
+                channels: const <Channel>[],
+              );
+            }
+            return Center(
+              child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
+            );
+          },
           error: (e, _) => Center(
             child: Text(
               '加载失败: $e',
@@ -365,75 +379,91 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
           ),
           data: (channels) {
             final channel = _findChannel(channels, widget.channelId);
-            return Column(
-              children: [
-                // 视频区 (16:9) + 右下角全屏按钮
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      VideoArea(
-                        controller: controller,
-                        state: state,
-                        channel: channel,
-                      ),
-                      // v0.3.5.4: 全屏按钮背景 + 图标都跟主题联动 —
-                      // 浅色下浅底 + 深色图标 (跟浅米色页面风格一致),
-                      // 暗色下深底 + 浅色图标 (跟深棕黑页面风格一致).
-                      // 背景用 surfaceContainerHigh, 图标用 onSurface
-                      // (跟 Material 3 M3 spec 一致).
-                      Positioned(
-                        right: 8,
-                        bottom: 8,
-                        child: Material(
-                          color: Colors.transparent,
-                          shape: const CircleBorder(),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.fullscreen,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              size: 22,
-                            ),
-                            tooltip: '全屏',
-                            onPressed: _toggleFullscreen,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // 顶栏 (返回 / 频道名 / 时钟)
-                // v0.3.8+115: 嵌入布局用 _onTopBarBack (现在只 pop, 因为嵌入
-                // 布局 _isFullscreen=false — 跟全屏 _buildFullscreenOverlay 一致).
-                TopBar(
-                  channel: channel,
-                  state: state,
-                  onBack: _onTopBarBack,
-                ),
-                // 节目卡 + 频道横滑 (可滚动)
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (channel != null) NowNextProgram(channel: channel),
-                        if (channel != null)
-                          NextChannelsStrip(
-                            currentChannelId: channel.id,
-                            allChannels: channels,
-                            onChannelTap: _switchTo,
-                          ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            return _buildVideoAreaWithChannel(
+              controller: controller,
+              state: state,
+              channel: channel,
+              channels: channels,
             );
           },
         ),
       ),
+    );
+  }
+
+  /// 嵌入布局的视频区 + TopBar + 节目卡 (从 _buildMobile 抽出来, 给 loading
+  /// 分支复用 — channel 为 null 时只显示 VideoArea overlay, 不显示节目卡).
+  Widget _buildVideoAreaWithChannel({
+    required VideoController controller,
+    required PlayerState state,
+    required Channel? channel,
+    required List<Channel> channels,
+  }) {
+    return Column(
+      children: [
+        // 视频区 (16:9) + 右下角全屏按钮
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              VideoArea(
+                controller: controller,
+                state: state,
+                channel: channel,
+              ),
+              // v0.3.5.4: 全屏按钮背景 + 图标都跟主题联动 —
+              // 浅色下浅底 + 深色图标 (跟浅米色页面风格一致),
+              // 暗色下深底 + 浅色图标 (跟深棕黑页面风格一致).
+              // 背景用 surfaceContainerHigh, 图标用 onSurface
+              // (跟 Material 3 M3 spec 一致).
+              Positioned(
+                right: 8,
+                bottom: 8,
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.fullscreen,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      size: 22,
+                    ),
+                    tooltip: '全屏',
+                    onPressed: _toggleFullscreen,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // 顶栏 (返回 / 频道名 / 时钟)
+        // v0.3.8+115: 嵌入布局用 _onTopBarBack (现在只 pop, 因为嵌入
+        // 布局 _isFullscreen=false — 跟全屏 _buildFullscreenOverlay 一致).
+        TopBar(
+          channel: channel,
+          state: state,
+          onBack: _onTopBarBack,
+        ),
+        // 节目卡 + 频道横滑 (可滚动)
+        if (channel != null)
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  NowNextProgram(channel: channel),
+                  NextChannelsStrip(
+                    currentChannelId: channel.id,
+                    allChannels: channels,
+                    onChannelTap: _switchTo,
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -472,9 +502,27 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       body: _isInitializing
           ? const _PlayerFullscreenSkeleton()
           : asyncChannels.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
-        ),
+        loading: () {
+          // v0.3.8+145: 如果 player state 已经是 loading, 显示 VideoArea
+          // (含 loading overlay), 不是 spinner. 避免视觉跳变.
+          // 全屏态 loading 时只显示 VideoArea (channel 数据还没到, 无法显示控件).
+          if (state.status == PlayerStatus.loading ||
+              state.status == PlayerStatus.error) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                VideoArea(
+                  controller: controller,
+                  state: state,
+                  channel: null,
+                ),
+              ],
+            );
+          }
+          return Center(
+            child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
+          );
+        },
         error: (e, _) => Center(
           child: Text(
             '加载失败: $e',
