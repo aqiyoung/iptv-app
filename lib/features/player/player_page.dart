@@ -559,30 +559,27 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               //  一起.  TopBar 简化成只有 ← 返回 (删 ⋮ ♡ ↔ — 删 onExitFullscreen
               //  删 FavoriteIcon 删 Icons.more_vert).  退出全屏靠 Android back
               //  (系统行为,  _buildFullscreenOverlay 顶层 PopScope 处理 — 见下面).
-              // v0.3.8+128 (6/21 08:05 老板反馈 "全屏 台标和返回 又没有了 这都是自动隐藏"):
-              // 之前 +115 把 TopBar 进 _controlsVisible 一起 3s 隐,  老板在 21:07 反馈
-              // "台标 不要一直显示".  但 6/21 08:05 反馈变了:  "台标和返回 又没有了
-              // 这都是自动隐藏".  老板转复需求:  TopBar (台标 + 返回 + LIVE) 要一直
-              // 显示,  不能 3s 隐.  节目卡 + 频道横滑 还是 3s 隐 (不变).
-              // 修法:  TopBar 拆出 _controlsVisible 控制,  永远 visible.
-              //  另一个变更:  TopBar 之前 +115 删了 ⋮ ♡ ↔ 三个按钮,  现在台标也加回来,
-              //  老板全屏时能看到台标 + 返回 + 退出全屏 = 三个关键控件.  节目卡区
-              // 依然 3s 隐.
-              // +128 修法:  TopBar 走单独 widget 不进 AnimatedOpacity (不再受 _controlsVisible
-              // 影响).  节目卡 + 横滑 依然 3s 隐.  TopBar 点视频区不触发 onTap
-              // (点击穿透) — 正常交互.
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  child: SafeArea(
-                    bottom: false,
-                    child: TopBar(
-                      channel: channel,
-                      state: state,
-                      onBack: _onTopBarBack,
+              // v0.3.8+129 (6/21 08:20 老板反馈反转 "台标和返回 要3s影藏啊 点屏幕显示"):
+              // +128 改 TopBar 永远显示是错的.  老板 6/21 08:20 明确反:
+              //  "台标和返回 要3s影藏啊 点屏幕显示".  恢复 +115 设计:  TopBar + 节目
+              // 卡 + 横滑 一起 3s 隐,  点视频区 onTap 唤出.  TopBar 单独显示会跳
+              // 出 控制层 (不如统一隐),  老板全屏时点视频控制台都隐,  看视频清静.
+              //  +129 修法:  TopBar + 节目卡 + 横滑 统一在 _controlsVisible 控制下
+              //  3s 隐.  onTap 视频区 切显示.  跟 +115 一致,  跟 +128 反.
+              IgnorePointer(
+                ignoring: !_controlsVisible,
+                child: AnimatedOpacity(
+                  opacity: _controlsVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 250),
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    child: SafeArea(
+                      bottom: false,
+                      child: TopBar(
+                        channel: channel,
+                        state: state,
+                        onBack: _onTopBarBack,
+                      ),
                     ),
                   ),
                 ),
