@@ -29,10 +29,17 @@ class ChannelFilter {
   }
 
   static List<Channel> local(List<Channel> all) {
+    // v0.3.8+133 (6/21 09:49 老板反馈 "地方分类里还有几个卫视"):
+    // 之前只排除 cctv + satellite,  没排除 international — 133 个国际频道
+    // 错误归到"地方".  修法:  加 international 排除.
     final sat = satellite(all).map((e) => e.id).toSet();
     final cctvIds = cctv(all).map((e) => e.id).toSet();
+    final intlIds = international(all).map((e) => e.id).toSet();
     return all
-        .where((c) => !sat.contains(c.id) && !cctvIds.contains(c.id))
+        .where((c) =>
+            !sat.contains(c.id) &&
+            !cctvIds.contains(c.id) &&
+            !intlIds.contains(c.id))
         .toList();
   }
 

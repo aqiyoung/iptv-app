@@ -459,7 +459,19 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       // 6/18 P1 hotfix: 全屏时不 SafeArea.  immersiveSticky 已隐 status bar /
       // nav bar 视觉, 但 SafeArea 仍会按 MediaQuery padding 布局, 压下视频
       // ~24-32px (Android) / ~44px (iOS) 看着像有顶栏.
-      body: asyncChannels.when(
+      // v0.3.8+127 (6/21 老板反馈 "启动白屏几秒后出现"):
+      // _isInitializing=true (initState 同步设的) → 显示骨架屏,  不依赖
+      // asyncChannels.when (后者可能还在 loading).  首帧不是空白.
+      // v0.3.8+133 (6/21 09:49 老板反馈 "全屏也白屏"):
+      // 之前 _buildFullscreenOverlay 直接走 asyncChannels.when(loading:)
+      // 显示 spinner — 平板 / TV (shortestSide >= 600) 走这条路径,  首帧空白
+      // 直到 channelsProvider resolve.  修法:  跟 _buildMobile 一样加
+      // _isInitializing 检查,  显示 _PlayerFullscreenSkeleton (黑底 + spinner).
+      // initState 同步设 _isInitializing=true,  postFrameCallback 跑完
+      // _primeLoadingState 后设 false,  接管 player state loading 显示.
+      body: _isInitializing
+          ? const _PlayerFullscreenSkeleton()
+          : asyncChannels.when(
         loading: () => Center(
           child: CircularProgressIndicator(color: scheme.onSurfaceVariant),
         ),
@@ -613,7 +625,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                     opacity: _controlsVisible ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 250),
                     child: Container(
-                      color: Colors.black.withValues(alpha: 0.55),
+                      // v0.3.8+133 (6/21 09:49 老板反馈 "全屏看着断层"):
+                      // 节目卡背景从 0.55 改 0.85 — 跟 TopBar 一致.  之前 0.55
+                      // 在 0.85 TopBar 下面看着断层 (深→浅→深),  全屏控制层不连贯.
+                      color: Colors.black.withValues(alpha: 0.85),
                       padding: const EdgeInsets.only(bottom: 24),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -744,6 +759,31 @@ class _PlayerPageSkeleton extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// v0.3.8+133 (6/21 09:49 老板反馈 "全屏也白屏几秒"):
+/// 全屏覆盖骨架屏 — 平板/TV (shortestSide >= 600) 走 _buildFullscreenOverlay,
+/// 首帧 channelsProvider 还没 resolve,  之前直接显示 spinner 在白底 (其实是
+/// Scaffold 黑底) 看着像空白.  修法:  _isInitializing=true 时显示黑底 + 中
+/// 间 CircularProgressIndicator,  postFrameCallback 跑 _primeLoadingState
+/// 后设 false 接管 player state.loading.
+/// 跟 _PlayerPageSkeleton 区别:  全屏不需 AspectRatio (已经覆盖整个屏幕),
+///  也不需 TopBar/节目卡/横滑占位 (控件层是后叠上去的,  skeleton 阶段还没
+///  频道数据无法知道渲染什么).  简化:  黑底 + 中心 spinner.
+class _PlayerFullscreenSkeleton extends StatelessWidget {
+  const _PlayerFullscreenSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: CircularProgressIndicator(
+          color: Colors.white,
+        ),
+      ),
     );
   }
 }

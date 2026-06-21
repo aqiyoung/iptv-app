@@ -14,6 +14,12 @@ import 'core/router/router.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/theme.dart';
 import 'data/remote_channels_source.dart';
+// v0.3.8+133 (6/21 09:49 老板反馈 "启动白屏"):
+//  预热 ChannelRepository — loadBundled 第一次 1-2s 读 + parse assets/data,
+//  玩家进频道 initState await channelsProvider.future 会多等这一下.
+//  跟 +124 media_kit 预热是同样思路:  runApp 之前 fire-and-forget 让
+//  static _cached 缓存就绪,  后续 loadBundled 零 IO.
+import 'data/repositories/channel_repository.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.
 // theme_provider.dart 保留文件 (老 prefs key 兼容), 但 main.dart 不再 watch
 // themeModeProvider / ThemeModeNotifier.  sharedPreferencesProvider 仍需 import —
@@ -121,6 +127,14 @@ void main() async {
   // 三个 provider 一起预热:  Player + VideoController + PlayerService.
   container.read(mediaKitPlayerProvider); // 创建 Player (200-400ms)
   container.read(mediaKitVideoControllerProvider); // 创建 VideoController (300-800ms)
+  // v0.3.8+133 (6/21 09:49 老板反馈 "启动白屏"):
+  //  预热 ChannelRepository — loadBundled 第一次 1-2s 读 + parse assets/data,
+  //  玩家进频道 initState await channelsProvider.future 会多等这一下.
+  //  跟 +124 media_kit 预热是同样思路:  runApp 之前 fire-and-forget 让
+  //  static _cached 缓存就绪,  后续 loadBundled 零 IO.
+  //  tests 环境 (overrideWithValue 零 IO) 不受影响 — 这里是 main() 路径,  测试
+  //  走 setUpAll 里自己的 ProviderContainer.
+  unawaited(container.read(channelRepositoryProvider).loadBundled());
   // 路由观察器: 离开 /player/* 时 stop + dispose.
   final playerObserver = PlayerRouteObserver(playerService);
   // APP 生命周期观察器: paused/inactive/hidden → pause, detached → stop+dispose.

@@ -236,6 +236,11 @@ final channelsProvider = FutureProvider<List<Channel>>((ref) async {
 /// 零IO.  生产路径 (不 override) 第一次读 1-2s — 首帧 loading,  +127 Skeleton
 /// 应付 (玩家进频道时);  不影响其他 page (home/category/favorites/search).
 /// v0.3.8+132 (优化): loadBundled 有 static _cached 缓存 — 第二次读零IO.
+/// v0.3.8+133 (6/21 09:49 老板反馈 "启动白屏"):  body 逻辑不变 (同步 yield 本地
+/// + 远端覆盖) — 真正 race 是 player_page initState + main.dart 启动流程顺序.
+///  修法:  main.dart _PrewarmChannelRepository() 在 runApp 之前 fire-and-forget
+///  调 loadBundled(),  启 app 后这 provider 已 resolve,  进 player_page 只
+///  ref.watch,  零初始化 —  跟 +124 media_kit 预热是同样的思路.
 /// stream body:
 final channelsStreamProvider = StreamProvider<List<Channel>>((ref) async* {
   final repo = ref.watch(channelRepositoryProvider);
