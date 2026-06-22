@@ -62,7 +62,13 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: SafeArea(
         child: TvFocusGroup(
           child: asyncChannels.when(
-            loading: () => const _LoadingState(),
+            loading: () => Builder(
+              builder: (context) => Center(
+                child: CircularProgressIndicator(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
             error: (e, _) => _ErrorState(message: e.toString()),
             data: (channels) => _buildContent(context, channels),
           ),
