@@ -203,30 +203,15 @@ class IptvApp extends ConsumerStatefulWidget {
   ConsumerState<IptvApp> createState() => _IptvAppState();
 }
 
-class _IptvAppState extends ConsumerState<IptvApp>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctl;
-  late Animation<double> _fade;
-  late Animation<double> _scale;
+class _IptvAppState extends ConsumerState<IptvApp> {
+  bool _showSplash = true;
 
   @override
   void initState() {
     super.initState();
-    _ctl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    );
-    _fade = CurvedAnimation(parent: _ctl, curve: Curves.easeInOut);
-    _scale = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
-    );
-    _ctl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctl.dispose();
-    super.dispose();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showSplash = false);
+    });
   }
 
   @override
@@ -256,39 +241,30 @@ class _IptvAppState extends ConsumerState<IptvApp>
       builder: (context, child) =>
           _ErrorBoundary(child: child ?? const SizedBox()),
     );
-    // v0.3.8+175: 3s 启动动画 (logo + 品牌名, 淡入缩放)
-    if (_ctl.isAnimating || _ctl.value < 1.0) {
+    // v0.3.8+175: 3s 启动动画
+    if (_showSplash) {
       return Stack(
         children: [
           app,
-          AnimatedBuilder(
-            animation: _ctl,
-            builder: (context, _) => Opacity(
-              opacity: _fade.value,
-              child: Container(
-                color: scheme.surface,
-                child: Center(
-                  child: Transform.scale(
-                    scale: _scale.value,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.tv, size: 64, color: scheme.primary),
-                        const SizedBox(height: 16),
-                        Text(
-                          '三页直播',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.onSurface,
-                            fontFamily: 'Georgia',
-                            letterSpacing: 2,
-                          ),
-                        ),
-                      ],
+          Container(
+            color: scheme.surface,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.tv, size: 64, color: scheme.primary),
+                  const SizedBox(height: 16),
+                  Text(
+                    '三页直播',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurface,
+                      fontFamily: 'Georgia',
+                      letterSpacing: 2,
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
