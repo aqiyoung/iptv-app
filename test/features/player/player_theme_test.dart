@@ -49,6 +49,9 @@ class _ScriptedOpener implements StreamOpener {
     if (i >= _scripted.length) return false;
     return _scripted[i];
   }
+
+  @override
+  Future<void> cancel(String url) async {}
 }
 
 class _FakeChannelRepository implements ChannelRepository {

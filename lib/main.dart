@@ -23,7 +23,7 @@ import 'data/repositories/channel_repository.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.
 // theme_provider.dart 保留文件 (老 prefs key 兼容), 但 main.dart 不再 watch
 // themeModeProvider / ThemeModeNotifier.  sharedPreferencesProvider 仍需 import —
-// main.dart line ~86 用它 override + version_checker.dart 也用它.
+// sharedPreferencesProvider 仍需 import — main.dart override + version_checker.dart 也用它.
 // 之前一轮删 import 导致 build 挂 (lib/main.dart:86 Undefined name), 这里再加回.
 import 'features/settings/theme_provider.dart';
 import 'features/update/force_update_dialog.dart';
@@ -88,9 +88,6 @@ void main() async {
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
   await _ensureMediaKitOrLog();
-  // v0.3.6+42: 加载持久化 health_score (SharedPreferences)
-  await CctvSourcePicker.loadPersistedScores();
-  // v0.3.7.2 (6/19): 运行时读 pubspec.yaml 真实版本号 — 替代之前 const 写死
   // '0.3.5+37' (subagent 漏改,  设置页永远停在老版本号).  现在每次 release
   // bump pubspec,  设置页/版本检查/强制更新都能读到新版本号.
   // test 环境读不到 PackageInfo,  catch + fallback 到 '0.0.0+0'.
@@ -235,13 +232,28 @@ Future<SharedPreferences> _loadSharedPreferencesOrMock() async {
   return SharedPreferences.getInstance();
 }
 
-class IptvApp extends ConsumerWidget {
+class IptvApp extends ConsumerStatefulWidget {
   const IptvApp({super.key, this.playerObserver});
 
   final NavigatorObserver? playerObserver;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<IptvApp> createState() => _IptvAppState();
+}
+
+class _IptvAppState extends ConsumerState<IptvApp> {
+  bool _showSplash = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showSplash = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换.  themeMode 锁死 light.
     // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode.
     // 0.3.7+20 (6/18): 后台强制更新 — 监听 versionCheckerProvider,
@@ -255,28 +267,83 @@ class IptvApp extends ConsumerWidget {
         ForceUpdateDialog.show(context);
       }
     });
-    return MaterialApp.router(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final app = MaterialApp.router(
       title: '三页直播',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
-      // v0.3.8+102: 删主题切换, 锁死 light.  darkTheme 保留 (避免 widget
-      // 期望 ThemeMode.dark 找不到).  themeMode 强制 light.
       darkTheme: IptvTheme.dark(),
       themeMode: ThemeMode.light,
-      routerConfig: buildRouter(playerObserver: playerObserver),
+      routerConfig: buildRouter(playerObserver: widget.playerObserver),
       builder: (context, child) =>
           _ErrorBoundary(child: child ?? const SizedBox()),
     );
+    // v0.3.8+175: 3s 启动动画
+    if (_showSplash) {
+      return Stack(
+        children: [
+          app,
+          Container(
+            color: scheme.surface,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.tv, size: 64, color: scheme.primary),
+                  const SizedBox(height: 16),
+                  Text(
+                    '三页直播',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: scheme.onSurface,
+                      fontFamily: 'Georgia',
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return app;
   }
 }
 
-/// Error boundary — catches build-phase errors and shows crash screen
-class _ErrorBoundary extends StatelessWidget {
+/// Error boundary — catches build-phase errors and shows crash screen.
+/// Listens to [FlutterError.onError] so layout/render exceptions are surfaced
+/// as [_CrashScreen] instead of a blank red error widget.
+class _ErrorBoundary extends StatefulWidget {
   const _ErrorBoundary({required this.child});
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => child;
+  State<_ErrorBoundary> createState() => _ErrorBoundaryState();
+}
+
+class _ErrorBoundaryState extends State<_ErrorBoundary> {
+  FlutterErrorDetails? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    FlutterError.onError = (details) {
+      // Still call the default handler (prints to console / debugDumpApp).
+      FlutterError.presentError(details);
+      if (mounted) setState(() => _error = details);
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return _CrashScreen(details: _error!);
+    }
+    return widget.child;
+  }
 }
 
 class _CrashScreen extends StatelessWidget {
@@ -338,6 +405,11 @@ class _AppLifecycleListener with WidgetsBindingObserver {
   _AppLifecycleListener(this._player);
 
   final PlayerService _player;
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

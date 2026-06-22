@@ -22,8 +22,8 @@ import 'widgets/video_area.dart';
 ///   - 底部: 下一频道横滑条 (NextChannelsStrip)
 ///
 /// P2-2 (6/18 老板反馈): 手机端 (shortestSide < 600) 用 v0.1.7 嵌入布局 —
-/// 视频 16:9 在顶 + 下面是节目卡 + 频道横滑.  右下角全屏按钮点一下进真
-/// 全屏 (immersiveSticky + landscape).  TV 端 (shortestSide >= 600) 保持
+/// 视频 16:9 在顶 + 下面是节目卡 + 频道横滑.
+/// TV 端 (shortestSide >= 600) 保持
 /// v0.3.0 Stack 全屏覆盖模式, 因为 TV 整个屏幕就是视频区.
 class PlayerPage extends ConsumerStatefulWidget {
   const PlayerPage({super.key, required this.channelId});
@@ -338,7 +338,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   /// P2-2: 移动端嵌入布局 (v0.1.7 风格) — 视频 16:9 在顶, 下面是 TopBar +
-  /// 节目卡 + 频道横滑.  视频区右下角有全屏按钮.
+  /// 节目卡 + 频道横滑.
   Widget _buildMobile(BuildContext context) {
     final state = ref.watch(currentPlayerStateProvider);
     final controller = ref.watch(mediaKitVideoControllerProvider);
@@ -367,40 +367,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
             final channel = _findChannel(channels, widget.channelId);
             return Column(
               children: [
-                // 视频区 (16:9) + 右下角全屏按钮
+                // 视频区 (16:9)
                 AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      VideoArea(
-                        controller: controller,
-                        state: state,
-                        channel: channel,
-                      ),
-                      // v0.3.5.4: 全屏按钮背景 + 图标都跟主题联动 —
-                      // 浅色下浅底 + 深色图标 (跟浅米色页面风格一致),
-                      // 暗色下深底 + 浅色图标 (跟深棕黑页面风格一致).
-                      // 背景用 surfaceContainerHigh, 图标用 onSurface
-                      // (跟 Material 3 M3 spec 一致).
-                      Positioned(
-                        right: 8,
-                        bottom: 8,
-                        child: Material(
-                          color: Colors.transparent,
-                          shape: const CircleBorder(),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.fullscreen,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              size: 22,
-                            ),
-                            tooltip: '全屏',
-                            onPressed: _toggleFullscreen,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: VideoArea(
+                    controller: controller,
+                    state: state,
+                    channel: channel,
                   ),
                 ),
                 // 顶栏 (返回 / 频道名 / 时钟)
@@ -591,6 +564,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   opacity: _controlsVisible ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 250),
                   child: Container(
+<<<<<<< HEAD
                     color: Colors.black.withValues(alpha: 0.85),
                     child: SafeArea(
                       bottom: false,
@@ -599,6 +573,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         state: state,
                         onBack: _onTopBarBack,
                       ),
+=======
+                    color: Colors.black.withOpacity(0.55),
+                    child: TopBar(
+                      channel: channel,
+                      state: state,
+                      onBack: _onTopBarBack,
+>>>>>>> beta
                     ),
                   ),
                 ),
@@ -625,10 +606,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                     opacity: _controlsVisible ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 250),
                     child: Container(
-                      // v0.3.8+133 (6/21 09:49 老板反馈 "全屏看着断层"):
-                      // 节目卡背景从 0.55 改 0.85 — 跟 TopBar 一致.  之前 0.55
-                      // 在 0.85 TopBar 下面看着断层 (深→浅→深),  全屏控制层不连贯.
-                      color: Colors.black.withValues(alpha: 0.85),
+                      color: Colors.black.withOpacity(0.55),
                       padding: const EdgeInsets.only(bottom: 24),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -656,13 +634,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               //      TopBar 隐,  但 Android back 总能用)
               //   3. 双击视频不响应 (下面 onDoubleTap 显式 null)
               //
-              // v0.3.7+79 同时显式 onDoubleTap: null 防止双击切频道误触:
-              //  老板反馈 "全屏播放双击后切换频道的 bug".
-              // 根因: GestureDetector 没显式 onDoubleTap,  Flutter 默认行为是
-              // 双击拆成 2 次 onTap,  看着像 控件显示/隐藏快速切换.
-              // 显式 onDoubleTap: null + onTap 不会被双击拆成 2 次 (Flutter 内置).
-              // 实际确认: media_kit_video 1.2.5 无 onDoubleTap 默认行为,
-              //  双击只触发 GestureDetector 默认处理,  显式 null 防止误触.
             ],
           );
         },

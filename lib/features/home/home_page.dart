@@ -67,7 +67,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: SafeArea(
         child: TvFocusGroup(
           child: asyncChannels.when(
-            loading: () => const _LoadingState(),
+            loading: () => const SizedBox.expand(),
             error: (e, _) => _ErrorState(message: e.toString()),
             data: (channels) => _buildContent(context, channels),
           ),
@@ -275,7 +275,10 @@ class _LoadingState extends StatelessWidget {
     // P0-2 (6/17 老板): 冷启动 < 1.5s — 主页骨架先出, 频道数据后填.
     // 用静态灰色占位卡代替 CircularProgressIndicator, 用户立刻看到布局,
     // 感知更快. 频道 async 加载完后 _buildContent 接管.
-    return CustomScrollView(
+    // v0.3.8+172: 加背景色, 否则骨架占位块跟 scaffold 背景色太近, 用户看到白屏.
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: _AppHeaderSkeleton()),
         const SliverPadding(
@@ -297,6 +300,7 @@ class _LoadingState extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 }
@@ -320,7 +324,8 @@ class _SkeletonBox extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         // 暖骨架色 — 用 colorScheme.outlineVariant 跟主题联动 (浅+暗都覆盖)
-        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.4),
+        // v0.3.8+172: 0.4 → 0.6, 提高对比度, 避免白屏感.
+        color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.6),
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );
