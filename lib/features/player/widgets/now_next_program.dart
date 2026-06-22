@@ -28,7 +28,14 @@ class NowNextProgram extends ConsumerWidget {
         if (entries.isEmpty) {
           return _EmptyState(channel: channel, isLoading: false);
         }
-        final now = DateTime.now().toUtc();
+        // v0.3.8+164 (6/22 老板 08:09 反馈 "节目卡只显示 直播中, 没节目名"):
+        // +163 之前 _findCurrent 跟 _findNext 用 DateTime.now().toUtc(),
+        // EpgService._placeholderSchedule 返的 EpgEntry.start/end 是 local time
+        // (DateTime(now.year, now.month, now.day) 是 local).  toUtc() 转 UTC 后跟
+        // local EPG 8 小时错位.  比如现在 8:09 (Asia/Shanghai = UTC 0:09), EPG
+        // 档是 06:00 (local = UTC 22:00 yesterday),  _findCurrent 找 0:09 跨不进
+        // 任何一档.  修法:  改用 DateTime.now() local 跟 local EPG 比,  匹配.
+        final now = DateTime.now();
         final current = _findCurrent(entries, now);
         final next = _findNext(entries, now);
         return _ProgramCard(
