@@ -549,13 +549,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
               //      TopBar 隐,  但 Android back 总能用)
               //   3. 双击视频不响应 (下面 onDoubleTap 显式 null)
               //
-              // v0.3.7+79 同时显式 onDoubleTap: null 防止双击切频道误触:
-              //  老板反馈 "全屏播放双击后切换频道的 bug".
-              // 根因: GestureDetector 没显式 onDoubleTap,  Flutter 默认行为是
-              // 双击拆成 2 次 onTap,  看着像 控件显示/隐藏快速切换.
-              // 显式 onDoubleTap: null + onTap 不会被双击拆成 2 次 (Flutter 内置).
-              // 实际确认: media_kit_video 1.2.5 无 onDoubleTap 默认行为,
-              //  双击只触发 GestureDetector 默认处理,  显式 null 防止误触.
             ],
           );
         },
