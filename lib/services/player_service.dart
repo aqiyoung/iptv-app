@@ -86,18 +86,20 @@ class MediaKitStreamOpener implements StreamOpener {
       // media_kit 的 open 是异步但很快 (通常 < 100ms),
       // 真正的"起播"通过 [Player.stream.playing] 监听, 此处只检查 open 成功与否
       final completer = Completer<bool>();
-      // v0.3.8+169: timer 必须先声明, 让 sub 闭包能引用.
-      final timer = Timer(timeout, () {
-        if (!completer.isCompleted) {
-          sub?.cancel();
-          completer.complete(false);
-        }
-      });
-      final sub = _player.stream.playing.listen((playing) {
+      // v0.3.8+169: sub 和 timer 互相引用, 必须用 late final 解决声明顺序.
+      late final StreamSubscription<dynamic> sub;
+      late final Timer timer;
+      sub = _player.stream.playing.listen((playing) {
         if (!completer.isCompleted) {
           sub.cancel();
           timer.cancel();
           completer.complete(true);
+        }
+      });
+      timer = Timer(timeout, () {
+        if (!completer.isCompleted) {
+          sub.cancel();
+          completer.complete(false);
         }
       });
 
