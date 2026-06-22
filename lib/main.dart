@@ -26,6 +26,14 @@ import 'data/repositories/channel_repository.dart';
 // sharedPreferencesProvider 仍需 import — main.dart override + version_checker.dart 也用它.
 // 之前一轮删 import 导致 build 挂 (lib/main.dart:86 Undefined name), 这里再加回.
 import 'features/settings/theme_provider.dart';
+// v0.3.8+178 (6/23 B+C splash fix): 换真 logo + 完整动画. 之前 v0.3.8+177
+// 简陋版 _SplashOverlay 删掉,  改用 lib/features/splash/splash_logo.dart.
+// 见该文件 design notes + motion_spec.md / motion.css v2 时间线.
+// 设计决策: 不用 flutter_svg — flutter_svg 只能整图渲染, 不能对 #tv-body /
+// #antenna-left / #play-triangle 分别加 stagger 动画. 而 motion_spec 要 3 个
+// 独立动效 (TV pop-in + 天线伸展 + 三角 fade-in), 只能用 Flutter primitives.
+// 跟 SVG viewBox 192×192 1:1 像素对齐 (widget 240×240 = ×1.25).
+import 'features/splash/splash_logo.dart';
 import 'features/update/force_update_dialog.dart';
 import 'services/player_service.dart';
 import 'services/version_checker.dart';
@@ -262,8 +270,11 @@ class IptvApp extends ConsumerWidget {
       darkTheme: IptvTheme.dark(),
       themeMode: ThemeMode.light,
       routerConfig: buildRouter(playerObserver: playerObserver),
+      // v0.3.8+178 (6/23 B+C splash fix): 换 SanyeliveSplash (SVG logo +
+      // 完整动画).  保留 +177 的 MaterialApp.builder 架构 — context 在
+      // MaterialApp 之下,  ref.listen 弹 ForceUpdateDialog 能找到 Navigator.
       builder: (context, child) => _ErrorBoundary(
-        child: _SplashOverlay(child: child ?? const SizedBox()),
+        child: SanyeliveSplash(child: child ?? const SizedBox()),
       ),
     );
   }
@@ -272,68 +283,11 @@ class IptvApp extends ConsumerWidget {
 /// v0.3.8+177: 3s 启动动画 — 独立 StatefulWidget,  避免污染 ConsumerWidget
 /// 的 ref.listen 上下文.  MaterialApp.builder 会把 child (路由页面) 包在
 /// _SplashOverlay 里,  splash 结束时渐隐.  3s 后自动消失.
-class _SplashOverlay extends StatefulWidget {
-  const _SplashOverlay({required this.child});
-  final Widget child;
-
-  @override
-  State<_SplashOverlay> createState() => _SplashOverlayState();
-}
-
-class _SplashOverlayState extends State<_SplashOverlay> {
-  bool _showSplash = true;
-  // v0.3.8+177 fix: 存 Timer ref, dispose 时取消 — 避免 widget_test
-  // 报 Pending timers (splash 3s Timer 在测试里不会被 fake_async 处理).
-  Timer? _splashTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _splashTimer = Timer(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _showSplash = false);
-    });
-  }
-
-  @override
-  void dispose() {
-    _splashTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_showSplash) return widget.child;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Stack(
-      children: [
-        widget.child,
-        Container(
-          color: scheme.surface,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.tv, size: 64, color: scheme.primary),
-                const SizedBox(height: 16),
-                Text(
-                  '三页直播',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w600,
-                    color: scheme.onSurface,
-                    fontFamily: 'Georgia',
-                    letterSpacing: 2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
+///
+/// v0.3.8+178 (6/23 B+C splash fix): 删.  改为 lib/features/splash/splash_logo.dart
+/// 的 SanyeliveSplash — SVG logo 像素一致 + motion.css v2 完整动画时间线
+/// + Material 包裹 + BoxShadow 修复 “黄线” 问题.  MaterialApp.builder 架构不变.
+/// (以下 _SplashOverlay 旧类已删除 — 逻辑迁到 lib/features/splash/splash_logo.dart)
 
 /// Error boundary — catches build-phase errors and shows crash screen.
 /// Listens to [FlutterError.onError] so layout/render exceptions are surfaced
