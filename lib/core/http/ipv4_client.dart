@@ -41,10 +41,22 @@ class IPv4Client extends http.BaseClient {
   /// 构造一个内部 HttpClient, [connectionFactory] 强制只走 IPv4.
   ///
   /// 共享给 [Ipv4HttpOverrides.createHttpClient], 避免重复实现.
+  ///
+  /// v0.3.8+178 (6/23): 加 try/finally 包 HttpOverrides, 避免 Ipv4HttpOverrides
+  /// 内部递归 → 启动栈溢出 (Stack Overflow at HttpOverrides.current, 25 层+).
+  /// 根因: Ipv4HttpOverrides.createHttpClient 调本方法, 本方法内部 `HttpClient()`
+  /// 又被刚装的 HttpOverrides 拦截 → 无限递归.  构造前临时清掉 global,
+  /// finally 恢复.
   static HttpClient createForcedIpv4HttpClient() {
-    final client = HttpClient();
-    client.connectionFactory = _ipv4ConnectionFactory;
-    return client;
+    final prev = HttpOverrides.current;
+    HttpOverrides.global = null;
+    try {
+      final client = HttpClient();
+      client.connectionFactory = _ipv4ConnectionFactory;
+      return client;
+    } finally {
+      HttpOverrides.global = prev;
+    }
   }
 
   static HttpClient _createHttpClient() {
