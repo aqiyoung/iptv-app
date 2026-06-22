@@ -194,13 +194,43 @@ Future<SharedPreferences> _loadSharedPreferencesOrMock() async {
   return SharedPreferences.getInstance();
 }
 
-class IptvApp extends ConsumerWidget {
+class IptvApp extends ConsumerStatefulWidget {
   const IptvApp({super.key, this.playerObserver});
 
   final NavigatorObserver? playerObserver;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<IptvApp> createState() => _IptvAppState();
+}
+
+class _IptvAppState extends ConsumerState<IptvApp>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctl;
+  late Animation<double> _fade;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    );
+    _fade = CurvedAnimation(parent: _ctl, curve: Curves.easeInOut);
+    _scale = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
+    );
+    _ctl.forward();
+  }
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换.  themeMode 锁死 light.
     // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode.
     // 0.3.7+20 (6/18): 后台强制更新 — 监听 versionCheckerProvider,
@@ -214,18 +244,58 @@ class IptvApp extends ConsumerWidget {
         ForceUpdateDialog.show(context);
       }
     });
-    return MaterialApp.router(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final app = MaterialApp.router(
       title: '三页直播',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
-      // v0.3.8+102: 删主题切换, 锁死 light.  darkTheme 保留 (避免 widget
-      // 期望 ThemeMode.dark 找不到).  themeMode 强制 light.
       darkTheme: IptvTheme.dark(),
       themeMode: ThemeMode.light,
-      routerConfig: buildRouter(playerObserver: playerObserver),
+      routerConfig: buildRouter(playerObserver: widget.playerObserver),
       builder: (context, child) =>
           _ErrorBoundary(child: child ?? const SizedBox()),
     );
+    // v0.3.8+175: 3s 启动动画 (logo + 品牌名, 淡入缩放)
+    if (_ctl.isAnimating || _ctl.value < 1.0) {
+      return Stack(
+        children: [
+          app,
+          AnimatedBuilder(
+            animation: _ctl,
+            builder: (context, _) => Opacity(
+              opacity: _fade.value,
+              child: Container(
+                color: scheme.surface,
+                child: Center(
+                  child: Transform.scale(
+                    scale: _scale.value,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.tv, size: 64, color: scheme.primary),
+                        const SizedBox(height: 16),
+                        Text(
+                          '三页直播',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w600,
+                            color: scheme.onSurface,
+                            fontFamily: 'Georgia',
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return app;
   }
 }
 

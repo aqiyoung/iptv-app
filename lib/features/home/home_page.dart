@@ -62,7 +62,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: SafeArea(
         child: TvFocusGroup(
           child: asyncChannels.when(
-            loading: () => const _SplashAnimation(),
+            loading: () => const SizedBox.expand(),
             error: (e, _) => _ErrorState(message: e.toString()),
             data: (channels) => _buildContent(context, channels),
           ),
@@ -257,81 +257,6 @@ class _AppHeader extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// 启动动画 — 3s 品牌动画, 不显示 loading spinner.
-class _SplashAnimation extends StatefulWidget {
-  const _SplashAnimation();
-
-  @override
-  State<_SplashAnimation> createState() => _SplashAnimationState();
-}
-
-class _SplashAnimationState extends State<_SplashAnimation>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctl;
-  late Animation<double> _fade;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    );
-    _fade = CurvedAnimation(parent: _ctl, curve: Curves.easeInOut);
-    _scale = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
-    );
-    _ctl.forward();
-  }
-
-  @override
-  void dispose() {
-    _ctl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return AnimatedBuilder(
-      animation: _ctl,
-      builder: (context, child) => Container(
-        color: scheme.surface,
-        child: Center(
-          child: Opacity(
-            opacity: _fade.value,
-            child: Transform.scale(
-              scale: _scale.value,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.tv,
-                    size: 64,
-                    color: scheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '三页直播',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: scheme.onSurface,
-                      fontFamily: 'Georgia',
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
