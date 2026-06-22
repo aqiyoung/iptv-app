@@ -37,7 +37,7 @@ import 'package:flutter/material.dart';
 const Duration kSplashDuration = Duration(milliseconds: 3000);
 
 /// Logo 边长 — 240px, 跟 motion.css #logo-root 一致.
-const double _kLogoSize = 240.0;
+const double _kLogoSize = 160.0;
 
 /// SVG 192 → widget 240 = 1.25×.
 const double _kScale = _kLogoSize / 192.0;
