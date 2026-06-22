@@ -232,84 +232,106 @@ Future<SharedPreferences> _loadSharedPreferencesOrMock() async {
   return SharedPreferences.getInstance();
 }
 
-class IptvApp extends ConsumerStatefulWidget {
+class IptvApp extends ConsumerWidget {
   const IptvApp({super.key, this.playerObserver});
 
   final NavigatorObserver? playerObserver;
 
   @override
-  ConsumerState<IptvApp> createState() => _IptvAppState();
-}
-
-class _IptvAppState extends ConsumerState<IptvApp> {
-  bool _showSplash = true;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _showSplash = false);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换.  themeMode 锁死 light.
     // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode.
     // 0.3.7+20 (6/18): 后台强制更新 — 监听 versionCheckerProvider,
     // 检测到 outdated 时弹 ForceUpdateDialog.  ref.listen 的 context
-    // 是 MaterialApp 内部 context,  Navigator.of(context, rootNavigator:true)
-    // 拿 root Navigator 弹 dialog,  不会被路由栈里其他页面 (player / settings)
-    // 盖住.  对话框本身是 barrierDismissible:false,  不点 "立刻更新" / "稍后"
-    // 关不掉.  main() runApp 后用 Future.microtask 异步调 checkOnStartup.
+    // 是 ConsumerWidget.build 提供的,  MaterialApp 已建好,  Navigator
+    // 可访问.  v0.3.8+176 错误把 IptvApp 改成 ConsumerStatefulWidget 后,
+    // ref.listen 在 State.build 顶层用,  context 是 widget 自身 (MaterialApp
+    // 之上),  Navigator.of(context) 找不到 → ForceUpdateDialog 闪退.
+    // v0.3.8+177 fix: 改回 ConsumerWidget, splash 动画下放为独立
+    // _SplashOverlay,  由 MaterialApp.builder 包在 MaterialApp 内部 ——
+    // Builder 拿到的 context 是 MaterialApp 之下的,  拿 Navigator 正常.
     ref.listen<VersionCheckState>(versionCheckerProvider, (prev, next) {
       if (next is VersionCheckOutdated) {
         ForceUpdateDialog.show(context);
       }
     });
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final app = MaterialApp.router(
+    return MaterialApp.router(
       title: '三页直播',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
       darkTheme: IptvTheme.dark(),
       themeMode: ThemeMode.light,
-      routerConfig: buildRouter(playerObserver: widget.playerObserver),
-      builder: (context, child) =>
-          _ErrorBoundary(child: child ?? const SizedBox()),
+      routerConfig: buildRouter(playerObserver: playerObserver),
+      builder: (context, child) => _ErrorBoundary(
+        child: _SplashOverlay(child: child ?? const SizedBox()),
+      ),
     );
-    // v0.3.8+175: 3s 启动动画
-    if (_showSplash) {
-      return Stack(
-        children: [
-          app,
-          Container(
-            color: scheme.surface,
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.tv, size: 64, color: scheme.primary),
-                  const SizedBox(height: 16),
-                  Text(
-                    '三页直播',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: scheme.onSurface,
-                      fontFamily: 'Georgia',
-                      letterSpacing: 2,
-                    ),
+  }
+}
+
+/// v0.3.8+177: 3s 启动动画 — 独立 StatefulWidget,  避免污染 ConsumerWidget
+/// 的 ref.listen 上下文.  MaterialApp.builder 会把 child (路由页面) 包在
+/// _SplashOverlay 里,  splash 结束时渐隐.  3s 后自动消失.
+class _SplashOverlay extends StatefulWidget {
+  const _SplashOverlay({required this.child});
+  final Widget child;
+
+  @override
+  State<_SplashOverlay> createState() => _SplashOverlayState();
+}
+
+class _SplashOverlayState extends State<_SplashOverlay> {
+  bool _showSplash = true;
+  // v0.3.8+177 fix: 存 Timer ref, dispose 时取消 — 避免 widget_test
+  // 报 Pending timers (splash 3s Timer 在测试里不会被 fake_async 处理).
+  Timer? _splashTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _splashTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showSplash = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _splashTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_showSplash) return widget.child;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Stack(
+      children: [
+        widget.child,
+        Container(
+          color: scheme.surface,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.tv, size: 64, color: scheme.primary),
+                const SizedBox(height: 16),
+                Text(
+                  '三页直播',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurface,
+                    fontFamily: 'Georgia',
+                    letterSpacing: 2,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
-      );
-    }
-    return app;
+        ),
+      ],
+    );
   }
 }
 
@@ -406,7 +428,6 @@ class _AppLifecycleListener with WidgetsBindingObserver {
 
   final PlayerService _player;
 
-  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
   }

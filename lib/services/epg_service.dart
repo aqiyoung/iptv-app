@@ -25,7 +25,7 @@ class EpgService {
   static const String _table = 'epg_cache';
 
   Future<Database> get _database async {
-    if (_injectedDb != null) return _injectedDb!;
+    if (_injectedDb != null) return _injectedDb;
     if (_db != null) return _db!;
     final dbPath = await getDatabasesPath();
     final path = p.join(dbPath, 'iptv_epg.db');
