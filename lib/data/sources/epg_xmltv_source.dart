@@ -44,8 +44,8 @@ class XmltvEpgSource {
     if (bodyBytes.length >= 2 &&
         bodyBytes[0] == 0x1f &&
         bodyBytes[1] == 0x8b) {
-      // gzip magic number — 解压
-      return gzip.decode(bodyBytes);
+      // gzip magic number — 解压后再 utf-8 decode
+      return utf8.decode(gzip.decode(bodyBytes), allowMalformed: true);
     }
     // plain XML
     return utf8.decode(bodyBytes, allowMalformed: true);
