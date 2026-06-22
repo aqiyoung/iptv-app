@@ -379,10 +379,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                 // 顶栏 (返回 / 频道名 / 时钟)
                 // v0.3.8+115: 嵌入布局用 _onTopBarBack (现在只 pop, 因为嵌入
                 // 布局 _isFullscreen=false — 跟全屏 _buildFullscreenOverlay 一致).
+                // v0.3.8+131: 嵌入布局背景 scheme.surface (浅米色),  深棕字.
                 TopBar(
                   channel: channel,
                   state: state,
                   onBack: _onTopBarBack,
+                  isFullscreen: false,
                 ),
                 // 节目卡 + 频道横滑 (可滚动)
                 Expanded(
@@ -571,6 +573,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         channel: channel,
                         state: state,
                         onBack: _onTopBarBack,
+                        // v0.3.8+131: 全屏黑底,  白字 (v0.3.8+130 行为).
+                        isFullscreen: true,
                       ),
                     ),
                   ),
