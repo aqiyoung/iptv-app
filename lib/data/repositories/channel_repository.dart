@@ -122,23 +122,10 @@ class ChannelRepository {
   Future<List<Channel>> _loadChannels(String path) async {
     try {
       final raw = await rootBundle.loadString(path);
+      // v0.3.8+169: 直接传原始 JSON 给 isolate, 避免主线程二次 encode/decode.
       // 顶层结构兼容 (v0.3.8+113): List (cn.json) / Map.channels (i18n.json).
-      // 先在主线程 parse 顶层结构 (JSON 顶层 < 100 bytes 几乎 0 开销),
-      // 然后只把 channels list 传给 isolate.
-      final decoded = json.decode(raw);
-      final String channelsJson;
-      if (decoded is List) {
-        // List 顶层:  直接重新 encode 给 isolate parse (避免传递 List 跨 isolate)
-        channelsJson = json.encode(decoded);
-      } else if (decoded is Map && decoded['channels'] is List) {
-        channelsJson = json.encode(decoded['channels']);
-      } else {
-        debugPrint(
-            'ChannelRepository._loadChannels($path): 未知 JSON 顶层结构 (${decoded.runtimeType})');
-        return const <Channel>[];
-      }
-      // 走 isolate 解析 List<Channel>.
-      return compute(parseChannelsIsolate, channelsJson);
+      // isolate 里自己 parse 顶层 + 解析 Channel.
+      return compute(parseChannelsIsolate, raw);
     } catch (e) {
       debugPrint('ChannelRepository._loadChannels($path) failed: $e');
       return const <Channel>[];
@@ -177,8 +164,17 @@ class ChannelRepository {
 /// 给 isolate).  输出: List<Channel> 用 growable: false 节省内存.
 /// 注:  json.decode + Channel.fromJson 在 isolate 里 ~10x 快于主线程
 /// (无 UI / GC 干扰).  启动 2-5s 阻塞 → < 500ms.
-List<Channel> parseChannelsIsolate(String channelsJson) {
-  final list = json.decode(channelsJson) as List;
+List<Channel> parseChannelsIsolate(String rawJson) {
+  final decoded = json.decode(rawJson);
+  final List<dynamic> list;
+  if (decoded is List) {
+    list = decoded;
+  } else if (decoded is Map && decoded['channels'] is List) {
+    list = decoded['channels'] as List<dynamic>;
+  } else {
+    debugPrint('parseChannelsIsolate: 未知 JSON 顶层结构 (${decoded.runtimeType})');
+    return const <Channel>[];
+  }
   return list
       .map((e) => Channel.fromJson(e as Map<String, dynamic>))
       .toList(growable: false);

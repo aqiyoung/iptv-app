@@ -16,7 +16,7 @@ import 'core/theme/theme.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.
 // theme_provider.dart 保留文件 (老 prefs key 兼容), 但 main.dart 不再 watch
 // themeModeProvider / ThemeModeNotifier.  sharedPreferencesProvider 仍需 import —
-// main.dart line ~86 用它 override + version_checker.dart 也用它.
+// sharedPreferencesProvider 仍需 import — main.dart override + version_checker.dart 也用它.
 // 之前一轮删 import 导致 build 挂 (lib/main.dart:86 Undefined name), 这里再加回.
 import 'features/settings/theme_provider.dart';
 import 'features/update/force_update_dialog.dart';
@@ -75,9 +75,6 @@ void main() async {
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
   await _ensureMediaKitOrLog();
-  // v0.3.6+42: 加载持久化 health_score (SharedPreferences)
-  await CctvSourcePicker.loadPersistedScores();
-  // v0.3.7.2 (6/19): 运行时读 pubspec.yaml 真实版本号 — 替代之前 const 写死
   // '0.3.5+37' (subagent 漏改,  设置页永远停在老版本号).  现在每次 release
   // bump pubspec,  设置页/版本检查/强制更新都能读到新版本号.
   // test 环境读不到 PackageInfo,  catch + fallback 到 '0.0.0+0'.
@@ -232,13 +229,37 @@ class IptvApp extends ConsumerWidget {
   }
 }
 
-/// Error boundary — catches build-phase errors and shows crash screen
-class _ErrorBoundary extends StatelessWidget {
+/// Error boundary — catches build-phase errors and shows crash screen.
+/// Listens to [FlutterError.onError] so layout/render exceptions are surfaced
+/// as [_CrashScreen] instead of a blank red error widget.
+class _ErrorBoundary extends StatefulWidget {
   const _ErrorBoundary({required this.child});
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => child;
+  State<_ErrorBoundary> createState() => _ErrorBoundaryState();
+}
+
+class _ErrorBoundaryState extends State<_ErrorBoundary> {
+  FlutterErrorDetails? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    FlutterError.onError = (details) {
+      // Still call the default handler (prints to console / debugDumpApp).
+      FlutterError.presentError(details);
+      if (mounted) setState(() => _error = details);
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return _CrashScreen(details: _error!);
+    }
+    return widget.child;
+  }
 }
 
 class _CrashScreen extends StatelessWidget {
@@ -300,6 +321,11 @@ class _AppLifecycleListener with WidgetsBindingObserver {
   _AppLifecycleListener(this._player);
 
   final PlayerService _player;
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

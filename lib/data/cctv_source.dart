@@ -223,12 +223,11 @@ class CctvSourcePicker {
     final withScore = <_ScoredUrl>[];
     final noScore = <String>[];
     for (final url in urls) {
-      final hasRuntimeScore = _runtimeScores.containsKey(url);
-      final hasStaticScore = kCctvHealthScores.containsKey(url);
-      if (!hasRuntimeScore && !hasStaticScore) {
+      final score = healthScore(url);
+      if (score == 0.5 && !kCctvHealthScores.containsKey(url)) {
         noScore.add(url);
       } else {
-        withScore.add(_ScoredUrl(url, healthScore(url)));
+        withScore.add(_ScoredUrl(url, score));
       }
     }
     withScore.sort((a, b) => b.score.compareTo(a.score));
@@ -247,8 +246,7 @@ class CctvSourcePicker {
   /// 失败时扣分 (最低 0.0).
   static Future<void> recordFailure(String url) async {
     final base = kCctvHealthScores[url] ?? 0.5;
-    final current = _runtimeScores[url] ?? base;
-    final next = (current - 0.1).clamp(0.0, 1.0);
+    final next = ((_runtimeScores[url] ?? base) - 0.1).clamp(0.0, 1.0);
     _runtimeScores[url] = next;
     await _persist(url, next);
   }
@@ -256,8 +254,7 @@ class CctvSourcePicker {
   /// 成功时加分 (最高 1.0).
   static Future<void> recordSuccess(String url) async {
     final base = kCctvHealthScores[url] ?? 0.5;
-    final current = _runtimeScores[url] ?? base;
-    final next = (current + 0.05).clamp(0.0, 1.0);
+    final next = ((_runtimeScores[url] ?? base) + 0.05).clamp(0.0, 1.0);
     _runtimeScores[url] = next;
     await _persist(url, next);
   }
@@ -409,20 +406,14 @@ class CctvSourceRegistry {
   /// Public read-only view of the sources map.
   final Map<String, List<CctvSource>> sourcesByChannel;
 
-  /// Internal access path — keeps the API similar to old code.
-  Map<String, List<CctvSource>> get _sourcesByChannel =>
-      sourcesByChannel.isEmpty
-          ? const <String, List<CctvSource>>{}
-          : sourcesByChannel;
-
   /// 拿指定 channel 的所有 CCTV 源 (按 health_score 降序).
   /// 没有的话返回空列表 (跟没设置 cctvSource 字段等价).
   List<CctvSource> getForChannel(String channelId) {
-    return _sourcesByChannel[channelId] ?? const <CctvSource>[];
+    return sourcesByChannel[channelId] ?? const <CctvSource>[];
   }
 
   /// 所有 channel id 列表 (debug UI 遍历用).
-  Iterable<String> get channelIds => _sourcesByChannel.keys;
+  Iterable<String> get channelIds => sourcesByChannel.keys;
 }
 
 /// CCTV 源 (单条 URL + 健康分 + 探测方法)

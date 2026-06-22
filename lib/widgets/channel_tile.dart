@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/colors.dart';
 import '../core/theme/typography.dart';
 import '../data/models/channel.dart';
 import '../features/favorites/favorite_button.dart';
@@ -47,7 +48,7 @@ class ChannelTile extends StatelessWidget {
           // 容器".  跟 settings page 的 _SettingsCard 是同一套语言.
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFFCF6), // bgElevated, 浅一档米色
+            color: IptvColors.bgElevated, // v0.3.8+169: 引用 design token, 不硬编码
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(

@@ -110,7 +110,10 @@ class DnsWarmup {
       final socket =
           await Socket.connect(host, 80).timeout(_perHostTimeout);
       // 立刻关闭: 目的只是让 OS 把 DNS + TCP 状态缓存下来, 不真传数据.
-      unawaited(socket.close());
+      // v0.3.8+169: catch close 异常, 避免 unhandled exception.
+      try {
+        await socket.close();
+      } catch (_) {}
       return WarmupResult(host: host, ok: true);
     } on SocketException catch (e) {
       return WarmupResult(host: host, ok: false, error: 'SocketException: $e');

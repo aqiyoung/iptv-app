@@ -517,7 +517,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   opacity: _controlsVisible ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 250),
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.55),
+                    color: Colors.black.withOpacity(0.55),
                     child: TopBar(
                       channel: channel,
                       state: state,
@@ -548,7 +548,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                     opacity: _controlsVisible ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 250),
                     child: Container(
-                      color: Colors.black.withValues(alpha: 0.55),
+                      color: Colors.black.withOpacity(0.55),
                       padding: const EdgeInsets.only(bottom: 24),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

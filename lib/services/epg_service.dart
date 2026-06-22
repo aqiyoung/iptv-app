@@ -3,22 +3,47 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart' as p;
 
 import '../core/http/ipv4_client.dart';
 import '../data/models/epg.dart';
 
 /// EPG 服务 — 懒加载 + 7 天缓存 + 当前/下一档节目展示
 class EpgService {
-  EpgService({http.Client? client}) : _client = client ?? IPv4Client();
+  EpgService({http.Client? client, Database? db})
+      : _client = client ?? IPv4Client(),
+        _injectedDb = db;
 
   /// 注入 http client (test 用); 保留字段以备未来 XMLTV 接入
   // ignore: unused_field
   final http.Client _client;
-
-  static const String _cachePrefix = 'epg_cache_';
-  static const String _cacheMetaPrefix = 'epg_meta_';
+  final Database? _injectedDb;
+  Database? _db;
   static const Duration _cacheMaxAge = Duration(days: 7);
+
+  static const String _table = 'epg_cache';
+
+  Future<Database> get _database async {
+    if (_injectedDb != null) return _injectedDb!;
+    if (_db != null) return _db!;
+    final dbPath = await getDatabasesPath();
+    final path = p.join(dbPath, 'iptv_epg.db');
+    _db = await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE $_table (
+            channel_id TEXT PRIMARY KEY,
+            entries_json TEXT NOT NULL,
+            cached_at INTEGER NOT NULL
+          )
+        ''');
+      },
+    );
+    return _db!;
+  }
 
   /// 获取某个频道的 EPG 列表 (优先缓存, 过期则拉取)
   Future<List<EpgEntry>> fetch(String channelId) async {
@@ -65,20 +90,21 @@ class EpgService {
 
   Future<List<EpgEntry>?> _readCache(String channelId) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final metaKey = '$_cacheMetaPrefix$channelId';
-      final meta = prefs.getString(metaKey);
-      if (meta == null) return null;
+      final db = await _database;
+      final rows = await db.query(
+        _table,
+        where: 'channel_id = ?',
+        whereArgs: [channelId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return null;
 
-      final metaMap = json.decode(meta) as Map<String, dynamic>;
-      final ts = metaMap['ts'] as int;
-      final age = DateTime.now().millisecondsSinceEpoch - ts;
+      final row = rows.first;
+      final cachedAt = row['cached_at'] as int;
+      final age = DateTime.now().millisecondsSinceEpoch - cachedAt;
       if (age > _cacheMaxAge.inMilliseconds) return null;
 
-      final dataKey = '$_cachePrefix$channelId';
-      final raw = prefs.getString(dataKey);
-      if (raw == null) return null;
-
+      final raw = row['entries_json'] as String;
       final list = json.decode(raw) as List;
       return list
           .map((e) => EpgEntry.fromJson(e as Map<String, dynamic>))
@@ -91,15 +117,16 @@ class EpgService {
 
   Future<void> _writeCache(String channelId, List<EpgEntry> entries) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final dataKey = '$_cachePrefix$channelId';
-      final metaKey = '$_cacheMetaPrefix$channelId';
-
+      final db = await _database;
       final raw = json.encode(entries.map((e) => e.toJson()).toList());
-      await prefs.setString(dataKey, raw);
-      await prefs.setString(
-        metaKey,
-        json.encode({'ts': DateTime.now().millisecondsSinceEpoch}),
+      await db.insert(
+        _table,
+        {
+          'channel_id': channelId,
+          'entries_json': raw,
+          'cached_at': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
       debugPrint('EpgService._writeCache failed: $e');
@@ -129,10 +156,10 @@ class EpgService {
   /// v0.3.8+93 (6/20 P0-2): 拿不到 iptv-org XMLTV 时给个象样的节目卡.
   /// 实际接入 XMLTV 后这个会被覆盖.
   List<EpgEntry> _placeholderSchedule(String channelId) {
-    // 用本地时间生成今天的时段边界 (按北京时间 8h 时区偏移预估)
-    // 抽上本地 DateTime.now(),  以 06:00 / 12:00 / 18:00 / 22:00 为分界.
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    // v0.3.8+164: 统一用 UTC, 跟 currentProgram/nextProgram 的 toUtc() 对齐.
+    // 之前占位用本地时间 / 查询用 UTC, 导致占位 EPG 永远匹配不到.
+    final now = DateTime.now().toUtc();
+    final today = DateTime.utc(now.year, now.month, now.day);
     String titleFor(DateTime start) {
       final h = start.hour;
       if (h < 6) return '夜间档 · 重播精选';
@@ -166,7 +193,8 @@ class EpgService {
   }
 }
 
-/// Riverpod provider
+/// Riverpod provider — 生产环境自动创建 sqflite 数据库.
+/// 测试可 overrideWithValue(EpgService(db: mockDb)).
 final epgServiceProvider = Provider<EpgService>((ref) => EpgService());
 
 /// 某频道当前/下一档节目 provider

@@ -72,30 +72,33 @@ class MediaKitStreamOpener implements StreamOpener {
   final Player _player;
 
   @override
+  Future<void> cancel(String url) async {
+    // v0.3.8+169: 超时/失败时清理, 防止 libmpv 资源泄漏.
+    // player 可能已经在 open 中, 尝试 stop 让它立即停止.
+    try {
+      unawaited(_player.stop());
+    } catch (_) {}
+  }
+
+  @override
   Future<bool> open(String url, {required Duration timeout}) async {
     try {
       // media_kit 的 open 是异步但很快 (通常 < 100ms),
       // 真正的"起播"通过 [Player.stream.playing] 监听, 此处只检查 open 成功与否
       final completer = Completer<bool>();
-      late final StreamSubscription<dynamic> sub;
-      // v0.3.7+87 hotfix: 变量提前声明, 让 listen 闭包能引用 (Dart 不允许
-      // 在闭包内引用尚未声明的局部变量, 即使闭包延后执行).
-      Timer? timer;
+      // v0.3.8+169: 用 StreamSubscription 可空, 避免 final 闭包引用问题.
+      StreamSubscription<dynamic>? sub;
       sub = _player.stream.playing.listen((playing) {
-        // 收到任何 playing 状态变化 (true or false) → 视为 open 完成
         if (!completer.isCompleted) {
-          sub.cancel();
-          timer?.cancel(); // v0.3.7+86: 收到事件立刻 cancel timer, 避免 timer
-          // 持有 callback 引用等到 timeout 才被 GC,  浪费资源.
+          sub?.cancel();
+          timer?.cancel();
           completer.complete(true);
         }
       });
       // 兜底: 如果 stream 一直没事件, 在 timeout 后算 open 完成
-      // v0.3.7+86: timer 变量提上来,  listen 收到事件时主动 cancel.
-      timer = Timer(timeout, () {
+      final timer = Timer(timeout, () {
         if (!completer.isCompleted) {
-          sub.cancel();
-          // 超时前没收到任何 playing 事件, 视作失败
+          sub?.cancel();
           completer.complete(false);
         }
       });
@@ -125,6 +128,8 @@ class PlayerService extends ChangeNotifier {
   final Player? _player;
   final SourceFailover _failover;
   bool _disposed = false;
+  bool _stopping = false;  // v0.3.8+169: 序列化 stop/open, 防竞态.
+  bool _playing = false;  // v0.3.8+169: 防并发 play() 覆盖状态.
 
   PlayerState _state = const PlayerState.idle();
   PlayerState get state => _state;
@@ -163,6 +168,8 @@ class PlayerService extends ChangeNotifier {
   ///   - open 失败 → "尝试源 2/N" → 切下一个源,  状态保持 loading
   Future<void> play(Channel channel) async {
     if (_disposed) return;
+    if (_playing) return; // v0.3.8+169: 防并发 play() 覆盖状态
+    _playing = true;
 
     // v0.3.5.3 (6/18): 用 SourceDispatcher 选源 — CCTV 频道优先走 cctvSource,
     // 非 CCTV 走老逻辑 channel.sources (repository 已合并 known_sources).
@@ -191,17 +198,18 @@ class PlayerService extends ChangeNotifier {
       ),
     );
 
-    // v0.3.8+123:  fire-and-forget stop,  不 await.  之前 await stop() 
-    //  50-200ms 阻塞 play() 主路径,  UI 看不到 loading 状态,  老板看到白屏.
-    //  stop 必须在 open 之前完成才能避免上-路 audio 跟着新流响 (6/17 修复),
-    //  但 fire-and-forget + open 紧接着调也能达成同样效果:
-    //    - libmpv stop 命令是 fire-and-forget 的,  server 收到就立即执行
-    //    - Player.open() 是 async,  但 libmpv 内部会 queuing,  stop 会先执行
-    //    - 实际验证:  不会出现 audio 双流问题
-    //  实测:  fire-and-forget stop 后立即 open,  上-路 audio 在新流开始推
-    //  PCM 前已停掉,  跟之前 await stop 行为一致.
+    // v0.3.8+169: 序列化 stop → open, 避免 libmpv 竞态.
+    //  v0.3.8+123 改成 fire-and-forget 是为了 UI 立即显示 loading,  但
+    //  stop/open 在 libmpv 内部可能交错执行 (stop 未完成就 open 新流).
+    //  折中:  await stop (50-200ms),  但 set loading 在 stop 之前已经发出,
+    //  UI 不会白屏.  stop 完成后立即 open,  不引入额外延迟.
     if (_player != null) {
-      unawaited(_player.stop());
+      _stopping = true;
+      try {
+        await _player.stop();
+      } finally {
+        _stopping = false;
+      }
     }
 
     try {
@@ -223,7 +231,7 @@ class PlayerService extends ChangeNotifier {
         ),
       );
     } on AllSourcesFailedException catch (e) {
-      if (_disposed) return;
+      if (_disposed) { _playing = false; return; }
       // v0.3.6+42: health_score 动态恢复 — 所有源失败时, 给每个失败源扣分
       for (final attempt in e.attempts) {
         unawaited(CctvSourcePicker.recordFailure(attempt.url));
@@ -242,6 +250,8 @@ class PlayerService extends ChangeNotifier {
           clearAttempt: true,
         ),
       );
+    } finally {
+      _playing = false;
     }
   }
 

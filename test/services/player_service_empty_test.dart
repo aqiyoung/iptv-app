@@ -103,4 +103,7 @@ class _CountingOpener implements StreamOpener {
     callCount++;
     return !shouldFail;
   }
+
+  @override
+  Future<void> cancel(String url) async {}
 }

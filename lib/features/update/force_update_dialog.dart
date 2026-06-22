@@ -73,14 +73,16 @@ class _ForceUpdateDialogContentState
     final bodyColor =
         isDark ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurfaceVariant;
 
-    return AlertDialog(
+    // v0.3.8+169: PopScope(canPop: false) 阻止 Android 返回键关闭弹窗.
+    // barrierDismissible: false 只阻止点击外部,  不阻止返回键.
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
       backgroundColor: dialogBg,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      // barrierDismissible: false 在 showDialog 里已经设了;  在 AlertDialog
-      // 上也重复一次,  防止未来重构.
       insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       title: Row(
         children: [
@@ -204,6 +206,7 @@ class _ForceUpdateDialogContentState
         ),
       ),
       actions: _buildActions(s, theme),
+    ),
     );
   }
 

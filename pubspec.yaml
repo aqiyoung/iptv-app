@@ -133,9 +133,6 @@ dependencies:
   # v0.3.7+20 (6/18): 后台强制更新 — APK 下载完调 Android installer
   # (不用 install_plugin 2.1.0 — package 缺 namespace + JVM target 不一致,
   #  AGP 8+ 编译不过. 改用自定义 MethodChannel,  详见 MainActivity.kt.)
-  # v0.3.7+20 (6/18): 后台强制更新 — APK 下载完调 Android installer
-  # (不用 install_plugin 2.1.0 — package 缺 namespace + JVM target 不一致,
-  #  AGP 8+ 编译不过. 改用自定义 MethodChannel,  详见 MainActivity.kt.)
   # v0.3.7+20 (6/18): 后台强制更新 — getTemporaryDirectory 存 APK
   path_provider: ^2.1.0
   # v0.3.7.2 (6/19): 运行时读 pubspec.yaml 版本号 — 之前 main.dart const 写死

@@ -4,7 +4,6 @@ import '../core/theme/colors.dart';
 import '../core/theme/typography.dart';
 // v0.3.8+103 (6/20 15:46 老板反馈): 不用 GlassCardBorder (只画背景色, 
 // 没有装饰).  改用 bgElevated 浅一档米色 + 圆角 16 显出容器.
-// import 'glass_container.dart';
 
 /// 主页大分类卡片 — 大圆角 + Terracotta 渐变背景 + 轻玻璃白边 (P1-1)
 class CategoryCard extends StatelessWidget {

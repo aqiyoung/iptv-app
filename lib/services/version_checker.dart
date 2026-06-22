@@ -241,6 +241,7 @@ class VersionCheckFailed extends VersionCheckState {
 class VersionCheckerNotifier extends Notifier<VersionCheckState> {
   late final Dio _dio;
   late final SharedPreferences _prefs;
+  bool _checking = false; // v0.3.8+169: 防并发 checkOnStartup.
 
   @override
   VersionCheckState build() {
@@ -252,17 +253,19 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
   /// 启动时调 — 走 cache 策略 + 异步 fetch.
   /// 立即返回 (microtask 里跑),  弹 dialog 由 main.dart listen state.
   Future<void> checkOnStartup() async {
-    // 1. cache 命中 (< 1h) → 直接跳过 fetch,  state 保持 idle
-    final lastCheck = _prefs.getInt(_Keys.lastCheckTime);
-    final now = DateTime.now().millisecondsSinceEpoch;
-    if (lastCheck != null && (now - lastCheck) < _kCacheTtl.inMilliseconds) {
-      // 启动时 cache 路径不更新 state,  让 UI 不弹窗.  如果用户上次 dismiss
-      // 了一个版本,  这里也不重新触发,  因为还没 fetch.
-      return;
-    }
-
-    // 2. fetch GitHub API
+    if (_checking) return; // v0.3.8+169: 防并发 checkOnStartup
+    _checking = true;
     try {
+      // 1. cache 命中 (< 1h) → 直接跳过 fetch,  state 保持 idle
+      final lastCheck = _prefs.getInt(_Keys.lastCheckTime);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (lastCheck != null && (now - lastCheck) < _kCacheTtl.inMilliseconds) {
+        // 启动时 cache 路径不更新 state,  让 UI 不弹窗.  如果用户上次 dismiss
+        // 了一个版本,  这里也不重新触发,  因为还没 fetch.
+        return;
+      }
+
+      // 2. fetch GitHub API
       final release = await _fetchLatestRelease();
       final parsed = _parseRelease(release);
       if (parsed == null) {
@@ -307,10 +310,12 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
     } on DioException catch (e) {
       state = VersionCheckFailed('network: ${e.type}');
       // 失败也写 last_check_time,  避免每启都重试刷流量.  下次 1h 后再试.
-      await _prefs.setInt(_Keys.lastCheckTime, now);
+      await _prefs.setInt(_Keys.lastCheckTime, DateTime.now().millisecondsSinceEpoch);
     } catch (e) {
       state = VersionCheckFailed('error: $e');
-      await _prefs.setInt(_Keys.lastCheckTime, now);
+      await _prefs.setInt(_Keys.lastCheckTime, DateTime.now().millisecondsSinceEpoch);
+    } finally {
+      _checking = false;
     }
   }
 
@@ -492,9 +497,11 @@ final versionCheckerProvider =
 /// Dio provider — 默认 new Dio() (生产).  测试可 overrideWithValue 注入 mock.
 /// 用了 ref.read 创建,  避免 Notifier.build() 多次跑时重建 Dio.
 final dioProvider = Provider<Dio>((ref) {
-  return Dio(BaseOptions(
+  final dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 8),
     receiveTimeout: const Duration(seconds: 8),
     sendTimeout: const Duration(seconds: 8),
   ));
+  ref.onDispose(dio.close);
+  return dio;
 });
