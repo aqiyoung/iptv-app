@@ -86,20 +86,18 @@ class MediaKitStreamOpener implements StreamOpener {
       // media_kit 的 open 是异步但很快 (通常 < 100ms),
       // 真正的"起播"通过 [Player.stream.playing] 监听, 此处只检查 open 成功与否
       final completer = Completer<bool>();
-      // v0.3.8+169: 用 StreamSubscription 可空, 避免 final 闭包引用问题.
-      StreamSubscription<dynamic>? sub;
-      sub = _player.stream.playing.listen((playing) {
-        if (!completer.isCompleted) {
-          sub?.cancel();
-          timer?.cancel();
-          completer.complete(true);
-        }
-      });
-      // 兜底: 如果 stream 一直没事件, 在 timeout 后算 open 完成
+      // v0.3.8+169: timer 必须先声明, 让 sub 闭包能引用.
       final timer = Timer(timeout, () {
         if (!completer.isCompleted) {
           sub?.cancel();
           completer.complete(false);
+        }
+      });
+      final sub = _player.stream.playing.listen((playing) {
+        if (!completer.isCompleted) {
+          sub.cancel();
+          timer.cancel();
+          completer.complete(true);
         }
       });
 
@@ -128,7 +126,6 @@ class PlayerService extends ChangeNotifier {
   final Player? _player;
   final SourceFailover _failover;
   bool _disposed = false;
-  bool _stopping = false;  // v0.3.8+169: 序列化 stop/open, 防竞态.
   bool _playing = false;  // v0.3.8+169: 防并发 play() 覆盖状态.
 
   PlayerState _state = const PlayerState.idle();
@@ -204,12 +201,7 @@ class PlayerService extends ChangeNotifier {
     //  折中:  await stop (50-200ms),  但 set loading 在 stop 之前已经发出,
     //  UI 不会白屏.  stop 完成后立即 open,  不引入额外延迟.
     if (_player != null) {
-      _stopping = true;
-      try {
-        await _player.stop();
-      } finally {
-        _stopping = false;
-      }
+      await _player.stop();
     }
 
     try {

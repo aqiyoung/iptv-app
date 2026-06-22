@@ -22,8 +22,8 @@ import 'widgets/video_area.dart';
 ///   - 底部: 下一频道横滑条 (NextChannelsStrip)
 ///
 /// P2-2 (6/18 老板反馈): 手机端 (shortestSide < 600) 用 v0.1.7 嵌入布局 —
-/// 视频 16:9 在顶 + 下面是节目卡 + 频道横滑.  右下角全屏按钮点一下进真
-/// 全屏 (immersiveSticky + landscape).  TV 端 (shortestSide >= 600) 保持
+/// 视频 16:9 在顶 + 下面是节目卡 + 频道横滑.
+/// TV 端 (shortestSide >= 600) 保持
 /// v0.3.0 Stack 全屏覆盖模式, 因为 TV 整个屏幕就是视频区.
 class PlayerPage extends ConsumerStatefulWidget {
   const PlayerPage({super.key, required this.channelId});
@@ -291,7 +291,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   /// P2-2: 移动端嵌入布局 (v0.1.7 风格) — 视频 16:9 在顶, 下面是 TopBar +
-  /// 节目卡 + 频道横滑.  视频区右下角有全屏按钮.
+  /// 节目卡 + 频道横滑.
   Widget _buildMobile(BuildContext context) {
     final state = ref.watch(currentPlayerStateProvider);
     final controller = ref.watch(mediaKitVideoControllerProvider);
@@ -315,40 +315,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
             final channel = _findChannel(channels, widget.channelId);
             return Column(
               children: [
-                // 视频区 (16:9) + 右下角全屏按钮
+                // 视频区 (16:9)
                 AspectRatio(
                   aspectRatio: 16 / 9,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      VideoArea(
-                        controller: controller,
-                        state: state,
-                        channel: channel,
-                      ),
-                      // v0.3.5.4: 全屏按钮背景 + 图标都跟主题联动 —
-                      // 浅色下浅底 + 深色图标 (跟浅米色页面风格一致),
-                      // 暗色下深底 + 浅色图标 (跟深棕黑页面风格一致).
-                      // 背景用 surfaceContainerHigh, 图标用 onSurface
-                      // (跟 Material 3 M3 spec 一致).
-                      Positioned(
-                        right: 8,
-                        bottom: 8,
-                        child: Material(
-                          color: Colors.transparent,
-                          shape: const CircleBorder(),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.fullscreen,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              size: 22,
-                            ),
-                            tooltip: '全屏',
-                            onPressed: _toggleFullscreen,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: VideoArea(
+                    controller: controller,
+                    state: state,
+                    channel: channel,
                   ),
                 ),
                 // 顶栏 (返回 / 频道名 / 时钟)
