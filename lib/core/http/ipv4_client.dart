@@ -70,9 +70,12 @@ class IPv4Client extends http.BaseClient {
           () {},
         );
       }
-      // 走代理时 — 抛 'use default' 字符串让 HttpClient 用系统代理解析.
-      // 强制返回 ConnectionTask.fromSocket 会跳过代理, 跟 dart:io 设计冲突.
-      throw 'use default';
+      // 走代理时返回一个已失败的 ConnectionTask, 让 HttpClient 走系统代理.
+      // 强制返回正常 ConnectionTask 会跳过代理, 跟 dart:io 设计冲突.
+      return ConnectionTask.fromSocket(
+        Future<Socket>.error(SocketException('Proxy not supported, use system')),
+        () {},
+      );
     };
   }
 

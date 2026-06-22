@@ -273,6 +273,9 @@ class _ScriptedOpener implements StreamOpener {
     await Future<void>.delayed(const Duration(milliseconds: 1));
     return r._success;
   }
+
+  @override
+  Future<void> cancel(String url) async {}
 }
 
 /// 简化版 Channel, 用于测试 (用 freezed Channel 的 toJson 构造)

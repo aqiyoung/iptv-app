@@ -72,6 +72,9 @@ class _FakePlayer implements Player {
 class _NoopOpener implements StreamOpener {
   @override
   Future<bool> open(String url, {required Duration timeout}) async => false;
+
+  @override
+  Future<void> cancel(String url) async {}
 }
 
 /// ChannelRepository fake — 返回预置频道, 避免 assets 加载

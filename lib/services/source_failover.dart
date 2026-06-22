@@ -26,6 +26,10 @@ abstract class StreamOpener {
   ///   - [TimeoutException] 表示超时
   ///   - 其他异常表示协议/网络层错误
   Future<bool> open(String url, {required Duration timeout});
+
+  /// 取消正在进行的 open 操作 (清理资源, 不抛异常).
+  /// 默认 no-op, 子类可 override.
+  Future<void> cancel(String url) async {}
 }
 
 /// 所有源都失败的异常
@@ -108,6 +112,7 @@ class SourceFailover {
               index: i + 1, url: url, error: 'opener returned false'),
         );
       } on TimeoutException {
+        await _opener.cancel(url); // v0.3.8+169: 超时后清理资源
         attempts.add(
           _SourceAttempt(
             index: i + 1,
@@ -116,6 +121,7 @@ class SourceFailover {
           ),
         );
       } catch (e) {
+        await _opener.cancel(url); // v0.3.8+169: 失败后清理资源
         attempts.add(
           _SourceAttempt(
             index: i + 1,

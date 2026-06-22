@@ -396,6 +396,9 @@ class _ScriptedOpener implements StreamOpener {
     if (i >= _scripted.length) return false;
     return _scripted[i]._success;
   }
+
+  @override
+  Future<void> cancel(String url) async {}
 }
 
 class _FakeVideoController implements VideoController {

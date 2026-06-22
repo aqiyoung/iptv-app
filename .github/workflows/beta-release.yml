@@ -1,0 +1,173 @@
+name: Beta APK
+
+# 老板 6/21 10:25 拍板:  建 beta 分支,  尝试修复在 beta 上做,  装稳定后再 merge main.
+# beta 分支 push 自动出 beta APK (不需打 tag,  名字加 -beta- 后缀).
+# APK 命名:  sanyelive-v0.3.8+135-beta-arm64-v8a.apk (version code + beta 标识 + ABI)
+# Workflow:  push to beta → 出 APK → upload artifacts (保留 7 天) + 创建 pre-release GitHub Release.
+# 注意:  beta workflow 不创建 main release tag,  只是 artifacts + pre-release.
+
+on:
+  push:
+    branches: [beta]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+          channel: stable
+          cache: true
+
+      - name: Restore keystore from secret
+        env:
+          KEYSTORE_BASE64: ${{ secrets.IPTV_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "IPTV_KEYSTORE_BASE64 not set, skipping keystore restore"
+          else
+            echo "$KEYSTORE_BASE64" | base64 -d > android/iptv-release.jks
+            ls -la android/iptv-release.jks
+            echo "Keystore restored"
+          fi
+
+      - name: Write android/key.properties
+        env:
+          STORE_FILE: iptv-release.jks
+          STORE_PASSWORD: ${{ secrets.IPTV_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.IPTV_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.IPTV_KEY_PASSWORD }}
+        run: |
+          cat > android/key.properties << EOF
+          storeFile=$STORE_FILE
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+          cat android/key.properties
+
+      - name: Bootstrap android/ios scaffold if missing
+        run: |
+          if [ ! -f android/app/build.gradle ]; then
+            flutter create --platforms=android,ios --org com.threel.sanyelive .
+          fi
+
+      - name: Patch screen_brightness_android for Kotlin 1.x compat
+        run: |
+          find ~/.pub-cache -name 'screen_brightness_android-*.android' -type d 2>/dev/null | head -1 | while read d; do
+            if [ -d "$d/android/src/main/kotlin" ]; then
+              find "$d/android/src/main/kotlin" -name '*.kt' -exec sed -i 's/AndroidApi\(.*\): Integer/AndroidApi(\1): Int/g' {} \;
+            fi
+          done
+
+      - name: Verify gradle signing config
+        run: |
+          grep -q "signingConfigs" android/app/build.gradle || echo "WARNING: no signingConfigs"
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Check source health
+        run: |
+          python3 scripts/check_sources.py || echo "source health check failed but continuing"
+
+      - name: Extract VERSION (pubspec.yaml)
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build APK (release, signed, beta)
+        run: flutter build apk --release --split-per-abi --target-platform=android-arm64
+
+      - name: Rename APK with sanyelive + version + beta
+        run: |
+          set -e
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}' | tr -d '\r')
+          echo "APK_VERSION=$VERSION" >> $GITHUB_ENV
+          for f in build/app/outputs/flutter-apk/app-*-release.apk; do
+            if [ -f "$f" ]; then
+              ABI=$(basename "$f" | sed 's/app-//' | sed 's/-release.apk//')
+              NEWNAME="build/app/outputs/flutter-apk/sanyelive-v${VERSION}-beta-${ABI}.apk"
+              mv "$f" "$NEWNAME"
+              echo "Renamed: $(basename $f) → $(basename $NEWNAME)"
+            fi
+          done
+
+      - name: Compute SHA256
+        run: |
+          cd build/app/outputs/flutter-apk
+          APK=$(find . -maxdepth 1 -name 'sanyelive-*.apk' -type f | head -1)
+          if [ -z "$APK" ]; then
+            echo "ERROR: no sanyelive-*.apk found"
+            ls -la
+            exit 1
+          fi
+          APK_NAME=$(basename "$APK")
+          APK_SHA256=$(sha256sum "$APK" | awk '{print $1}')
+          APK_SIZE_MB=$(du -m "$APK" | awk '{print $1}')
+          # 写 .sha256 文件 (在 step 旁边,  上传 artifact 看到)
+          sha256sum "$APK" > "$APK.sha256"
+          echo "APK_NAME=$APK_NAME" >> $GITHUB_ENV
+          echo "APK_SHA256=$APK_SHA256" >> $GITHUB_ENV
+          echo "APK_SIZE_MB=$APK_SIZE_MB" >> $GITHUB_ENV
+          echo "APK_PATH=$APK" >> $GITHUB_ENV
+          cat "$APK.sha256"
+
+      - name: Upload APK artifact (保留 7 天)
+        uses: actions/upload-artifact@v4
+        with:
+          name: iptv-app-beta
+          path: |
+            build/app/outputs/flutter-apk/sanyelive-*.apk
+            build/app/outputs/flutter-apk/sanyelive-*.apk.sha256
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Create Pre-release GitHub Release (beta)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: beta-${{ env.VERSION }}-${{ github.run_number }}
+          name: "Beta ${{ env.VERSION }} (#${{ github.run_number }})"
+          body: |
+            ## 三页直播 Beta ${{ env.VERSION }}
+
+            ⚠️ **Beta 版本** — 仅供测试, 可能有 bug. 稳定版请用 [Latest Release](https://github.com/aqiyoung/iptv-app/releases/latest).
+
+            ### APK 信息
+            - **版本**: ${{ env.VERSION }}
+            - **构建号**: #${{ github.run_number }}
+            - **架构**: arm64-v8a (Android TV / 手机 / 盒子)
+            - **大小**: ${{ env.APK_SIZE_MB }} MB
+            - **SHA256**: `${{ env.APK_SHA256 }}`
+
+            ### 来源
+            - **分支**: `beta`
+            - **Commit**: ${{ github.sha }}
+            - **Workflow**: `.github/workflows/beta-release.yml`
+
+            ### 下载
+            下载下方 `${{ env.APK_NAME }}` (文件已含 sanyelive- 前缀) 在 Android 设备上安装.
+            如果是从上一版 beta 升级,  正常覆盖安装即可 (version code 自动递增).
+          prerelease: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            build/app/outputs/flutter-apk/sanyelive-*.apk
+            build/app/outputs/flutter-apk/sanyelive-*.apk.sha256

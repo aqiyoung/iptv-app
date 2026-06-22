@@ -23,7 +23,7 @@ import 'data/repositories/channel_repository.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.
 // theme_provider.dart 保留文件 (老 prefs key 兼容), 但 main.dart 不再 watch
 // themeModeProvider / ThemeModeNotifier.  sharedPreferencesProvider 仍需 import —
-// main.dart line ~86 用它 override + version_checker.dart 也用它.
+// sharedPreferencesProvider 仍需 import — main.dart override + version_checker.dart 也用它.
 // 之前一轮删 import 导致 build 挂 (lib/main.dart:86 Undefined name), 这里再加回.
 import 'features/settings/theme_provider.dart';
 import 'features/update/force_update_dialog.dart';
@@ -88,9 +88,6 @@ void main() async {
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
   await _ensureMediaKitOrLog();
-  // v0.3.6+42: 加载持久化 health_score (SharedPreferences)
-  await CctvSourcePicker.loadPersistedScores();
-  // v0.3.7.2 (6/19): 运行时读 pubspec.yaml 真实版本号 — 替代之前 const 写死
   // '0.3.5+37' (subagent 漏改,  设置页永远停在老版本号).  现在每次 release
   // bump pubspec,  设置页/版本检查/强制更新都能读到新版本号.
   // test 环境读不到 PackageInfo,  catch + fallback 到 '0.0.0+0'.
@@ -246,10 +243,13 @@ class IptvApp extends ConsumerWidget {
     // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode.
     // 0.3.7+20 (6/18): 后台强制更新 — 监听 versionCheckerProvider,
     // 检测到 outdated 时弹 ForceUpdateDialog.  ref.listen 的 context
-    // 是 MaterialApp 内部 context,  Navigator.of(context, rootNavigator:true)
-    // 拿 root Navigator 弹 dialog,  不会被路由栈里其他页面 (player / settings)
-    // 盖住.  对话框本身是 barrierDismissible:false,  不点 "立刻更新" / "稍后"
-    // 关不掉.  main() runApp 后用 Future.microtask 异步调 checkOnStartup.
+    // 是 ConsumerWidget.build 提供的,  MaterialApp 已建好,  Navigator
+    // 可访问.  v0.3.8+176 错误把 IptvApp 改成 ConsumerStatefulWidget 后,
+    // ref.listen 在 State.build 顶层用,  context 是 widget 自身 (MaterialApp
+    // 之上),  Navigator.of(context) 找不到 → ForceUpdateDialog 闪退.
+    // v0.3.8+177 fix: 改回 ConsumerWidget, splash 动画下放为独立
+    // _SplashOverlay,  由 MaterialApp.builder 包在 MaterialApp 内部 ——
+    // Builder 拿到的 context 是 MaterialApp 之下的,  拿 Navigator 正常.
     ref.listen<VersionCheckState>(versionCheckerProvider, (prev, next) {
       if (next is VersionCheckOutdated) {
         ForceUpdateDialog.show(context);
@@ -259,24 +259,113 @@ class IptvApp extends ConsumerWidget {
       title: '三页直播',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
-      // v0.3.8+102: 删主题切换, 锁死 light.  darkTheme 保留 (避免 widget
-      // 期望 ThemeMode.dark 找不到).  themeMode 强制 light.
       darkTheme: IptvTheme.dark(),
       themeMode: ThemeMode.light,
       routerConfig: buildRouter(playerObserver: playerObserver),
-      builder: (context, child) =>
-          _ErrorBoundary(child: child ?? const SizedBox()),
+      builder: (context, child) => _ErrorBoundary(
+        child: _SplashOverlay(child: child ?? const SizedBox()),
+      ),
     );
   }
 }
 
-/// Error boundary — catches build-phase errors and shows crash screen
-class _ErrorBoundary extends StatelessWidget {
+/// v0.3.8+177: 3s 启动动画 — 独立 StatefulWidget,  避免污染 ConsumerWidget
+/// 的 ref.listen 上下文.  MaterialApp.builder 会把 child (路由页面) 包在
+/// _SplashOverlay 里,  splash 结束时渐隐.  3s 后自动消失.
+class _SplashOverlay extends StatefulWidget {
+  const _SplashOverlay({required this.child});
+  final Widget child;
+
+  @override
+  State<_SplashOverlay> createState() => _SplashOverlayState();
+}
+
+class _SplashOverlayState extends State<_SplashOverlay> {
+  bool _showSplash = true;
+  // v0.3.8+177 fix: 存 Timer ref, dispose 时取消 — 避免 widget_test
+  // 报 Pending timers (splash 3s Timer 在测试里不会被 fake_async 处理).
+  Timer? _splashTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _splashTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showSplash = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _splashTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_showSplash) return widget.child;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Stack(
+      children: [
+        widget.child,
+        Container(
+          color: scheme.surface,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.tv, size: 64, color: scheme.primary),
+                const SizedBox(height: 16),
+                Text(
+                  '三页直播',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurface,
+                    fontFamily: 'Georgia',
+                    letterSpacing: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Error boundary — catches build-phase errors and shows crash screen.
+/// Listens to [FlutterError.onError] so layout/render exceptions are surfaced
+/// as [_CrashScreen] instead of a blank red error widget.
+class _ErrorBoundary extends StatefulWidget {
   const _ErrorBoundary({required this.child});
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => child;
+  State<_ErrorBoundary> createState() => _ErrorBoundaryState();
+}
+
+class _ErrorBoundaryState extends State<_ErrorBoundary> {
+  FlutterErrorDetails? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    FlutterError.onError = (details) {
+      // Still call the default handler (prints to console / debugDumpApp).
+      FlutterError.presentError(details);
+      if (mounted) setState(() => _error = details);
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return _CrashScreen(details: _error!);
+    }
+    return widget.child;
+  }
 }
 
 class _CrashScreen extends StatelessWidget {
@@ -338,6 +427,10 @@ class _AppLifecycleListener with WidgetsBindingObserver {
   _AppLifecycleListener(this._player);
 
   final PlayerService _player;
+
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
