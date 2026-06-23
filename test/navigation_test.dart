@@ -1,5 +1,6 @@
 // 卡 4 集成测试 — 主页 → 分类 → 详情 跳转流程
 // 用 ProviderScope.overrides 注入 fake channels, 不依赖 assets
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as sqflite_ffi;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -126,7 +127,11 @@ Widget _app() => MaterialApp.router(
     );
 
 void main() {
-  setUp(() {
+  
+  setUpAll(() async {
+    sqflite_ffi.sqfliteFfiInit();
+    databaseFactory = sqflite_ffi.databaseFactoryFfi;
+    setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
 

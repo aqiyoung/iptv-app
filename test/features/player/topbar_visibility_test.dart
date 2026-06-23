@@ -8,6 +8,7 @@
 //   3. 控件层 (节目卡 + 频道横滑) _controlsVisible=false 时 opacity=0,
 //      TopBar 跟它分离, 不受 _controlsVisible 影响.
 
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' as sqflite_ffi;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -145,7 +146,11 @@ Future<void> _pumpPlayerFullscreen(WidgetTester tester) async {
 }
 
 void main() {
-  setUp(() {
+  
+  setUpAll(() async {
+    sqflite_ffi.sqfliteFfiInit();
+    databaseFactory = sqflite_ffi.databaseFactoryFfi;
+    setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
 

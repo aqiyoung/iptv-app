@@ -164,6 +164,8 @@ dev_dependencies:
   fake_async: ^1.3.1
   # 卡 5: StreamOpener 抽象注入到 SourceFailover
   mocktail: ^1.0.4
+  # v0.3.10.8: test env sqflite (EpgService 在 navigation_test / player 走 _readCache 触发)
+  sqflite_common_ffi: ^2.3.3
 
 flutter:
   uses-material-design: true
