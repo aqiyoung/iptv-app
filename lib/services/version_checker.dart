@@ -418,6 +418,56 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
     );
   }
 
+  // -------- private: version compare (v0.3.10.4 新增) --------
+
+  /// Semver + build 比较. 返 1 = a > b, 0 = a == b, -1 = a < b.
+  /// 接受 '0.3.10+2' / '0.3.10' / 'v0.3.10+2' (带不带 v 前缀都行).
+  /// 规则:
+  ///   1. 先比 major.minor.patch (semver 主版本)
+  ///   2. 一样再比 build number (Flutter pubspec 的 +N)
+  ///   3. 任一更大 → 算 newer
+  ///  解析失败 → fallback 到字符串字典序比较.
+  int _compareVersions(String a, String b) {
+    final aParts = _parseVersion(a);
+    final bParts = _parseVersion(b);
+    if (aParts == null || bParts == null) {
+      // fallback: 简单字符串比较, 至少保证 a vs b 不会误判相等.
+      return a.compareTo(b);
+    }
+    for (var i = 0; i < 3; i++) {
+      if (aParts.$1[i] != bParts.$1[i]) {
+        return aParts.$1[i] > bParts.$1[i] ? 1 : -1;
+      }
+    }
+    // major.minor.patch 一样 → 比 build.  build 缺省 = 0.
+    if (aParts.$2 != bParts.$2) {
+      return aParts.$2 > bParts.$2 ? 1 : -1;
+    }
+    return 0;
+  }
+
+  /// 解析版本字符串 → ((major, minor, patch), build).
+  /// 接受 '0.3.10+2' / '0.3.10' / 'v0.3.10+2' / 'v0.3.10.5'.
+  /// tag 历史两种格式都有:  老版 v0.3.8+N,  新版 v0.3.10.5 (4 段, 第 4 段当 build).
+  /// 返回 null = 解析失败.
+  (List<int>, int)? _parseVersion(String v) {
+    var cleaned = v.trim();
+    if (cleaned.startsWith('v') || cleaned.startsWith('V')) {
+      cleaned = cleaned.substring(1);
+    }
+    // 接受两种 4 段格式: '0.3.10+N' 或 '0.3.10.N'.  两者第 4 段都是 build.
+    final m = RegExp(r'^(\d+)\.(\d+)\.(\d+)(?:[.+](\d+))?$').firstMatch(cleaned);
+    if (m == null) return null;
+    return (
+      [
+        int.parse(m.group(1)!),
+        int.parse(m.group(2)!),
+        int.parse(m.group(3)!),
+      ],
+      m.group(4) != null ? int.parse(m.group(4)!) : 0,
+    );
+  }
+
   static int? _extractVersionCode(String apkName) {
     // 找 "+数字" —  e.g.  "v0.3.7+20-arm64-v8a.apk" → 20.
     final match = RegExp(r'\+(\d+)').firstMatch(apkName);
@@ -445,6 +495,9 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
 
   @visibleForTesting
   static bool debugIsCriticalRelease(String body) => _isCriticalRelease(body);
+
+  @visibleForTesting
+  int debugCompareVersions(String a, String b) => _compareVersions(a, b);
 
   @visibleForTesting
   static Map<String, dynamic>? debugParseRelease(Map<String, dynamic> json) {
