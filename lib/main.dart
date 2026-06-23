@@ -14,6 +14,9 @@ import 'core/router/router.dart';
 import 'core/theme/colors.dart';
 import 'core/theme/theme.dart';
 import 'data/remote_channels_source.dart';
+// v0.3.10.8 (6/23 老板拍): 远程 video sources — 跟 channels 同源, 但拉
+// sources/known.json.  main.dart 预热用.
+import 'data/sources/remote_sources_source.dart';
 // v0.3.8+133 (6/21 09:49 老板反馈 "启动白屏"):
 //  预热 ChannelRepository — loadBundled 第一次 1-2s 读 + parse assets/data,
 //  玩家进频道 initState await channelsProvider.future 会多等这一下.
@@ -92,6 +95,10 @@ void main() async {
   // 第一次 await 这时已 resolve → 直接用远程;  远程超时则 fallback 本地.
   // 不阻塞 runApp,  fire-and-forget.  不在 wait list 里 (主流程不等它).
   unawaited(_prewarmRemoteChannels());
+  // v0.3.10.8 (6/23 老板拍): 远程 video sources 预热 — 后台拉一次
+  // sources/known.json,  失败静默吞掉,  channelsProvider._enrichWithRemoteSources
+  // 后续 read 时拿 cached.  不阻塞 runApp.
+  unawaited(_prewarmRemoteSources());
   // Global error widget builder - set once, not on every rebuild
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
@@ -135,6 +142,10 @@ void main() async {
   // v0.3.10.6 (6/23 老板拍): 频道分类数据每日 03:00 自动后台刷新, 不用更新 APP.
   // 启动时: 如果 last refresh > 1 天就立即重拉一次.
   startChannelsAutoRefresh(container: container);
+  // v0.3.10.8 (6/23 老板拍): 视频源每日 03:00 自动后台拉远端.
+  // 跟 channels 完全平行 —  启动时 last refresh > 1 天立即重拉,
+  // 后续 03:00 Beijing 调度 invalidate.  老板拍板 "视频源每天拉一次就够".
+  startSourcesAutoRefresh(container: container);
   // v0.3.8+133 (6/21 09:49 老板反馈 "启动白屏"):
   //  预热 ChannelRepository — loadBundled 第一次 1-2s 读 + parse assets/data,
   //  玩家进频道 initState await channelsProvider.future 会多等这一下.
@@ -197,6 +208,23 @@ Future<void> _prewarmRemoteChannels() async {
     }
   } catch (e) {
     debugPrint('_prewarmRemoteChannels: failed (will use local fallback): $e');
+  }
+}
+
+/// v0.3.10.8 (6/23):  启动预热 remote sources — 后台 fire-and-forget.
+/// 失败静默,  channelsProvider._enrichWithRemoteSources 会自动 fallback 本地.
+/// 用独立 short-lived container — 不污染 main() 主 container 状态.
+Future<void> _prewarmRemoteSources() async {
+  try {
+    final warmContainer = ProviderContainer();
+    try {
+      await warmContainer.read(remoteSourcesProvider.future);
+      debugPrint('_prewarmRemoteSources: remote fetched OK');
+    } finally {
+      warmContainer.dispose();
+    }
+  } catch (e) {
+    debugPrint('_prewarmRemoteSources: failed (will use local fallback): $e');
   }
 }
 

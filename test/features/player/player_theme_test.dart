@@ -16,6 +16,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/core/theme/theme.dart';
 import 'package:sanyelive/data/models/channel.dart';
 import 'package:sanyelive/data/repositories/channel_repository.dart';
+// v0.3.10.8: channelsProvider body 会拉远端 sources,  测试不能走真实 HTTP.
+// override remoteSourcesProvider 返一个空 bundle (_enrich 走本地 fallback).
+import 'package:sanyelive/data/sources/remote_sources_source.dart';
 import 'package:sanyelive/features/favorites/favorites_service.dart';
 import 'package:sanyelive/features/player/player_page.dart';
 import 'package:sanyelive/services/player_service.dart';
@@ -61,6 +64,20 @@ class _FakeChannelRepository implements ChannelRepository {
   Future<List<Channel>> loadBundled() async => _channels;
 }
 
+/// v0.3.10.8: channelsProvider body 走远端 enrich,  测试不连 HTTP.
+/// 返空 bundle → _enrichWithRemoteSources 走 fallback (保持本地).
+class _FakeEmptyRemoteSourcesNotifier
+    extends AsyncNotifier<RemoteSourcesBundle> {
+  @override
+  Future<RemoteSourcesBundle> build() async {
+    return const RemoteSourcesBundle(
+      meta: {},
+      known: {},
+      dead: {},
+    );
+  }
+}
+
 class _FakeVideoController implements VideoController {
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
@@ -104,6 +121,9 @@ Future<void> _pumpPlayer(
         streamOpenerProvider.overrideWithValue(opener),
         channelRepositoryProvider
             .overrideWith((ref) => _FakeChannelRepository(_channels)),
+        // v0.3.10.8: 防止 channelsProvider body 走真实 HTTP.  返空 bundle
+        // → _enrichWithRemoteSources fallback 本地 (不做 merge).
+        remoteSourcesProvider.overrideWith(_FakeEmptyRemoteSourcesNotifier.new),
         mediaKitVideoControllerProvider
             .overrideWithValue(_FakeVideoController()),
         mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),

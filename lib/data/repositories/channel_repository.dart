@@ -11,6 +11,16 @@ import '../models/channel.dart';
 // 分类 JSON (每周一 cron 自动生成),  失败 fallback 本地 assets/data/channels_cn.json.
 // 单独抽 remote_channels_source.dart 让 channel_repository 保持 focused on assets.
 import '../remote_channels_source.dart';
+// v0.3.10.8 (6/23 老板拍): 视频源每日 03:00 自动后台拉远端.
+// 跟 RemoteChannelsSource 同源 (aqiyoung/iptv-channels-organized),
+// 但拉 sources/known.json (135 ch × 2-4 URLs). 跟 channels merge 起来用.
+// 设计跟 v0.3.10.6 channels auto refresh 完全平行:
+//   - Provider (AsyncNotifier) 拉远端 + 失败 throw.
+//   - 03:00 Beijing Timer 调度 invalidate 强制重拉.
+//   - 启动瞬间 lastRefresh > 1 天 立即重拉.
+//   - 老板拍 "有变化了才更新" — 用 generatedAt 当 cache key, 没变就不重 merge.
+import '../sources/remote_sources_source.dart'
+    show RemoteSourcesBundle, remoteSourcesProvider;
 
 /// 把 [known] 里跟 channel.id 匹配的 URL 列表追加到 [c].sources 后面,
 /// 去重但保留首次出现的顺序.  不修改传入的 channel, 返回新实例.
@@ -218,7 +228,20 @@ final channelRepositoryProvider = Provider<ChannelRepository>(
 ///   逐步改 UI watch channelsStreamProvider.
 final channelsProvider = FutureProvider<List<Channel>>((ref) async {
   final repo = ref.watch(channelRepositoryProvider);
-  return repo.loadBundled();
+  final local = await repo.loadBundled();
+  // v0.3.10.8 (6/23 老板拍): 拉远端 video sources 跟本地 channels merge.
+  // 老板拍板 "APP 有缓存, 有变化了才更新" — _enrichWithRemoteSources 内部
+  // 用 generatedAt 做 cache key,  没变返旧 cached. 远端失败 fallback 本地.
+  // FutureProvider body 重跑时 (invalidate channelRepositoryProvider 后)
+  // 仍然有效 — cache key 检查 in helper.
+  try {
+    return await _enrichWithRemoteSources(
+      ref: ref,
+      channels: local,
+    );
+  } catch (_) {
+    return local;
+  }
 });
 
 /// v0.3.10.6 (6/23 老板拍): 频道分类数据每日 03:00 Beijing 自动后台刷新.
@@ -288,7 +311,11 @@ void stopChannelsAutoRefresh() {
 final channelsStreamProvider = StreamProvider<List<Channel>>((ref) async* {
   final repo = ref.watch(channelRepositoryProvider);
   final local = await repo.loadBundled();
-  yield local;
+  // v0.3.10.8 (6/23 老板拍): 本地 loadBundled 后立即 enrich 远端 sources.
+  // 首帧 emit enriched 结果 (本地 + 远端 sources URLs).
+  // 远端失败 fallback 本地 (_enrichWithRemoteSources 内部吞错).
+  final localEnriched = await _enrichWithRemoteSources(ref: ref, channels: local);
+  yield localEnriched;
   // 远端 — timeout 后 emit 覆盖.  测试环境中 remoteChannelsProvider
   // 默认行为,  测试需手动 override channelsStreamProvider 才能控制 loading.
   try {
@@ -296,9 +323,173 @@ final channelsStreamProvider = StreamProvider<List<Channel>>((ref) async* {
         .watch(remoteChannelsProvider.future)
         .timeout(const Duration(seconds: 10));
     if (bundle.all.length != local.length) {
-      yield bundle.all;
+      // 远端 channels 覆盖后 还要再 enrich 远端 sources (老板装 APK 后
+      // 所有看的就是 merged).
+      final remoteEnriched = await _enrichWithRemoteSources(
+        ref: ref,
+        channels: bundle.all,
+      );
+      yield remoteEnriched;
     }
   } catch (_) {
     // 远程失败 — 保持本地,  不重 yield.
   }
 });
+
+/// v0.3.10.8 (6/23 老板拍): 视频源每日 03:00 Beijing 自动后台刷新.
+/// 老板拍板: "视频源每天拉一次就够. APP 有缓存, 有变化了才更新."
+/// 设计跟 v0.3.10.6 channels 完全平行, 启动时 > 1 天立即重拉, 失败静默.
+///
+/// 注意: 用顶层 static 状态 (跟 _channelsLastRefresh 同结构) — ProviderContainer
+/// 重启会重置 static, 所以这状态是 "进程内" 状态. 持久化要 SharedPreferences.
+/// 当前实现不持久化 last refresh — 重启后永远走 "立即重拉" 分支 (无害,
+/// invalidate 失败 throw → 自动 fallback 本地).
+Timer? _sourcesRefreshTimer;
+DateTime? _sourcesLastRefresh;
+
+/// 启动 sources 每日 03:00 Beijing 自动后台刷新.
+void startSourcesAutoRefresh({required ProviderContainer container}) {
+  _sourcesRefreshTimer?.cancel();
+  _scheduleNextSourcesRefresh(container);
+
+  // 启动瞬间: 如果 last refresh > 1 天就立即重拉.
+  final now = DateTime.now();
+  if (_sourcesLastRefresh == null ||
+      now.difference(_sourcesLastRefresh!) > const Duration(days: 1)) {
+    Future.microtask(() => _refreshSourcesNow(container));
+  }
+}
+
+void _scheduleNextSourcesRefresh(ProviderContainer container) {
+  final now = DateTime.now();
+  var next = DateTime(now.year, now.month, now.day, 3, 0, 0); // Beijing 03:00
+  if (next.isBefore(now)) next = next.add(const Duration(days: 1));
+  final delay = next.difference(now);
+  debugPrint(
+      'SourcesRefresh: 下次刷新 ${delay.inHours}h ${delay.inMinutes.remainder(60)}m 后 ($next)');
+  _sourcesRefreshTimer = Timer(delay, () {
+    _refreshSourcesNow(container);
+    _scheduleNextSourcesRefresh(container);
+  });
+}
+
+Future<void> _refreshSourcesNow(ProviderContainer container) async {
+  _sourcesLastRefresh = DateTime.now();
+  try {
+    // 只 invalidate sources provider.  channelsProvider 不重 invalidate —
+    // channelsStreamProvider 通过 ref.listen(remoteSourcesProvider) 在
+    // bundle 变化时自动重 merge (见 mergedChannelsStreamProvider body).
+    container.invalidate(remoteSourcesProvider);
+    debugPrint('SourcesRefresh: 触发 remoteSourcesProvider invalidate');
+  } catch (e) {
+    debugPrint('SourcesRefresh: invalidate 失败: $e');
+  }
+}
+
+void stopSourcesAutoRefresh() {
+  _sourcesRefreshTimer?.cancel();
+  _sourcesRefreshTimer = null;
+}
+
+/// v0.3.10.8: 合并 cache — generatedAt → merged list.
+/// 进程级 static 缓存 — UI 多次 watch channelsProvider 时不会重复 merge.
+/// cache 命中条件: 上次 merge 的 generatedAt 跟现在一致.  变更才会重新 merge.
+String? _mergedCacheKey;
+List<Channel>? _mergedCacheResult;
+
+/// v0.3.10.8 (6/23 老板拍): 合并远端 sources 到本地/远端 channels 的 helper.
+/// 老板拍 "APP 有缓存, 有变化了才更新" = cache 命中 = generatedAt 不变 → 0 IO.
+/// 调用者:  channelsProvider / channelsStreamProvider / mergedChannelsProvider.
+/// 返 channels —  跟 [channels] 同结构,  只是 sources 后面 append 远端 URLs.
+/// 失败路径:  fetch 远端失败/超时 → 返 cached 或 channels (fallback 本地).
+Future<List<Channel>> _enrichWithRemoteSources({
+  required Ref ref,
+  required List<Channel> channels,
+}) async {
+  // cache 命中 — 0 IO,  0 merge.  老板拍 "有变化了才更新" 语义.
+  final cachedKey = _mergedCacheKey;
+  final cachedResult = _mergedCacheResult;
+  if (cachedKey != null && cachedResult != null) {
+    // channels 是 merge 输入,  若 channels 跟 cached 输入长度不同 (例如 remote channels
+    // bundle 长度变了),  不走 cache —  重新 merge.
+    if (channels.length == cachedResult.length) {
+      return cachedResult;
+    }
+  }
+
+  RemoteSourcesBundle? bundle;
+  try {
+    bundle = await ref
+        .watch(remoteSourcesProvider.future)
+        .timeout(const Duration(seconds: 10));
+  } catch (e) {
+    debugPrint('SourcesRefresh: remote fetch 失败, fallback 本地: $e');
+    return cachedResult ?? channels;
+  }
+
+  final key = bundle.generatedAt;
+  if (key.isEmpty) {
+    return cachedResult ?? channels;
+  }
+  if (key == cachedKey && cachedResult != null) {
+    debugPrint('SourcesRefresh: cache 命中 (key=$key), 0 merge');
+    return cachedResult;
+  }
+
+  // 新数据 — 跟 channels merge.
+  final merged = _mergeRemoteSources(channels, bundle.known);
+  _mergedCacheKey = key;
+  _mergedCacheResult = merged;
+  debugPrint(
+      'SourcesRefresh: merged ${merged.length} ch with remote (${bundle.knownCount} known URLs, key=$key)');
+  return merged;
+}
+
+/// v0.3.10.8 (6/23 老板拍): 独立 merged provider — 给 PlayerService / 其他
+/// 明确需要 merged 结果的 caller 用.  设计跟 _enrichWithRemoteSources 同
+/// 语义 (cache by generatedAt),  但作为单独 FutureProvider 暴露,
+///  future error semantics 跟 FutureProvider 一致 (AsyncValue.error 表现).
+/// 在 channelsProvider / channelsStreamProvider 里已经有 _enrichWithRemoteSources
+/// call 了,  这里仅供显式消费 (e.g. debug / unit test) —  生产代码不需要 watch 它.
+final mergedChannelsProvider = FutureProvider<List<Channel>>((ref) async {
+  final repo = ref.watch(channelRepositoryProvider);
+  final local = await repo.loadBundled();
+  return _enrichWithRemoteSources(ref: ref, channels: local);
+});
+
+/// v0.3.10.8: 合并远端 known sources 到 channels.
+/// 跟 [mergeKnownSources] 同结构, 但接受已解析的 Map<channelId, urls>
+/// 而不是 raw Map (远端 schema 跟本地 known_sources.json 略不同).
+/// 老板拍 "有变化了才更新" = 只 append 远端 URL 到本地 sources 后面,
+/// 不修改本地顺序. SourceFailover 从前往后试, 本地 iptv-org 高画质源优先.
+List<Channel> _mergeRemoteSources(
+  List<Channel> channels,
+  Map<String, List<String>> remote,
+) {
+  if (remote.isEmpty) return channels;
+  return channels.map((c) {
+    final remoteUrls = remote[c.id];
+    if (remoteUrls == null || remoteUrls.isEmpty) return c;
+    final merged = <String>[];
+    final seen = <String>{};
+    for (final url in c.sources) {
+      if (seen.add(url)) merged.add(url);
+    }
+    for (final url in remoteUrls) {
+      if (seen.add(url)) merged.add(url);
+    }
+    return Channel(
+      id: c.id,
+      name: c.name,
+      country: c.country,
+      categories: c.categories,
+      altNames: c.altNames,
+      website: c.website,
+      logoUrl: c.logoUrl,
+      sources: merged,
+      cctvSource: c.cctvSource, // 保留 CCTV 专属源不被覆盖
+      isNsfw: c.isNsfw,
+    );
+  }).toList(growable: false);
+}
+
