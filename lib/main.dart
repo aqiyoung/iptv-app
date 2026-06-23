@@ -40,6 +40,9 @@ import 'features/splash/splash_logo.dart';
 import 'features/update/force_update_dialog.dart';
 import 'services/player_service.dart';
 import 'services/version_checker.dart';
+// v0.3.10.11 (6/23 腾讯极光盒子 6 闪退): 本地 crash 日志 — 老板装 APK 后
+// adb pull /sdcard/Android/data/com.threelive.tv/files/crash.log 看错误.
+import 'utils/crash_logger.dart';
 
 // v0.3.7.2 (6/19): 不再写 const 写死的 currentVersion / currentVersionCode.
 // 从 PackageInfo 运行时读 pubspec.yaml,  每次 bump 版本自动同步到设置页.
@@ -56,6 +59,11 @@ void main() async {
   // 现在改成 main 同步等 init 完成再 runApp. WidgetsFlutterBinding
   // 也必须 await, 因为 ensureInitialized 要用到 binding.
   WidgetsFlutterBinding.ensureInitialized();
+  // v0.3.10.11: 启动第一步装 CrashLogger — 后续 MediaKit / Player() 失败
+  // 都能记到 /sdcard/Android/data/com.threelive.tv/files/crash.log.
+  // 这必须在 ensureMediaKit + read(playerServiceProvider) 之前.
+  await CrashLogger.init();
+  await CrashLogger.log('App starting (main.dart v0.3.10.11+)');
   // v0.3.8+120 (6/20 23:27 老板反馈 "退出全屏 变竖屏了"):
   // 之前 _toggleFullscreen 退出全屏用 setPreferredOrientations([]) = 系统默认
   // (portrait on phones) — 老板横屏全屏后退出变竖屏,  体验断裂.

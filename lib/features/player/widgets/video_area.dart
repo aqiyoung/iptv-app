@@ -1,5 +1,8 @@
 /// 播放页视频区 — media_kit 视频播放 + 加载动画 + 错误 UI.
 /// 从 player_page.dart 拆出 (v0.3.6+43).
+///
+/// v0.3.10.11: controller 改 nullable — libmpv 加载失败时 controller 是
+/// null, Video widget 不会渲染 (会崩).  显示 "本机播放器不可用" 占位.
 library;
 
 import 'package:flutter/material.dart';
@@ -18,7 +21,8 @@ class VideoArea extends StatelessWidget {
     required this.channel,
   });
 
-  final VideoController controller;
+  // v0.3.10.11: libmpv 加载失败时 controller 为 null.
+  final VideoController? controller;
   final PlayerState state;
   final Channel? channel;
 
@@ -86,9 +90,13 @@ class VideoArea extends StatelessWidget {
           ColoredBox(
             color: Colors.black,
             child: Center(
-              child: state.status == PlayerStatus.playing
+              // v0.3.10.11: controller == null (libmpv 加载失败) 时不渲染
+              // Video widget — 它会崩.  改为 SizedBox.shrink + 让
+              // ErrorOverlay 在上层显示 "本机播放器不可用" 信息.
+              child: (state.status == PlayerStatus.playing &&
+                      controller != null)
                   ? Video(
-                      controller: controller,
+                      controller: controller!,
                       fit: BoxFit.contain,
                       aspectRatio: 16 / 9,
                     )

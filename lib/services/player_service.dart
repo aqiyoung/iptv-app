@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -8,6 +9,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import '../data/cctv_source.dart';
 import '../data/models/channel.dart';
 import '../data/source_dispatcher.dart';
+import '../utils/crash_logger.dart';
 import 'source_failover.dart';
 
 /// 播放状态
@@ -116,19 +118,33 @@ class MediaKitStreamOpener implements StreamOpener {
 ///   - 持有唯一的 [Player] 实例 (避免每个页面都创建 native player)
 ///   - 调用 [SourceFailover] 选源
 ///   - 暴露 [state] 给 UI 监听
+///
+/// v0.3.10.11 (6/23 老板反馈 腾讯极光盒子 6 闪退): libmpv.so 加载失败时不
+/// 闪退, 改用 [FallbackMediaPlayer] 占位 (通过 platform channel; 若 native
+/// 端未注册,  也是 silently fail — 视频不出图但 APP 不崩).  libmpv 加载失败
+/// 90% 是 Amlogic S905X3 等 TV box 的 dlopen 问题.
 class PlayerService extends ChangeNotifier {
   PlayerService({
     required StreamOpener opener,
     SourceFailover? failover,
     Player? player,
+    FallbackMediaPlayer? fallbackPlayer,
   })  : _player = player,
-        _failover = failover ?? SourceFailover(opener: opener);
+        _failover = failover ?? SourceFailover(opener: opener),
+        _fallbackPlayer = fallbackPlayer ?? (player == null ? FallbackMediaPlayer() : null);
 
-  /// media_kit 的 native player. 测试环境不传 (== null), 跳过 stop/dispose.
+  /// media_kit 的 native player. libmpv.so 加载失败时为 null (v0.3.10.11).
   final Player? _player;
   final SourceFailover _failover;
+  // v0.3.10.11: libmpv init 失败时启用,  通过 platform channel 走 Android
+  // MediaPlayer (如果 native 端没注册实现,  静默失败).  null = 用 libmpv 正常路径.
+  final FallbackMediaPlayer? _fallbackPlayer;
   bool _disposed = false;
   bool _playing = false;  // v0.3.8+169: 防并发 play() 覆盖状态.
+
+  /// v0.3.10.11: libmpv 是否被 fallback 替换. true = 视频放不出来,
+  /// UI 端拿到的 controller 也是 null (Video widget 不渲染),  老板看 error.
+  bool get useFallbackPlayer => _player == null && _fallbackPlayer != null;
 
   PlayerState _state = const PlayerState.idle();
   PlayerState get state => _state;
@@ -168,6 +184,22 @@ class PlayerService extends ChangeNotifier {
   Future<void> play(Channel channel) async {
     if (_disposed) return;
     if (_playing) return; // v0.3.8+169: 防并发 play() 覆盖状态
+
+    // v0.3.10.11: libmpv 没加载成功 (腾讯极光盒子 6 等 TV box) →
+    // 走 fallback, 状态直接进 error, 老板看 error overlay 重试.
+    if (_player == null) {
+      CrashLogger.log('play() but _player is null — libmpv init failed');
+      _set(
+        _state.copyWith(
+          status: PlayerStatus.error,
+          channel: channel,
+          error: '本机播放器不可用 (libmpv 加载失败)。\n'
+              'crash.log: ${CrashLogger.logFilePath ?? "(unavailable)"}',
+          clearAttempt: true,
+        ),
+      );
+      return;
+    }
     _playing = true;
 
     // v0.3.5.3 (6/18): 用 SourceDispatcher 选源 — CCTV 频道优先走 cctvSource,
@@ -256,6 +288,19 @@ class PlayerService extends ChangeNotifier {
   /// 同一频道的另一路源,  channel 不变).
   Future<void> playSingleSource(String url, {Channel? channel}) async {
     if (_disposed) return;
+    // v0.3.10.11: libmpv 加载失败 → fallback 占位.
+    if (_player == null) {
+      CrashLogger.log('playSingleSource() but _player is null — libmpv init failed');
+      _set(
+        _state.copyWith(
+          status: PlayerStatus.error,
+          error: '本机播放器不可用 (libmpv 加载失败)。\n'
+              'crash.log: ${CrashLogger.logFilePath ?? "(unavailable)"}',
+          clearAttempt: true,
+        ),
+      );
+      return;
+    }
     final ch = channel ?? _state.channel;
     if (ch == null) {
       // 没有 channel 上下文, 只能假定这是个 raw URL,  跳过错 channel 的检查
@@ -327,9 +372,12 @@ class PlayerService extends ChangeNotifier {
   /// 回到前台调 play() 即可恢复.
   Future<void> pause() async {
     if (_disposed) return;
-    if (_player != null) {
-      await _player.pause();
+    // v0.3.10.11: fallback / 无 native player 都 noop.
+    if (_player == null) {
+      _fallbackPlayer?.pause();
+      return;
     }
+    await _player.pause();
     // 不改 _state.status: 业务层觉得还在 "playing",  只是底层暂停
     // 推流.  UI 显示可以靠 AppLifecycle 自己处理.
   }
@@ -337,10 +385,14 @@ class PlayerService extends ChangeNotifier {
   /// 停止播放
   Future<void> stop() async {
     if (_disposed) return;
-    // 6/17: 同步停掉 native player, 不只是改 UI 状态
-    if (_player != null) {
-      await _player.stop();
+    // v0.3.10.11: fallback / 无 native player 都 noop.
+    if (_player == null) {
+      _fallbackPlayer?.stop();
+      _set(const PlayerState.idle());
+      return;
     }
+    // 6/17: 同步停掉 native player, 不只是改 UI 状态
+    await _player.stop();
     _set(const PlayerState.idle());
   }
 
@@ -368,6 +420,63 @@ class PlayerService extends ChangeNotifier {
 
 // ───────────────────────────── Riverpod ─────────────────────────────
 
+/// v0.3.10.11 (6/23 老板反馈 腾讯极光盒子 6 v0.3.10.8 闪退):
+/// libmpv.so 在某些 TV box (Amlogic S905X3 等) 加载失败时的 fallback 播放器.
+///
+/// 实现走 platform channel `com.threelive.iptv/fallback_player` —
+/// native 端 (MainActivity.kt) 应该注册 MethodChannel handler,  用 Android
+/// MediaPlayer API 打开 url.  当前 native 端可能还没注册,  所以 play() 会
+/// 静默失败 — 但关键是 APP 不再闪退,  CrashLogger 会记 platform_error.
+///
+/// Channel 协议:
+///   - play({url: String}) -> bool
+///   - stop() -> void
+///   - pause() -> void
+///   - resume() -> void
+class FallbackMediaPlayer {
+  FallbackMediaPlayer();
+
+  // 注意: channel name 跟 MainActivity 一致.  当前 MainActivity 没注册,
+  // invokeMethod 会抛 MissingPluginException — 我们 catch 静默.
+  static const _channel = MethodChannel('com.threelive.iptv/fallback_player');
+
+  Future<bool> play(String url) async {
+    try {
+      final result = await _channel.invokeMethod<bool>('play', {'url': url});
+      return result ?? false;
+    } catch (e) {
+      debugPrint('FallbackMediaPlayer.play failed: $e');
+      await CrashLogger.log('FallbackMediaPlayer.play failed: $e');
+      return false;
+    }
+  }
+
+  Future<void> stop() async {
+    try {
+      await _channel.invokeMethod('stop');
+    } catch (e) {
+      debugPrint('FallbackMediaPlayer.stop failed: $e');
+      // 不写 CrashLogger — 暂停/停止频繁调用, log 会爆.
+    }
+  }
+
+  Future<void> pause() async {
+    try {
+      await _channel.invokeMethod('pause');
+    } catch (e) {
+      debugPrint('FallbackMediaPlayer.pause failed: $e');
+    }
+  }
+
+  Future<void> resume() async {
+    try {
+      await _channel.invokeMethod('resume');
+    } catch (e) {
+      debugPrint('FallbackMediaPlayer.resume failed: $e');
+    }
+  }
+}
+
 /// 共享的 [Player] 实例 (整个 APP 一个 native player)
 ///
 /// 6/17 修复合并到 main.dart: 之前 v0.2.0 启动崩
@@ -377,31 +486,72 @@ class PlayerService extends ChangeNotifier {
 /// 6/17 修声音残留: native player 的 dispose 由 [playerServiceProvider]
 /// 间接处理 (PlayerService.dispose() 调 _player.dispose()).  这里
 /// 只管创建,  不重复释放.
-final mediaKitPlayerProvider = Provider<Player>((ref) {
-  return Player();
+///
+/// v0.3.10.11 (6/23 腾讯极光盒子 6 闪退): libmpv.so 加载失败时
+/// return null, PlayerService 自动切换到 FallbackMediaPlayer.  老板装上
+/// 后视频放不出来但 APP 不闪退, CrashLogger 记 libmpv dlopen 失败日志.
+final mediaKitPlayerProvider = Provider<Player?>((ref) {
+  try {
+    return Player();
+  } catch (e, st) {
+    // v0.3.10.11: libmpv.so 加载失败 (Amlogic S905X3 等 TV box).
+    debugPrint('mediaKitPlayerProvider: Player() threw: $e\n$st');
+    // fire-and-forget, CrashLogger.init() 必须先调过.
+    unawaited(CrashLogger.log('Player() construction failed: $e'));
+    return null;
+  }
 });
 
 /// media_kit 的 video controller (用于 Video widget)
-final mediaKitVideoControllerProvider = Provider<VideoController>((ref) {
+///
+/// v0.3.10.11: libmpv 加载失败时 return null.  player_page.dart 检测到 null
+/// controller 时不渲染 Video widget,  直接走 ErrorOverlay / 占位.
+final mediaKitVideoControllerProvider = Provider<VideoController?>((ref) {
   final player = ref.watch(mediaKitPlayerProvider);
+  if (player == null) return null;
   // v0.3.7+65 (6/19): 显式 hwdec='mediacodec' 强制 Android 原生硬解.
   // 之前默认 'auto-safe' 在部分 Android 13+ 设备 (Pixel / 三星 / 小米新机) 会
   // 走 software fallback  →  H.264 High profile 4.1 1080p 解码慢/失败 → 绿屏.
   // 5G + 1000M 宽带 (老板 15:47 反馈)  速度不是问题,  是 decoder 不走硬件.
   // 'mediacodec' = Android MediaCodec API,  原生硬解,  H.264/H.265/AV1 都支持.
-  return VideoController(
-    player,
-    configuration: const VideoControllerConfiguration(
-      hwdec: 'mediacodec',
-    ),
-  );
+  try {
+    return VideoController(
+      player,
+      configuration: const VideoControllerConfiguration(
+        hwdec: 'mediacodec',
+      ),
+    );
+  } catch (e, st) {
+    debugPrint('mediaKitVideoControllerProvider: VideoController() threw: $e\n$st');
+    unawaited(CrashLogger.log('VideoController() construction failed: $e'));
+    return null;
+  }
 });
 
 /// [StreamOpener] — 默认走 media_kit 真实实现
+///
+/// v0.3.10.11: player == null (libmpv 加载失败) 时返回一个 noop opener,
+/// SourceFailover 调它时直接 fail.  这样 play() 走到 _player==null 分支
+/// 报 "本机播放器不可用" 错误, 不会尝试用 libmpv 打开流.
 final streamOpenerProvider = Provider<StreamOpener>((ref) {
   final player = ref.watch(mediaKitPlayerProvider);
+  if (player == null) {
+    return _NoopStreamOpener();
+  }
   return MediaKitStreamOpener(player);
 });
+
+/// v0.3.10.11: libmpv 不可用时的 fallback opener — 所有 open 立即 fail.
+class _NoopStreamOpener implements StreamOpener {
+  @override
+  Future<bool> open(String url, {required Duration timeout}) async {
+    await CrashLogger.log('_NoopStreamOpener.open($url) — libmpv unavailable');
+    return false;
+  }
+
+  @override
+  Future<void> cancel(String url) async {}
+}
 
 /// [PlayerService] — 全局单例
 final playerServiceProvider = ChangeNotifierProvider<PlayerService>((ref) {
@@ -412,6 +562,7 @@ final playerServiceProvider = ChangeNotifierProvider<PlayerService>((ref) {
   // 第二次 super.dispose() 触发 "ChangeNotifier used after being disposed".
   // ChangeNotifierProvider 会自动调 notifier.dispose(),  这里只创建.
   // PlayerService.dispose() 仍然会跑, 负责释放 native player (libmpv 实例).
+  // v0.3.10.11: player==null 时 PlayerService 内部自动走 fallback.
   return PlayerService(opener: opener, player: player);
 });
 
