@@ -34,7 +34,6 @@ class EpgService {
   // 不要我们更新app来更新".  每日 Beijing 凌晨 03:00 重新拉 XMLTV, 不需
   // 用户动手.  Timer 由 startAutoRefresh 启动, dispose() 释放.
   Timer? _refreshTimer;
-  DateTime? _lastRefresh;
 
   static const String _table = 'epg_cache';
 
@@ -224,7 +223,6 @@ class EpgService {
       final xml = await _xmltvSource!.fetchXml();
       _allEntries = await _xmltvSource!.parseXml(xml);
       _xmltvLoaded = true;
-      _lastRefresh = DateTime.now();
       debugPrint(
           'EpgService: 51zmt XMLTV loaded ${_allEntries.length} channels, '
           '${_allEntries.values.fold(0, (a, b) => a + b.length)} programmes');
@@ -315,7 +313,6 @@ class EpgService {
   Future<void> _refreshNow() async {
     _xmltvLoaded = false;
     _allEntries = const {};
-    _lastRefresh = DateTime.now();
     debugPrint('EpgService: 定时刷新触发, 下次 fetch 重新拉 XMLTV');
   }
 
