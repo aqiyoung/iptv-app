@@ -13,7 +13,10 @@
 //     → 1. 读 prefs,  < 1h 跳 fetch → 直接 return cache
 //     → 2. fetch GitHub API (dio + 5s timeout)
 //     → 3. parse tag_name + assets[].name 里的 versionCode
-//     → 4. 对比 currentVersionCode (pubspec 编译期 const,  传进来)
+//     → 4. 对比 currentVersion (pubspec 编译期 const,  传进来)
+//          用 semver + build 比较 (v0.3.10.4 修): 之前只比 build int,
+//          0.3.10+2 < 0.3.9+3 (2<3) → 永远判 upToDate.  现在比
+//          major.minor.patch 优先, 一样再比 build.
 //     → 5. 写 last_check_time,  标记 outdated → 弹 ForceUpdateDialog
 //     → 6. upToDate / failed → 静默 return
 //
@@ -280,7 +283,18 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
       // 写 last_seen_version (无论 outdated / upToDate 都写,  方便诊断).
       await _prefs.setString(_Keys.lastSeenVersion, parsed.tagName);
 
-      if (parsed.versionCode > currentCode) {
+      // v0.3.10.4 (6/23 老板反馈): 之前只比 parsed.versionCode (build int)
+      // vs currentCode,  semver 不比.  e.g.  老板装 0.3.9+3 (build=3),
+      // 发 v0.3.10+2 (build=2) → 2 > 3 = false → 永远判 upToDate.
+      // 修法: 先用 semver (major.minor.patch) 比,  一样再比 build.
+      //   parsed.tagName = 'v0.3.10.2' 或 'v0.3.10.4' (GitHub tag 格式)
+      //   currentStr     = '0.3.9'  或 '0.3.10+5' (pubspec current)
+      //  _compareVersions 接受 'v' 前缀 + 可选 '+N',  容错.
+      final cmp = _compareVersions(parsed.tagName, currentStr);
+      final isOutdated = cmp > 0 ||
+          (cmp == 0 && parsed.versionCode > currentCode);
+
+      if (isOutdated) {
         // 3. outdated — 检查是否被用户 dismiss 过
         final dismissedVer = _prefs.getString(_Keys.dismissedVersion);
         final dismissedAt = _prefs.getInt(_Keys.dismissedAt);
