@@ -16,6 +16,7 @@ import 'package:sanyelive/services/source_failover.dart';
 import 'package:sanyelive/services/startup_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:sanyelive/data/sources/remote_sources_source.dart';
 const List<Channel> _kFixtureChannels = <Channel>[
   Channel(
     id: 'CCTV1.cn',
@@ -78,6 +79,20 @@ class _NoopOpener implements StreamOpener {
 }
 
 /// ChannelRepository fake — 返回预置频道, 避免 assets 加载
+/// v0.3.10.8: channelsProvider body 走远端 enrich, 测试不连 HTTP + sqflite.
+/// 返空 bundle → _enrichWithRemoteSources 走 fallback (保持本地).
+class _FakeEmptyRemoteSourcesNotifier
+    extends RemoteSourcesNotifier {
+  @override
+  Future<RemoteSourcesBundle> build() async {
+    return const RemoteSourcesBundle(
+      meta: {},
+      known: {},
+      dead: {},
+    );
+  }
+}
+
 class _FakeRepo extends ChannelRepository {
   const _FakeRepo(this._channels);
   final List<Channel> _channels;
@@ -97,6 +112,7 @@ List<Override> _testOverrides() => <Override>[
       // 测试环境注入 fake,  避免 instantiate 真 native player.
       mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
       streamOpenerProvider.overrideWithValue(_NoopOpener()),
+      remoteSourcesProvider.overrideWith(_FakeEmptyRemoteSourcesNotifier.new),
       // 卡 6: HomePage 现在需要 StartupService + FavoritesService
       startupServiceProvider.overrideWithValue(StartupService()),
       favoritesServiceProvider.overrideWithValue(
