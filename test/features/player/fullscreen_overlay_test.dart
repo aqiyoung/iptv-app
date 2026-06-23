@@ -34,7 +34,9 @@ void main() {
   setUpAll(() async {
     sqflite_ffi.sqfliteFfiInit();
     databaseFactory = sqflite_ffi.databaseFactoryFfi;
-    setUp(() {
+  });
+
+  setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
 
