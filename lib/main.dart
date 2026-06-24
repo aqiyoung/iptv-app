@@ -65,9 +65,6 @@ void main() async {
     debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
   }
   await CrashLogger.log('v0.3.10.15 step2: before orientations');
-  } catch (e) {
-    debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
-  }
   // v0.3.8+120: 启动时全局允许 portrait + landscape
   SystemChrome.setPreferredOrientations(const [
     DeviceOrientation.portraitUp,
