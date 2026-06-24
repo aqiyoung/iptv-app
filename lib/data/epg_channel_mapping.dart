@@ -6,7 +6,7 @@
 /// 生成脚本: 根据 channels_cn.json 的 alt_names/channel_name_zh + 中文名匹配.
 /// 覆盖: 126 / 198 CN 频道 (63%).
 /// 未映射的频道 fallback 到占位节目单 (上午档/下午档/黄金档/夜间档).
-const Map<String, String> kChannelIdToEpg = {
+final Map<String, String> kChannelIdToEpg = {
   // ── CCTV 主频道 ──
   'CCTV1.cn': 'CCTV1',
   'CCTV2.cn': 'CCTV2',
@@ -150,4 +150,4 @@ const Map<String, String> kChannelIdToEpg = {
   'ShandongTVVarietyChannel.cn': '山东卫视',
   'SichuanTVWomenandChildrenChannel.cn': '四川卫视',
   'ZhejiangInternationalChannel.cn': '浙江卫视',
-];
+};
