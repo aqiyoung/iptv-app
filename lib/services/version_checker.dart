@@ -31,6 +31,7 @@
 //   - 如果 release body 缺 P0 标记,  默认 non-critical.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting, debugPrint;
@@ -425,28 +426,29 @@ class VersionCheckerNotifier extends Notifier<VersionCheckState> {
         );
         if (resp.statusCode == 200) {
           final data = resp.data;
-          // v0.3.10.9 (6/23 老板反馈 "更新检测失败"): cf-workers-proxy 6/23 11:50 返 HTML "Protective Registration" (Cloudflare 保护域名),
-          // dio 默认 responseType=json 会自动 parse 失败抛 DioException. 改成 plain + 自己 check body 是不是 JSON.
-          if (data is Map<String, dynamic>) {
-            // 成功!  持久化成功 URL,  下次启动直接用 (避免每次都走 chain 第 1 个).
-            // 注意: 只有当用户没自定义 endpoint 时才覆盖, 不抢用户设置.
-            if (url != custom) {
-              // ignore: discarded_futures
-              _prefs.setString(kEndpointPrefsKey, url);
-            }
-            return data;
-          }
+          // v0.3.10.9 (6/23): responseType=plain → resp.data 永远是 String.
+          // 手动 decode JSON,  先检测 HTML / 非 JSON 再 parse.
           if (data is String) {
-            // v0.3.10.9: 用 replaceFirst(RegExp('^\\s+'), '') 代替 trimStart — 
-            // trimStart 是 Dart 3.0+ 加的, 跟 Flutter 3.29.3 的 SDK 31 编译不兼容.
             final s = data.replaceFirst(RegExp(r'^\s+'), '');
             if (s.startsWith('<') || s.startsWith('<!DOCTYPE')) {
               lastError = 'HTML response (CF protective registration?) from $url';
-            } else {
-              lastError = 'non-JSON string from $url: ${s.substring(0, s.length.clamp(0, 80))}';
+              continue;
+            }
+            try {
+              final decoded = jsonDecode(s);
+              if (decoded is Map<String, dynamic>) {
+                if (url != custom) {
+                  // ignore: discarded_futures
+                  _prefs.setString(kEndpointPrefsKey, url);
+                }
+                return decoded;
+              }
+              lastError = 'non-Map JSON from $url';
+            } catch (_) {
+              lastError = 'invalid JSON from $url: ${s.substring(0, s.length.clamp(0, 80))}';
             }
           } else {
-            lastError = 'non-JSON from $url (${data.runtimeType})';
+            lastError = 'unexpected data type from $url (${data.runtimeType})';
           }
         } else {
           lastError = 'HTTP ${resp.statusCode} from $url';
