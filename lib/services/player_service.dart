@@ -451,9 +451,9 @@ class FallbackMediaPlayer {
 
 /// 共享的 [Player] 实例 (整个 APP 一个 native player)
 ///
-/// v0.3.10.16: libmpv 可用性标志 — main() 里通过 MethodChannel 预检.
+/// v0.3.10.16: libmpv 可用性标志 — main() 里通过 MethodChannel 预检后写入.
 /// true = 可以调 MediaKit.ensureInitialized(), false = 直接走 Fallback.
-final libmpvAvailableProvider = StateProvider<bool>((ref) => true);
+final libmpvAvailableProvider = Provider<bool>((ref) => true);
 
 /// v0.3.10.14: MediaKit.ensureInitialized() + Player() 全部从 main() 移到这里.
 /// main() 里调会触发 native SIGSEGV (libmpv.so dlopen 失败) 直接杀进程,

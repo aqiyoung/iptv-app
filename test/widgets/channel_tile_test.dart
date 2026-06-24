@@ -16,17 +16,16 @@ Widget _wrap(Widget child) => ProviderScope(
     );
 
 void main() {
-  testWidgets('ChannelTile renders number, name, country', (tester) async {
+  testWidgets('ChannelTile renders number, name, category', (tester) async {
     await tester.pumpWidget(
       _wrap(const ChannelTile(
         channelNumber: '01',
         channelName: 'CCTV-1',
-        country: '中国大陆',
       )),
     );
     expect(find.text('01'), findsOneWidget);
     expect(find.text('CCTV-1'), findsOneWidget);
-    expect(find.text('中国大陆'), findsOneWidget);
+    expect(find.text('央视'), findsOneWidget); // 副标题显示分类名
     expect(find.text('LIVE'), findsOneWidget);
   });
 
