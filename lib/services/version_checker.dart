@@ -41,28 +41,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/features/settings/theme_provider.dart'
     show sharedPreferencesProvider;
 
-/// GitHub releases API endpoint fallback chain (v0.3.10.7).
-/// 老板 6/23 08:15 反馈 "我要获取更新, 直接从 GitHub 上就没有反应".
-/// 根因: gh-proxy.com 返 403 (API rate limit, 共享 IP 1h 60 req).
-/// 老板试了 ghproxy.com / mirror.ghproxy.com 都 timeout, gh-proxy.net 返 HTML 错误页.
-///   curl 实测 (6/23 08:14):
-///     - gh-proxy.com/api.github.com/... → 403 "API rate limit exceeded"
-///     - ghproxy.com/...                  → timeout
-///     - mirror.ghproxy.com/...           → timeout
-///     - gh-proxy.net/...                 → 200 但返 HTML (size 195, 不是 JSON)
-///     - cf-workers-proxy-9e9.pages.dev/api.github.com/... → 200 OK 1.26s ✅
-///   加 fallback chain: 主 endpoint 失败 → 自动试下一个,  全失败才静默.
-///   顺序按可靠性 + 国内可达性排序:
-///     1. cf-workers-proxy-9e9.pages.dev — Cloudflare Worker 中转 (最稳, 6/23 实测 1.26s)
-///     2. gh-proxy.com                   — Cloudflare CDN (rate limit 时兜底)
-///     3. api.github.com                  — 直连 (国内可能慢, 海外用户保底)
-/// v0.3.10.7 验证 (老板装 APK 后):
-///   启动 → fetch cf-workers → 200 OK → 解析 v0.3.10.6 release → semver
-///   0.3.10.6 > 0.3.10+6 → outdated → 弹 ForceUpdateDialog.
+/// GitHub releases API endpoint fallback chain (v0.3.10.13).
+/// v0.3.10.7~v0.3.10.12 历史:
+///   gh-proxy.com 403 (rate limit) → cf-workers-proxy 被 CF 保护返 HTML → 链式 fallback.
+/// v0.3.10.13 (6/24) 重排: 直连优先 + cf-worker 兜底.
+///   curl 实测 (6/24 本机不走代理):
+///     - api.github.com 直连 → 200 OK 0.6s ✅ (国内能直连, 最快最稳)
+///     - cf-workers-proxy-9e9.pages.dev → 200 OK 1.3~2.8s ✅ (直连不通时兜底)
+///     - gh-proxy.com → 403 rate limit (共享 IP 被限, 不再使用)
+///   APP 运行环境 (用户手机/盒子) 未必能直连 GitHub,  所以保留 cf-worker 兜底.
+///   gh-proxy.com 彻底弃用 (403 频率太高, chain 里放它只会浪费一次超时).
 const List<String> kDefaultEndpointUrls = [
-  'https://gh-proxy.com/api.github.com/repos/aqiyoung/iptv-app/releases/latest',             // primary (v0.3.10.9: cf-workers-proxy 6/23 11:50 返 HTML Protective Registration, 改 gh-proxy 为 primary)
-  'https://api.github.com/repos/aqiyoung/iptv-app/releases/latest',                            // fallback (海外/直连)
-  'https://cf-workers-proxy-9e9.pages.dev/api.github.com/repos/aqiyoung/iptv-app/releases/latest', // fallback (历史上 1.26s 200 OK, 现在被 CF 保护, 留作兜底)
+  'https://api.github.com/repos/aqiyoung/iptv-app/releases/latest',                            // primary: 直连 (0.6s, 6/24 实测)
+  'https://cf-workers-proxy-9e9.pages.dev/api.github.com/repos/aqiyoung/iptv-app/releases/latest', // fallback: CF Worker (国内不能直连时)
 ];
 
 /// 兼容老代码 — 取 chain[0]. 单元测试可 overrideWithValue.
@@ -75,14 +66,9 @@ String get kDefaultEndpointUrl => kDefaultEndpointUrls.first;
 /// SharedPreferences 持久化.
 const String kEndpointPrefsKey = 'version_checker.endpoint_url';
 
-/// v0.3.7+92: 老默认 endpoint (api.github.com 直连) — 用于迁移.
-/// 老板已装 +85~+91 版本,  prefs 里可能存了老 URL,  build() 会
-/// 检测到然后升级到 gh-proxy.com.  kLegacyEndpointUrl 是常量化.
-/// 迁移后这个常量可删 (加个 v0.3.8 + N release 清理).
-const String kLegacyEndpointUrl =
-    'https://api.github.com/repos/aqiyoung/iptv-app/releases/latest';
-
-/// 当前 endpoint URL — 默认 gh-proxy.com 代理 api.github.com.
+/// v0.3.10.13 (6/24): 默认改为直连 api.github.com.
+/// 老版本可能存了 gh-proxy.com,  build() 自动迁移到直连.
+/// 当前 endpoint URL — 默认 api.github.com 直连.
 /// 单元测试可 overrideWithValue.
 /// 用 Notifier 实现 (跟 themeMode 一样), 改 URL 时持久化.
 class EndpointNotifier extends Notifier<String> {
@@ -91,50 +77,26 @@ class EndpointNotifier extends Notifier<String> {
   @override
   String build() {
     _prefs = ref.read(sharedPreferencesProvider);
-    // v0.3.7+92 (6/20 08:42 老板反馈): 老板已装 +85~+91 时在 prefs 里存了老默认
-    // api.github.com 直连 (国内超时).  APP 升级到 +92 后,  启动时检测到 prefs 里的
-    // URL == 老默认,  自动迁移到新默认 gh-proxy.com (国内 600ms 响应).
-    // v0.3.8+95 (6/20 12:35 老板反馈): 不限于精确匹配 kLegacyEndpointUrl.
-    // 老板可能手动改过 URL (例如 上一版他填了自己的中转), 但如果 URL 还含
-    // api.github.com/repos/* 就自动迁移到 gh-proxy.com 包起来.
-    // 手动填的非 github URL (e.g. NAS 自建镜像) 不动.
-    // 之前 exact-match 迁不到, 老板装 +94 后还会看到老 URL 报网络错.
+    // v0.3.10.13 (6/24): 默认改为直连 api.github.com.
+    // 老版本 (+85~+92) 可能在 prefs 里存了 gh-proxy.com URL.
+    // 如果 prefs 里是 gh-proxy.com, 迁移到直连 api.github.com.
+    // 其他自定义 URL (cf-worker / 自建镜像 / NAS) 不动.
     final stored = _prefs.getString(kEndpointPrefsKey);
     if (stored == null) return kDefaultEndpointUrl;
-    // 迁移规则: URL 含 'api.github.com/repos/' 且 不含 'gh-proxy.com'
-    // → 包成 'https://gh-proxy.com/api.github.com/repos/.../releases/latest'
-    final migrated = _migrateGithubUrl(stored);
-    if (migrated != stored) {
+    // 迁移: gh-proxy.com → api.github.com 直连
+    if (stored.contains('gh-proxy.com/api.github.com')) {
+      final uri = Uri.tryParse(stored);
+      final migrated = uri != null
+          ? 'https://api.github.com${uri.path}'
+          : kDefaultEndpointUrl;
       // ignore: discarded_futures
       _prefs.setString(kEndpointPrefsKey, migrated);
-      debugPrint('EndpointNotifier: migrated $stored -> $migrated');
-      // v0.3.8+97 (6/20 13:11 老板反馈 "更新检测不到"):
-      // 之前老板装 +94 时 fetch 老 api.github.com URL 失败 → _prefs.lastCheckTime
-      // 写入了 now.  装 +97 后迁到 gh-proxy.com, 但 cache 1h TTL 不重试.
-      // 手动点 "检查更新" 才绕过 cache.  老板不会这么做 → 检测不到新版本.
-      // 现在迁移 URL 时同时清 last_check_time,  下次启动 fetch 新 endpoint.
+      debugPrint('EndpointNotifier: migrated gh-proxy -> direct: $migrated');
       // ignore: discarded_futures
       _prefs.remove(_Keys.lastCheckTime);
       return migrated;
     }
     return stored;
-  }
-
-  /// 迁移老 api.github.com URL 到 gh-proxy.com 代理.
-  /// 返回 null = 不需要迁移 (URL 已经是新格式 或 用户自填的).
-  /// 返回非空 = 迁移后 URL.
-  String _migrateGithubUrl(String url) {
-    // 已经是 gh-proxy.com 包过的 → 不动
-    if (url.contains('gh-proxy.com')) return url;
-    // 含 api.github.com/repos/ → 包成 gh-proxy.com
-    if (url.contains('api.github.com/repos/')) {
-      // 提取 path 部分 (api.github.com/ 之后的所有)
-      final uri = Uri.tryParse(url);
-      if (uri == null) return url;
-      // 重组: https://gh-proxy.com/api.github.com/repos/{owner}/{repo}/releases/latest
-      return 'https://gh-proxy.com/api.github.com${uri.path}';
-    }
-    return url;
   }
 
   /// 用户改 endpoint — 持久化 + state 更新.
@@ -161,7 +123,7 @@ class EndpointNotifier extends Notifier<String> {
     state = trimmed;
   }
 
-  /// 重置回默认 (gh-proxy.com 代理 api.github.com).
+  /// 重置回默认 (api.github.com 直连).
   Future<void> resetEndpoint() async {
     await _prefs.remove(kEndpointPrefsKey);
     state = kDefaultEndpointUrl;

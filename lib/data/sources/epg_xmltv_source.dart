@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../../core/http/ipv4_client.dart';
+import '../epg_channel_mapping.dart';
 import '../models/epg.dart';
 
 /// 51zmt XMLTV 数据源 (http://epg.51zmt.top:8000/e.xml.gz).
@@ -25,7 +26,7 @@ class XmltvEpgSource {
   XmltvEpgSource({http.Client? client, this.endpoint = _defaultEndpoint})
       : _client = client ?? IPv4Client();
 
-  static const String _defaultEndpoint = 'http://epg.51zmt.top:8000/e.xml.gz';
+  static const String _defaultEndpoint = 'https://epg.zsdc.eu.org/t.xml.gz';
 
   final http.Client _client;
   final String endpoint;
@@ -134,20 +135,13 @@ class XmltvEpgSource {
         .replaceAll('&apos;', "'");
   }
 
-  /// 把 iptv-org channel.id 映射到 51zmt 的 channel.id.
+  /// 把 iptv-org channel.id 映射到 suzukua/epg 的 channel.id (中文名).
   ///
-  /// - `CCTV1.cn` → `1`
-  /// - `CCTV5Plus.cn` → `5` (51zmt 没 `+`, 取前缀数字)
-  /// - `CCTV16.cn` → `16` (CCTV-16 奥林匹克 4K)
-  /// - `HunanTV.cn` → `HunanTV` (剥 `.cn`, 51zmt 也用同名 id)
-  /// - 失败返 `null` (caller 用占位 fallback).
+  /// v0.3.10.13 (6.24): 从 51zmt 数字 ID 改为 suzukua 中文名 ID.
+  /// 映射表在 lib/data/epg_channel_mapping.dart, 覆盖 126/198 CN 频道.
+  /// 失败返 null → EpgService fallback 到占位节目单.
   static String? mapChannelIdToEpg(String iptvOrgId) {
-    final m = RegExp(r'CCTV(\d+)').firstMatch(iptvOrgId);
-    if (m != null) return m.group(1);
-    if (iptvOrgId.endsWith('.cn')) {
-      return iptvOrgId.substring(0, iptvOrgId.length - 3);
-    }
-    return null;
+    return kChannelIdToEpg[iptvOrgId];
   }
 
   void close() => _client.close();

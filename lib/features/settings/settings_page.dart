@@ -97,7 +97,7 @@ class SettingsPage extends ConsumerWidget {
                     leading: const Icon(Icons.dns_outlined),
                     title: const Text('更新源'),
                     subtitle: Text(
-                      isDefault ? '默认 (gh-proxy.com 代理 api.github.com)' : endpoint,
+                      isDefault ? '默认 (api.github.com 直连)' : endpoint,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -296,10 +296,10 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  // ─── 更新源 URL 编辑 (v0.3.7+85, v0.3.7+92) ────────────────────────────────────────────
+  // ─── 更新源 URL 编辑 (v0.3.7+85, v0.3.10.13) ──────────────────────────────────────────
   // v0.3.7+85: 老板手机国内访问 api.github.com 经常超时, 弹 dialog 让老板填国内中转 URL.
-  // v0.3.7+92: 默认 endpoint 改为 gh-proxy.com (代理 api.github.com),
-  //   国内 600ms.  老板还是能在 dialog 里改 (填别的代理 / 填自建镜像 / 重置回默认).
+  // v0.3.10.13 (6/24): 默认改为直连 api.github.com,  老 gh-proxy.com URL 自动迁移.
+  // 老板还是能在 dialog 里改 (填 CF Worker / 自建镜像 / 重置回默认).
   // 填完调 endpointProvider.notifier.setEndpoint() 持久化.
   Future<void> _editEndpoint(BuildContext context, WidgetRef ref) async {
     final current = ref.read(endpointProvider);
@@ -314,12 +314,12 @@ class SettingsPage extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '默认: gh-proxy.com 代理 api.github.com (国内 600ms)',
+                '默认: api.github.com 直连',
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 8),
               const Text(
-                '其他中转: gh-proxy.com / 自建镜像 (NAS + nginx)',
+                '备选: cf-workers-proxy / 自建镜像 (NAS + nginx)',
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 16),
@@ -348,7 +348,7 @@ class SettingsPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () async {
-              // 重置默认 (gh-proxy.com)
+              // 重置默认 (api.github.com 直连)
               await ref.read(endpointProvider.notifier).resetEndpoint();
               if (ctx.mounted) Navigator.of(ctx).pop('reset');
             },
@@ -373,7 +373,7 @@ class SettingsPage extends ConsumerWidget {
     if (result != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result == 'reset' ? '已重置为默认 gh-proxy.com 代理' : '已保存: $result'),
+          content: Text(result == 'reset' ? '已重置为默认 (api.github.com 直连)' : '已保存: $result'),
           duration: const Duration(seconds: 2),
         ),
       );

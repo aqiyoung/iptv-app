@@ -24,6 +24,8 @@ class EpgService {
   Database? _db;
   static const Duration _cacheMaxAge = Duration(hours: 6);
 
+  // v0.3.10.13 (6/24): suzukua/epg (https://epg.zsdc.eu.org/t.xml.gz) 全量缓存.
+  // 每日 03:00 Beijing 自动刷新. 125 频道, ~557KB gzip, 7 天回看 + 5 天预告.
   // v0.3.10 (6/23): 51zmt XMLTV 全量缓存. 首次 fetch 时拉 ~1MB XML,
   // 解析后存 _allEntries; 后续按 channel 查询走内存 (避免每频道重复拉).
   XmltvEpgSource? _xmltvSource;
@@ -183,6 +185,8 @@ class EpgService {
 
   /// 拉取某频道的 EPG 列表.
   ///
+  /// v0.3.10.13 (6/24): 接 suzukua/epg 真实 XMLTV 数据源
+  /// (https://epg.zsdc.eu.org/t.xml.gz). 聚合 5 个源, 125 频道, 每日 2 次更新.
   /// v0.3.10 (6/23): 接 51zmt 真实 XMLTV 数据源
   /// (http://epg.51zmt.top:8000/e.xml.gz, 老板 6/23 06:50 反馈
   /// "不应该拉真实的实时数据吗").
@@ -224,10 +228,10 @@ class EpgService {
       _allEntries = await _xmltvSource!.parseXml(xml);
       _xmltvLoaded = true;
       debugPrint(
-          'EpgService: 51zmt XMLTV loaded ${_allEntries.length} channels, '
+          'EpgService: suzukua XMLTV loaded ${_allEntries.length} channels, '
           '${_allEntries.values.fold(0, (a, b) => a + b.length)} programmes');
     } catch (e) {
-      debugPrint('EpgService: 51zmt fetch failed: $e, fallback to placeholder');
+      debugPrint('EpgService: suzukua fetch failed: $e, fallback to placeholder');
       return _placeholderSchedule(channelId);
     }
 
@@ -332,7 +336,7 @@ class EpgService {
 /// 测试可 overrideWithValue(EpgService(db: mockDb)).
 ///
 /// v0.3.10 (6/23): 启动时调 startAutoRefresh() — 每日 Beijing 03:00 自动
-/// 重新拉 51zmt XMLTV, 老板不需手动.  ref.onDispose 跟 Riverpod 生命周期
+/// 重新拉 suzukua/epg XMLTV, 老板不需手动.  ref.onDispose 跟 Riverpod 生命周期
 /// 绑定, app 退出时释放 timer + http client.
 final epgServiceProvider = Provider<EpgService>((ref) {
   final svc = EpgService();
