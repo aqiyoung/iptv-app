@@ -89,6 +89,65 @@ class Channel {
   /// 实际定义在 lib/data/channel_name_zh.dart, 运行时通过 import 注入.
   static const Map<String, String> _manualZhMap = kChannelNameZh;
 
+  /// v0.3.10.16: 从频道属性推导中文分类.
+  /// 远端 iptv-org 数据是英文分类 (general/cctv/satellite), 这里统一转为中文.
+  static List<String> _deriveCategories(Channel ch) {
+    final cid = ch.id;
+    final name = ch.name;
+    final altNames = ch.altNames;
+    final country = ch.country;
+
+    // 央视
+    if (RegExp(r'CCTV', caseSensitive: false).hasMatch(cid)) return ['央视'];
+
+    // 卫视
+    if (cid.contains('Satellite') ||
+        cid.contains('TVInternational') ||
+        name.contains('卫视') ||
+        altNames.any((a) => a.contains('卫视'))) {
+      return ['卫视'];
+    }
+
+    // 国际 (非中文区)
+    if (country.isNotEmpty &&
+        !{'CN', 'HK', 'TW', 'MO'}.contains(country)) {
+      return ['国际'];
+    }
+
+    // 内容分类 (按名称关键词)
+    final allNames = [name, ...altNames].join(' ');
+    if (RegExp(r'新闻|News|CGTN', caseSensitive: false).hasMatch(allNames) ||
+        cid.contains('news')) {
+      return ['新闻'];
+    }
+    if (RegExp(r'电影|Movie|影院|剧场|Drama|CHC', caseSensitive: false)
+        .hasMatch(allNames)) {
+      return ['影视'];
+    }
+    if (RegExp(r'少儿|Kids|卡通|Cartoon|Children', caseSensitive: false)
+        .hasMatch(allNames)) {
+      return ['少儿'];
+    }
+    if (RegExp(r'体育|Sports|足球|Football', caseSensitive: false)
+        .hasMatch(allNames)) {
+      return ['体育'];
+    }
+    if (RegExp(r'教育|Education|科学|Science|科教', caseSensitive: false)
+        .hasMatch(allNames)) {
+      return ['科教'];
+    }
+    if (RegExp(r'娱乐|Variety|综艺|音乐|Music', caseSensitive: false)
+        .hasMatch(allNames)) {
+      return ['娱乐'];
+    }
+    if (RegExp(r'财经|Finance|经济|Economic', caseSensitive: false)
+        .hasMatch(allNames)) {
+      return ['财经'];
+    }
+
+    return ['地方'];
+  }
+
   factory Channel.fromJson(Map<String, dynamic> j) {
     // v0.3.5.1 (6/18): 支持 string 和 {url, type} dict 两种 source 格式.
     // channels_cn.json 现有 145 string 源 (iptv-org 原始格式) + 83 dict 源
@@ -118,12 +177,22 @@ class Channel {
         if (url is String) cctvSource.add(url);
       }
     }
+    // v0.3.10.16: 从属性推导中文分类 (覆盖远端英文分类)
+    final derivedCategories = _deriveCategories(
+      Channel(
+        id: j['id'] as String,
+        name: (j['name'] as String?) ?? (j['id'] as String),
+        country: (j['country'] as String?) ?? '',
+        categories: const [],
+        sources: const [],
+      ),
+    );
+
     return Channel(
       id: j['id'] as String,
       name: (j['name'] as String?) ?? (j['id'] as String),
       country: (j['country'] as String?) ?? '',
-      categories:
-          ((j['categories'] as List?)?.cast<String>()) ?? const <String>[],
+      categories: derivedCategories,
       altNames: ((j['alt_names'] as List?)?.cast<String>()) ?? const <String>[],
       website: j['website'] as String?,
       logoUrl: j['logo'] as String?,
