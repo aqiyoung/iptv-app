@@ -58,13 +58,13 @@ void main() async {
   // 现在改成 main 同步等 init 完成再 runApp. WidgetsFlutterBinding
   // 也必须 await, 因为 ensureInitialized 要用到 binding.
   WidgetsFlutterBinding.ensureInitialized();
-  // v0.3.10.13: 启动第一步装 CrashLogger — 后续 MediaKit / Player() 失败
-  // 都能记到 crash.log.  这必须在 ensureMediaKit + read(playerServiceProvider) 之前.
-  // 加 try-catch: 如果 CrashLogger.init() 自身失败 (路径/权限问题),
-  // 不阻塞启动 — 后续 debugPrint 也能在 logcat 看到错误.
   try {
     await CrashLogger.init();
-    await CrashLogger.log('App starting (main.dart v0.3.10.13+)');
+    await CrashLogger.log('v0.3.10.15 step1: CrashLogger OK');
+  } catch (e) {
+    debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
+  }
+  await CrashLogger.log('v0.3.10.15 step2: before orientations');
   } catch (e) {
     debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
   }
@@ -143,9 +143,9 @@ void main() async {
   // 改为懒加载: 生命周期/路由观察器持有 container 引用,  事件触发时才读 provider.
   // 路由观察器: 离开 /player/* 时 stop + dispose.
   final playerObserver = PlayerRouteObserver(container);
-  // APP 生命周期观察器: paused/inactive/hidden → pause, detached → stop+dispose.
   final lifecycleListener = _AppLifecycleListener(container);
   WidgetsBinding.instance.addObserver(lifecycleListener);
+  await CrashLogger.log('v0.3.10.15 step3: before runApp');
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -339,16 +339,17 @@ class _CrashScreen extends StatelessWidget {
               const Icon(Icons.error_outline, color: Colors.red, size: 64),
               const SizedBox(height: 12),
               const Text(
-                '三页直播 - 启动错误',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFB71C1C)),
-              ),
-              const SizedBox(height: 8),
-              const Text(
                 'APP 启动时发生错误, 详细信息如下。重启 / 清除缓存 / 重装可能解决。',
                 style: TextStyle(fontSize: 13, color: Color(0xFF7F0000)),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '崩溃日志: /sdcard/Download/iptv_crash.log\n'
+                '用盒子文件管理器打开 Download 文件夹查看',
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    color: Color(0xFF1565C0)),
               ),
               const SizedBox(height: 16),
               Text(

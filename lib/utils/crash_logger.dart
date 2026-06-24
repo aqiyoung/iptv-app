@@ -30,34 +30,32 @@ class CrashLogger {
     if (_initialized) return;
     _initialized = true;
 
+    // v0.3.10.15: 同时写两个位置:
+    //   1. /sdcard/Download/iptv_crash.log — TV 盒子文件管理器可直接看到
+    //   2. app 内部存储 — adb pull 备用
     try {
-      // v0.3.10.13: 先尝试 getApplicationSupportDirectory (内部存储),
-      // 失败则尝试 getExternalFilesDir (外部存储, 不需要权限).
-      // 部分 TV box 内部存储路径可能不存在或权限不足.
-      Directory? dir;
+      // 位置1: /sdcard/Download/ (Android 9 及以下无需权限)
       try {
-        dir = await getApplicationSupportDirectory();
-      } catch (e) {
-        debugPrint('CrashLogger: getApplicationSupportDirectory failed: $e');
-        // fallback: 尝试外部存储
-        try {
-          dir = await getExternalStorageDirectory();
-        } catch (e2) {
-          debugPrint('CrashLogger: getExternalStorageDirectory also failed: $e2');
-        }
-      }
-
-      if (dir != null) {
-        _logFile = File('${dir.path}/crash.log');
+        _logFile = File('/sdcard/Download/iptv_crash.log');
         if (!await _logFile!.exists()) {
           await _logFile!.create(recursive: true);
         }
-        await _writeLog('CrashLogger init OK at ${_logFile!.path}');
-      } else {
-        debugPrint('CrashLogger: all directory options failed');
+        await _writeLog('CrashLogger init OK (Download dir)');
+      } catch (e) {
+        debugPrint('CrashLogger: /sdcard/Download failed: $e');
+        // fallback: app 内部存储
+        try {
+          final dir = await getApplicationSupportDirectory();
+          _logFile = File('${dir.path}/crash.log');
+          if (!await _logFile!.exists()) {
+            await _logFile!.create(recursive: true);
+          }
+          await _writeLog('CrashLogger init OK (internal dir)');
+        } catch (e2) {
+          debugPrint('CrashLogger: internal dir also failed: $e2');
+        }
       }
     } catch (e, st) {
-      // 写不进 log 就 debugPrint — 至少 logcat 能看到
       debugPrint('CrashLogger init failed: $e\n$st');
     }
 
