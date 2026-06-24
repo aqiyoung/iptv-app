@@ -566,7 +566,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   opacity: _controlsVisible ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 250),
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.85),
+                    color: Colors.black.withOpacity(0.85),
                     child: SafeArea(
                       bottom: false,
                       child: TopBar(

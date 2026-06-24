@@ -32,6 +32,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../../core/responsive/breakpoints.dart';
 
 /// Splash 展示总时长 (3s — 跟 v0.3.8+177 保持一致, 老板实测节奏).
 const Duration kSplashDuration = Duration(milliseconds: 3000);
@@ -86,6 +87,13 @@ class _SanyeliveSplashState extends State<SanyeliveSplash>
   @override
   Widget build(BuildContext context) {
     if (_hidden) return widget.child;
+    // v0.3.10.13 (6/24): TV 盒子启动闪退修复 — TV 上跳过 splash 动画.
+    // TV 盒子 Flutter 引擎初始化慢, Material + CustomPaint 的 GPU 渲染路径
+    // 在部分 TV 盒子 (如腾讯极光盒子) 上触发白屏崩溃. 检测为 TV 时跳过
+    // splash, 直接显示 child (路由页面), 不影响手机端完整动画体验.
+    if (context.deviceTier == DeviceTier.tv) {
+      return widget.child;
+    }
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Stack(
@@ -239,7 +247,7 @@ class _SplashLogo extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   // 红 plate 阴影 — 避免裸 Container 边界 1px 黄线 (v0.3.8+177 反馈).
-                  color: const Color(0xFFE53935).withValues(alpha: 0.25),
+                  color: const Color(0xFFE53935).withOpacity(0.25),
                   blurRadius: 40,
                   offset: const Offset(0, 12),
                 ),
