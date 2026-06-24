@@ -185,21 +185,6 @@ class PlayerService extends ChangeNotifier {
     if (_disposed) return;
     if (_playing) return; // v0.3.8+169: 防并发 play() 覆盖状态
 
-    // v0.3.10.11: libmpv 没加载成功 (腾讯极光盒子 6 等 TV box) →
-    // 走 fallback, 状态直接进 error, 老板看 error overlay 重试.
-    if (_player == null) {
-      CrashLogger.log('play() but _player is null — libmpv init failed');
-      _set(
-        _state.copyWith(
-          status: PlayerStatus.error,
-          channel: channel,
-          error: '本机播放器不可用 (libmpv 加载失败)。\n'
-              'crash.log: ${CrashLogger.logFilePath ?? "(unavailable)"}',
-          clearAttempt: true,
-        ),
-      );
-      return;
-    }
     _playing = true;
 
     // v0.3.5.3 (6/18): 用 SourceDispatcher 选源 — CCTV 频道优先走 cctvSource,
@@ -286,19 +271,6 @@ class PlayerService extends ChangeNotifier {
   /// 同一频道的另一路源,  channel 不变).
   Future<void> playSingleSource(String url, {Channel? channel}) async {
     if (_disposed) return;
-    // v0.3.10.11: libmpv 加载失败 → fallback 占位.
-    if (_player == null) {
-      CrashLogger.log('playSingleSource() but _player is null — libmpv init failed');
-      _set(
-        _state.copyWith(
-          status: PlayerStatus.error,
-          error: '本机播放器不可用 (libmpv 加载失败)。\n'
-              'crash.log: ${CrashLogger.logFilePath ?? "(unavailable)"}',
-          clearAttempt: true,
-        ),
-      );
-      return;
-    }
     final ch = channel ?? _state.channel;
     if (ch == null) {
       // 没有 channel 上下文, 只能假定这是个 raw URL,  跳过错 channel 的检查
