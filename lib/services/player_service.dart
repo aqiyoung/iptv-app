@@ -451,11 +451,22 @@ class FallbackMediaPlayer {
 
 /// 共享的 [Player] 实例 (整个 APP 一个 native player)
 ///
+/// v0.3.10.16: libmpv 可用性标志 — main() 里通过 MethodChannel 预检.
+/// true = 可以调 MediaKit.ensureInitialized(), false = 直接走 Fallback.
+final libmpvAvailableProvider = StateProvider<bool>((ref) => true);
+
 /// v0.3.10.14: MediaKit.ensureInitialized() + Player() 全部从 main() 移到这里.
 /// main() 里调会触发 native SIGSEGV (libmpv.so dlopen 失败) 直接杀进程,
 /// Dart try-catch 捕获不到.  移到这里后只在用户进播放页时才触发,
 /// 首页/频道列表/设置页都不受影响.
+/// v0.3.10.16: 先读 libmpvAvailableProvider, 不可用直接返 null (走 Fallback).
 final mediaKitPlayerProvider = Provider<Player?>((ref) {
+  final available = ref.read(libmpvAvailableProvider);
+  if (!available) {
+    debugPrint('mediaKitPlayerProvider: libmpv 不可用 (ARM 32-bit?), 走 Fallback');
+    unawaited(CrashLogger.log('libmpv not available, using fallback player'));
+    return null;
+  }
   try {
     MediaKit.ensureInitialized();
     return Player();

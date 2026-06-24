@@ -87,13 +87,6 @@ class _SanyeliveSplashState extends State<SanyeliveSplash>
   @override
   Widget build(BuildContext context) {
     if (_hidden) return widget.child;
-    // v0.3.10.13 (6/24): TV 盒子启动闪退修复 — TV 上跳过 splash 动画.
-    // TV 盒子 Flutter 引擎初始化慢, Material + CustomPaint 的 GPU 渲染路径
-    // 在部分 TV 盒子 (如腾讯极光盒子) 上触发白屏崩溃. 检测为 TV 时跳过
-    // splash, 直接显示 child (路由页面), 不影响手机端完整动画体验.
-    if (context.deviceTier == DeviceTier.tv) {
-      return widget.child;
-    }
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Stack(

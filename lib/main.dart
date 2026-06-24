@@ -90,6 +90,11 @@ void main() async {
   // Global error widget builder
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
+  // v0.3.10.16: 预检 libmpv.so 是否可加载 — 通过 MethodChannel 走 Android
+  // System.loadLibrary, 如果 dlopen 失败 (ARM 32-bit SIGSEGV), Java 层
+  // UnsatisfiedLinkError 能捕获到.  结果写入 libmpvAvailableProvider,
+  // mediaKitPlayerProvider 读到 false 就直接返 null (走 FallbackMediaPlayer),
+  // 避免 Dart 端调 MediaKit.ensureInitialized() 触发进程级 SIGSEGV.
   // v0.3.10.14: 不再在 main() 调 MediaKit.ensureInitialized() —
   // 这是 native 调用, libmpv.so dlopen 失败时触发 SIGSEGV,
   // Dart try-catch 捕获不到, 进程直接被杀 (TV box 白屏闪退根因).
@@ -108,6 +113,19 @@ void main() async {
     runtimeVersionCode = 0;
     debugPrint('=== PackageInfo.fromPlatform failed, fallback to 0.0.0+0: $e ===');
   }
+  // v0.3.10.16: 预检 libmpv.so — 在创建 ProviderContainer 之前.
+  // MethodChannel 走 Android System.loadLibrary, ARM 32-bit dlopen 失败
+  // 触发 UnsatisfiedLinkError (Java 层能捕获), 不走到 Dart SIGSEGV.
+  bool libmpvAvailable = true;
+  try {
+    const channel = MethodChannel('com.threelive.iptv/check_libmpv');
+    libmpvAvailable = await channel.invokeMethod<bool>('checkLibmpv') ?? false;
+    debugPrint('=== libmpv 预检结果: $libmpvAvailable ===');
+    await CrashLogger.log('libmpv check: available=$libmpvAvailable');
+  } catch (e) {
+    debugPrint('=== libmpv 预检异常 (非致命): $e ===');
+    libmpvAvailable = true; // 探测失败时假设可用, 走正常路径
+  }
   // 0.3.7+20 (6/18): 后台强制更新 — 注入当前 versionCode + versionString.
   // 编译期 const 来自 pubspec.yaml,  跟 release workflow 跑出来的 APK
   // tag +versionCode 一致.  也跟 services/version_checker.dart 里 parse
@@ -117,6 +135,7 @@ void main() async {
       sharedPreferencesProvider.overrideWithValue(prefs),
       currentVersionCodeProvider.overrideWithValue(runtimeVersionCode),
       currentVersionStringProvider.overrideWithValue(runtimeVersion),
+      libmpvAvailableProvider.overrideWithValue(libmpvAvailable),
     ],
   );
   // v0.3.10.6 (6/23 老板拍): 频道分类数据每日 03:00 自动后台刷新, 不用更新 APP.

@@ -32,6 +32,7 @@ import java.util.Locale
 class MainActivity : FlutterActivity() {
     private val channelName = "com.threelive.iptv/install"
     private val fallbackChannelName = "com.threelive.iptv/fallback_player"
+    private val libmpvCheckChannelName = "com.threelive.iptv/check_libmpv"
     private val TAG = "SanyeliveMain"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -84,6 +85,28 @@ class MainActivity : FlutterActivity() {
                     }
                     "resume" -> {
                         result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // v0.3.10.16: 预检 libmpv.so 是否可加载 — 在 Dart 端调 MediaKit.ensureInitialized() 之前,
+        // 先走 Android System.loadLibrary 探测.  如果 dlopen 失败 (ARM 32-bit SIGSEGV),
+        // Java 层 UnsatisfiedLinkError 能捕获到, 返回 false 给 Dart → 直接走 FallbackMediaPlayer.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, libmpvCheckChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "checkLibmpv" -> {
+                        try {
+                            System.loadLibrary("mpv")
+                            result.success(true)
+                        } catch (e: UnsatisfiedLinkError) {
+                            Log.w(TAG, "libmpv.so 不可用: ${e.message}")
+                            result.success(false)
+                        } catch (e: Throwable) {
+                            Log.e(TAG, "libmpv.so 加载异常: ${e.message}")
+                            result.success(false)
+                        }
                     }
                     else -> result.notImplemented()
                 }
