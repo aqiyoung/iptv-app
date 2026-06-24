@@ -88,13 +88,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     final local = all.length - cctv - satellite;
 
     final items = [
-      CategoryItem(
+      const CategoryItem(
         id: 'cctv',
         title: '央视',
         subtitle: 'CCTV 频道',
         icon: Icons.tv,
       ),
-      CategoryItem(
+      const CategoryItem(
         id: 'satellite',
         title: '卫视',
         subtitle: '省级卫视',
@@ -118,7 +118,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         subtitle: '$kids 个频道',
         icon: Icons.child_care,
       ),
-      CategoryItem(
+      const CategoryItem(
         id: 'local',
         title: '地方',
         subtitle: '省市地方台',

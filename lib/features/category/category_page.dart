@@ -231,7 +231,7 @@ class _ErrorState extends StatelessWidget {
               size: 48,
             ),
             const SizedBox(height: 16),
-            Text('加载失败', style: IptvTypography.serifTitle),
+            const Text('加载失败', style: IptvTypography.serifTitle),
             const SizedBox(height: 8),
             Text(message,
                 style: IptvTypography.caption, textAlign: TextAlign.center),
