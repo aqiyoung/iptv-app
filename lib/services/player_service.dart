@@ -220,7 +220,7 @@ class PlayerService extends ChangeNotifier {
     //  折中:  await stop (50-200ms),  但 set loading 在 stop 之前已经发出,
     //  UI 不会白屏.  stop 完成后立即 open,  不引入额外延迟.
     if (_player != null) {
-      await _player!.stop();
+      await _player.stop();
     }
 
     try {
@@ -288,7 +288,7 @@ class PlayerService extends ChangeNotifier {
 
     // 6/17 修声音残留: 跟 [play] 一样,  先 stop 旧 player 避免双声
     if (_player != null) {
-      await _player!.stop();
+      await _player.stop();
     }
 
     _set(
