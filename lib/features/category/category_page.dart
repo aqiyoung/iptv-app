@@ -83,7 +83,6 @@ class CategoryPage extends ConsumerWidget {
                       channel: ch,
                       channelNumber: (i + 1).toString().padLeft(2, '0'),
                       channelName: ch.name,
-                      country: ch.country,
                       isLive: ch.sources.isNotEmpty,
                       onTap: () => context.push('/player/${ch.id}'),
                     );

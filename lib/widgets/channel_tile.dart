@@ -12,7 +12,6 @@ class ChannelTile extends StatelessWidget {
     required this.channelNumber,
     required this.channelName,
     this.channel,
-    this.country,
     this.isLive = true,
     this.onTap,
   });
@@ -20,7 +19,6 @@ class ChannelTile extends StatelessWidget {
   final String channelNumber;
   final String channelName;
   final Channel? channel;
-  final String? country;
   final bool isLive;
   final VoidCallback? onTap;
 
@@ -73,7 +71,7 @@ class ChannelTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    // 原名作为副标题 (有差异才显示)
+                    // 副标题: 显示分类名 (中文)
                     if (subtitle != null) ...[
                       const SizedBox(height: 2),
                       Text(
@@ -84,9 +82,6 @@ class ChannelTile extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ] else if (country != null && country!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(country!, style: IptvTypography.caption),
                     ],
                   ],
                 ),
