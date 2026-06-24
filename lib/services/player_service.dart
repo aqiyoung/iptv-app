@@ -494,7 +494,8 @@ final mediaKitPlayerProvider = Provider<Player?>((ref) {
   try {
     return Player();
   } catch (e, st) {
-    // v0.3.10.11: libmpv.so 加载失败 (Amlogic S905X3 等 TV box).
+    // v0.3.10.13: libmpv.so 加载失败 (Amlogic S905X3 等 TV box).
+    // catch Error 和 Exception — UnsatisfiedLinkError 是 Error 子类.
     debugPrint('mediaKitPlayerProvider: Player() threw: $e\n$st');
     // fire-and-forget, CrashLogger.init() 必须先调过.
     unawaited(CrashLogger.log('Player() construction failed: $e'));
@@ -515,10 +516,15 @@ final mediaKitVideoControllerProvider = Provider<VideoController?>((ref) {
   // 5G + 1000M 宽带 (老板 15:47 反馈)  速度不是问题,  是 decoder 不走硬件.
   // 'mediacodec' = Android MediaCodec API,  原生硬解,  H.264/H.265/AV1 都支持.
   try {
+    // v0.3.10.13: hwdec 从 'mediacodec' 改为 'auto-safe'.
+    // 'mediacodec' 在部分 TV box (Amlogic S905X3 / Rockchip 等) 的
+    // MediaCodec 实现不完整,  创建 VideoController 或首帧渲染时触发
+    // native crash (SIGSEGV).  'auto-safe' 让 libmpv 自动选择最安全的
+    // 解码方式 — 优先硬解,  不支持时 fallback 软解,  不会崩.
     return VideoController(
       player,
       configuration: const VideoControllerConfiguration(
-        hwdec: 'mediacodec',
+        hwdec: 'auto-safe',
       ),
     );
   } catch (e, st) {

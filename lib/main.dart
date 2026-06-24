@@ -59,57 +59,43 @@ void main() async {
   // 现在改成 main 同步等 init 完成再 runApp. WidgetsFlutterBinding
   // 也必须 await, 因为 ensureInitialized 要用到 binding.
   WidgetsFlutterBinding.ensureInitialized();
-  // v0.3.10.11: 启动第一步装 CrashLogger — 后续 MediaKit / Player() 失败
-  // 都能记到 /sdcard/Android/data/com.threelive.tv/files/crash.log.
-  // 这必须在 ensureMediaKit + read(playerServiceProvider) 之前.
-  await CrashLogger.init();
-  await CrashLogger.log('App starting (main.dart v0.3.10.11+)');
-  // v0.3.8+120 (6/20 23:27 老板反馈 "退出全屏 变竖屏了"):
-  // 之前 _toggleFullscreen 退出全屏用 setPreferredOrientations([]) = 系统默认
-  // (portrait on phones) — 老板横屏全屏后退出变竖屏,  体验断裂.
-  // 修法:  启动时全局允许 portrait + landscape,  player_page 切全屏再单独
-  // 强制 landscape,  退出全屏用 [portrait, landscape] 让系统决定 (跟设备重力
-  // 传感器联动 — 用户拨横还是拨竖都能用).  这样退出全屏不强制 portrait.
+  // v0.3.10.13: 启动第一步装 CrashLogger — 后续 MediaKit / Player() 失败
+  // 都能记到 crash.log.  这必须在 ensureMediaKit + read(playerServiceProvider) 之前.
+  // 加 try-catch: 如果 CrashLogger.init() 自身失败 (路径/权限问题),
+  // 不阻塞启动 — 后续 debugPrint 也能在 logcat 看到错误.
+  try {
+    await CrashLogger.init();
+    await CrashLogger.log('App starting (main.dart v0.3.10.13+)');
+  } catch (e) {
+    debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
+  }
+  // v0.3.8+120: 启动时全局允许 portrait + landscape
   SystemChrome.setPreferredOrientations(const [
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  // 6/18 P3-1: 把 PlayerService 创建提到 runApp 之前,  才可以传进
-  // PlayerRouteObserver + WidgetsBindingObserver.  media_kit Player()
-  // 必须 ensureInitialized() 后才能建,  上一步已 await 完成.
-  // 0.3.6+19: shared_preferences 也提前拿,  override 给 themeModeProvider.
-  // 跳过逻辑:  flutter_test 模式下 SharedPreferences 抛 MissingPluginException,
-  //  改成 noop override (用空内存版),  行为退化为默认 system theme.
+  // 6/18 P3-1: shared_preferences 提前拿
   final prefs = await _loadSharedPreferencesOrMock();
-  // v0.3.6+42: 加载持久化 health_score (SharedPreferences)
+  // v0.3.6+42: 加载持久化 health_score
   await CctvSourcePicker.loadPersistedScores();
-  // v0.3.8+93 (6/20 P1-3): 启动时先读 prefs, 再调 _applySystemUiOverlay.
-  // 之前用 system platformBrightness 近似,  用户手动切主题后启动会闪
-  // (APP 启动那一顿是错的颜色,  几帧后才被 MaterialApp 修复).
-  // 现在读 themeMode 持久化的值,  启动即正确.
+  // v0.3.8+93: 启动时读 prefs 设 system UI
   _applySystemUiOverlay(prefs);
-  // v0.3.7+50 (6/19): 强制全 APP 走 IPv4 — 国内 wifi/4G IPv6 happy-eyeballs
-  // 会拖慢 1-2s.  HttpOverrides.global 一键劫持 dart:io HttpClient.
+  // v0.3.7+50: 强制 IPv4
   if (IPv4Client.defaultEnabled) {
     HttpOverrides.global = Ipv4HttpOverrides();
   }
-  // v0.3.7+50 (6/19): DNS + TCP 预热 — 启动时后台跑,  让用户首切频道时
-  // 跳过 DNS lookup + TCP handshake, 硬延迟砍半. fire-and-forget, 不阻塞.
+  // v0.3.7+50: DNS 预热 — fire-and-forget, 不阻塞
   unawaited(DnsWarmup.warmup(_warmupHostnames()));
-  // v0.3.8+125 (6/21 老板拍):  远程频道预热 — 后台拉一次
-  // aqiyoung/iptv-channels-organized 分类 JSON,  失败静默吞掉,  fallback
-  // 本地 assets/data.  channelsProvider 内部 await remoteChannelsProvider.future,
-  // 第一次 await 这时已 resolve → 直接用远程;  远程超时则 fallback 本地.
-  // 不阻塞 runApp,  fire-and-forget.  不在 wait list 里 (主流程不等它).
+  // v0.3.8+125: 远程频道预热 — fire-and-forget
   unawaited(_prewarmRemoteChannels());
-  // v0.3.10.8 (6/23 老板拍): 远程 video sources 预热 — 后台拉一次
-  // sources/known.json,  失败静默吞掉,  channelsProvider._enrichWithRemoteSources
-  // 后续 read 时拿 cached.  不阻塞 runApp.
+  // v0.3.10.8: 远程 video sources 预热 — fire-and-forget
   unawaited(_prewarmRemoteSources());
-  // Global error widget builder - set once, not on every rebuild
+  // Global error widget builder
   ErrorWidget.builder =
       (FlutterErrorDetails details) => _CrashScreen(details: details);
+  // v0.3.10.13: MediaKit 初始化 — 延长 timeout + catch Error
+  // 不再在 main() 里预热 Player/VideoController (移到 PlayerPage 懒加载)
   await _ensureMediaKitOrLog();
   // '0.3.5+37' (subagent 漏改,  设置页永远停在老版本号).  现在每次 release
   // bump pubspec,  设置页/版本检查/强制更新都能读到新版本号.
@@ -137,16 +123,6 @@ void main() async {
     ],
   );
   final playerService = container.read(playerServiceProvider);
-  // v0.3.8+124 (6/21 老板反馈 "启动慢 白屏 第一次进不去 点第二次"):
-  // 之前 +109 在 player_page.initState 里 ref.read(playerServiceProvider) +
-  // ref.read(channelsProvider.future) 预热了服务层,  但 media_kit 的
-  // Player() + VideoController() 还要在 player_page 里 ref.watch 才创建,
-  // 这两个都是 libmpv init,  第一次创建阻塞主线程 300-800ms.
-  // 修法:  main 里 预热 mediaKitPlayerProvider + mediaKitVideoControllerProvider,
-  //  启 app 后这俩 provider 已构建好,  进 player_page 只 ref.watch,  零初始化.
-  // 三个 provider 一起预热:  Player + VideoController + PlayerService.
-  container.read(mediaKitPlayerProvider); // 创建 Player (200-400ms)
-  container.read(mediaKitVideoControllerProvider); // 创建 VideoController (300-800ms)
   // v0.3.10.6 (6/23 老板拍): 频道分类数据每日 03:00 自动后台刷新, 不用更新 APP.
   // 启动时: 如果 last refresh > 1 天就立即重拉一次.
   startChannelsAutoRefresh(container: container);
@@ -257,13 +233,17 @@ void _applySystemUiOverlay(SharedPreferences prefs) {
 Future<void> _ensureMediaKitOrLog() async {
   if (_shouldSkipMediaKit) return;
   try {
+    // v0.3.10.13: 延长 timeout 到 15s — 部分低端 TV box (Amlogic S905X3)
+    // dlopen libmpv.so 需要更长时间.  同时 catch Error (不只是 Exception),
+    // 因为某些 native 错误抛的是 Error 子类.
     await Future<void>.sync(MediaKit.ensureInitialized)
-        .timeout(const Duration(seconds: 5));
+        .timeout(const Duration(seconds: 15));
   } catch (e, st) {
     debugPrint('=== MediaKit init FAILED, 降级启动 ===');
     debugPrint('$e');
     debugPrint('$st');
-    // 不 throw, 继续 runApp
+    unawaited(CrashLogger.log('MediaKit.ensureInitialized failed: $e'));
+    // 不 throw, 继续 runApp — Player() 会在 provider 里被 catch 返回 null
   }
 }
 

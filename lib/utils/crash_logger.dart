@@ -31,11 +31,22 @@ class CrashLogger {
     _initialized = true;
 
     try {
-      // v0.3.10.11: 用 getApplicationSupportDirectory() (path_provider 跨平台 API),
-      // Android 上写到 /data/data/<pkg>/files/ — 老板 adb pull 需要 root
-      // (但 adb shell run-as <pkg> cat ... 可读). 简单点改用
-      // getApplicationDocumentsDirectory() → /data/data/<pkg>/app_flutter
-      final dir = await getApplicationSupportDirectory();
+      // v0.3.10.13: 先尝试 getApplicationSupportDirectory (内部存储),
+      // 失败则尝试 getExternalFilesDir (外部存储, 不需要权限).
+      // 部分 TV box 内部存储路径可能不存在或权限不足.
+      Directory? dir;
+      try {
+        dir = await getApplicationSupportDirectory();
+      } catch (e) {
+        debugPrint('CrashLogger: getApplicationSupportDirectory failed: $e');
+        // fallback: 尝试外部存储
+        try {
+          dir = await getExternalFilesDirectory();
+        } catch (e2) {
+          debugPrint('CrashLogger: getExternalFilesDirectory also failed: $e2');
+        }
+      }
+
       if (dir != null) {
         _logFile = File('${dir.path}/crash.log');
         if (!await _logFile!.exists()) {
@@ -43,7 +54,7 @@ class CrashLogger {
         }
         await _writeLog('CrashLogger init OK at ${_logFile!.path}');
       } else {
-        debugPrint('CrashLogger: getExternalFilesDir returned null');
+        debugPrint('CrashLogger: all directory options failed');
       }
     } catch (e, st) {
       // 写不进 log 就 debugPrint — 至少 logcat 能看到
@@ -90,6 +101,19 @@ class CrashLogger {
 
   /// 当前 log 文件路径 (给 UI 显示, 老板可以 adb pull 这个路径).
   static String? get logFilePath => _logFile?.path;
+
+  /// v0.3.10.13: 读取 native crash log (MainActivity.kt 写的).
+  /// 返回文件内容,  不存在则返回 null.
+  static Future<String?> readNativeCrashLog() async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final file = File('${dir.path}/native_crash.log');
+      if (await file.exists()) {
+        return await file.readAsString();
+      }
+    } catch (_) {}
+    return null;
+  }
 
   static Future<void> _writeLog(String msg) async {
     final file = _logFile;
