@@ -121,8 +121,9 @@ class CategoryPage extends ConsumerWidget {
       // v0.3.8+110 (6/20 老板加国际频道):  i18n = 非中文区 country
       case 'international':
         return ChannelFilter.international(all);
+      // v0.3.10.13 (6/24): 中文分类筛选
       default:
-        return all;
+        return ChannelFilter.byCategory(all, categoryId);
     }
   }
 
@@ -137,6 +138,21 @@ class CategoryPage extends ConsumerWidget {
       // v0.3.8+110 (6/20 老板加国际频道):  i18n 中文名
       case 'international':
         return '国际';
+      // v0.3.10.13 (6/24): 中文分类名
+      case 'news':
+        return '新闻';
+      case 'movies':
+        return '影视';
+      case 'kids':
+        return '少儿';
+      case 'sports':
+        return '体育';
+      case 'education':
+        return '科教';
+      case 'entertainment':
+        return '娱乐';
+      case 'finance':
+        return '财经';
       default:
         return '频道';
     }

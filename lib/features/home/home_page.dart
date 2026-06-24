@@ -77,17 +77,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildContent(BuildContext context, List<Channel> all) {
-    // 派生 4 大分类 — 主页是「容器」, 分类页是「真实列表」
-    // 卡 6 会做收藏/历史; 此处只读 lastChannelId
+    // 派生分类 — 主页是「容器」, 分类页是「真实列表」
     final cctv = ChannelFilter.cctv(all).length;
     final satellite = ChannelFilter.satellite(all).length;
-    final local = all.length - cctv - satellite;
-    // v0.3.8+110 (6/20 老板加国际频道):  i18n 频道 (非中文区 country)
+    final news = ChannelFilter.byCategory(all, '新闻').length;
+    final movies = ChannelFilter.byCategory(all, '影视').length;
+    final kids = ChannelFilter.byCategory(all, '少儿').length;
     final international = ChannelFilter.international(all).length;
+    // 地方 = 总数 - 央视 - 卫视
+    final local = all.length - cctv - satellite;
 
-    // v0.3.8+110 (6/20 老板加国际频道):  items 不是 const — international
-    // subtitle 含 runtime var ($international count).  cctv/satellite/local
-    // 也是 const 兼容 (没含 var).
     final items = [
       CategoryItem(
         id: 'cctv',
@@ -102,12 +101,30 @@ class _HomePageState extends ConsumerState<HomePage> {
         icon: Icons.public,
       ),
       CategoryItem(
+        id: 'news',
+        title: '新闻',
+        subtitle: '$news 个频道',
+        icon: Icons.newspaper,
+      ),
+      CategoryItem(
+        id: 'movies',
+        title: '影视',
+        subtitle: '$movies 个频道',
+        icon: Icons.movie,
+      ),
+      CategoryItem(
+        id: 'kids',
+        title: '少儿',
+        subtitle: '$kids 个频道',
+        icon: Icons.child_care,
+      ),
+      CategoryItem(
         id: 'local',
         title: '地方',
         subtitle: '省市地方台',
         icon: Icons.location_city,
       ),
-      // v0.3.8+110 (6/20 老板加国际频道):  4 大区域 (i18n channels 7 国精选)
+      // v0.3.8+110 (6/20 老板加国际频道):  i18n 频道 (非中文区 country)
       CategoryItem(
         id: 'international',
         title: '国际',

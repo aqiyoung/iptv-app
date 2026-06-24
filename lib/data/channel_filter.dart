@@ -28,20 +28,28 @@ class ChannelFilter {
     }).toList();
   }
 
+  /// v0.3.10.13 (6/24): 按中文分类名筛选频道
+  static List<Channel> byCategory(List<Channel> all, String category) {
+    return all.where((c) => c.categories.contains(category)).toList();
+  }
+
+  /// v0.3.10.13 (6/24): 地方 = 排除 央视/卫视/国际/内容分类 后的频道
   static List<Channel> local(List<Channel> all) {
-    // v0.3.8+133 (6/21 09:49 老板反馈 "地方分类里还有几个卫视"):
-    // 之前只排除 cctv + satellite,  没排除 international — 133 个国际频道
-    // 错误归到"地方".  修法:  加 international 排除.
     final sat = satellite(all).map((e) => e.id).toSet();
     final cctvIds = cctv(all).map((e) => e.id).toSet();
     final intlIds = international(all).map((e) => e.id).toSet();
-    return all
-        .where((c) =>
-            !sat.contains(c.id) &&
-            !cctvIds.contains(c.id) &&
-            !intlIds.contains(c.id))
-        .toList();
+    const contentCats = {'新闻', '影视', '少儿', '体育', '科教', '娱乐', '财经'};
+    return all.where((c) =>
+        !sat.contains(c.id) &&
+        !cctvIds.contains(c.id) &&
+        !intlIds.contains(c.id) &&
+        !c.categories.any((cat) => contentCats.contains(cat))).toList();
   }
+
+  /// v0.3.8+133 (6/21 09:49 老板反馈 "地方分类里还有几个卫视"):
+  /// 之前只排除 cctv + satellite,  没排除 international — 133 个国际频道
+  /// 错误归到"地方".  修法:  加 international 排除.
+  /// v0.3.10.13 (6/24):  加内容分类排除 (新闻/影视/少儿/体育/科教/娱乐/财经).
 
   /// v0.3.8+110 (6/20 老板加国际频道模块):  国际频道 = 非中国 country.
   /// 'CN'/'HK'/'TW'/'MO' 是中文区,  其它都是国际 (i18n channels 7 国精选).
