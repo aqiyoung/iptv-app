@@ -100,12 +100,29 @@ class Channel {
     // 央视
     if (RegExp(r'CCTV', caseSensitive: false).hasMatch(cid)) return ['央视'];
 
-    // 卫视
+    // 卫视: id 含 Satellite/TVInternational/卫视, 或省级 TV 频道 (HunanTV/GansuTV 等)
     if (cid.contains('Satellite') ||
         cid.contains('TVInternational') ||
         name.contains('卫视') ||
         altNames.any((a) => a.contains('卫视'))) {
       return ['卫视'];
+    }
+    // 省级卫视 fallback: XXTV.cn / XXSatelliteTV.cn / XXInternationalChannel (不含 Satellite 关键词的)
+    if ((RegExp(r'^[A-Z][a-z]+TV').hasMatch(cid) ||
+         cid.contains('InternationalChannel')) &&
+        country == 'CN') {
+      return ['卫视'];
+    }
+    // 中文省级台: XX电视台 / XX卫视 (alt_names 里带 "电视台" 或 "卫视")
+    if (altNames.any((a) => a.contains('电视台') || a.contains('卫视')) &&
+        country == 'CN') {
+      return ['卫视'];
+    }
+    // QTV 系列频道按名称分类
+    if (cid.startsWith('QTV') && altNames.isNotEmpty) {
+      final alt = altNames.first;
+      if (alt.contains('青少') || alt.contains('少儿')) return ['少儿'];
+      if (alt.contains('影视') || alt.contains('电影')) return ['影视'];
     }
 
     // 国际 (非中文区)
