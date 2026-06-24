@@ -171,6 +171,8 @@ class PlayerRouteObserver extends NavigatorObserver {
     }
   }
 }
+  }
+}
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
