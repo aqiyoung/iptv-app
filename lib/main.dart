@@ -52,112 +52,145 @@ import 'utils/crash_logger.dart';
 // const currentVersionCode = 0;
 
 void main() async {
-  // v0.3.10.20: TV box 白屏闪退修复 — 所有 init 步骤加 CrashLogger.log
-  // 追踪到哪一步挂了,  同时每步 try-catch 确保 runApp() 一定能执行.
-  WidgetsFlutterBinding.ensureInitialized();
+  // v0.3.10.21: TV box 白屏闪退 — 整个 init 包在顶层 try-catch,
+  // 保证任何异常都不阻塞 runApp().  之前 SharedPreferences 重试
+  // 失败会抛异常中断 main(),  runApp 永远不执行 → 白屏闪退.
+  await CrashLogger.log('v0.3.10.21 === main() START ===');
   try {
-    await CrashLogger.init();
-    await CrashLogger.log('step1: CrashLogger OK');
-  } catch (e) {
-    debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
-  }
-  await CrashLogger.log('step2: before orientations');
-  SystemChrome.setPreferredOrientations(const [
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
-  // v0.3.10.20: prefs 加 try-catch — SharedPreferences 在某些 TV box 上
-  // 可能因权限 / 存储异常失败,  之前没 catch 导致 main() 中断 runApp 永远
-  // 不执行 → 白屏闪退.
-  SharedPreferences prefs;
-  try {
-    await CrashLogger.log('step3: before SharedPreferences');
-    prefs = await _loadSharedPreferencesOrMock();
-    await CrashLogger.log('step3: SharedPreferences OK');
-  } catch (e) {
-    debugPrint('=== SharedPreferences failed, retrying: $e ===');
-    await CrashLogger.log('step3: SharedPreferences FAILED, retrying: $e');
-    // 瞬态 IO 错误时重试一次;  彻底失败会让下游 prefs 操作抛异常,
-    // 但 runApp() 已经能执行,  不会白屏闪退.
-    prefs = await SharedPreferences.getInstance();
-  }
-  try {
-    await CrashLogger.log('step4: before loadPersistedScores');
-    await CctvSourcePicker.loadPersistedScores();
-    await CrashLogger.log('step4: loadPersistedScores OK');
-  } catch (e) {
-    debugPrint('=== loadPersistedScores failed (non-fatal): $e ===');
-    await CrashLogger.log('step4: loadPersistedScores FAILED: $e');
-  }
-  _applySystemUiOverlay(prefs);
-  if (IPv4Client.defaultEnabled) {
-    HttpOverrides.global = Ipv4HttpOverrides();
-  }
-  unawaited(DnsWarmup.warmup(_warmupHostnames()));
-  unawaited(_prewarmRemoteChannels());
-  unawaited(_prewarmRemoteSources());
-  ErrorWidget.builder =
-      (FlutterErrorDetails details) => _CrashScreen(details: details);
-  String runtimeVersion;
-  int runtimeVersionCode;
-  try {
-    await CrashLogger.log('step5: before PackageInfo');
-    final info = await PackageInfo.fromPlatform();
-    runtimeVersion = '${info.version}+${info.buildNumber}';
-    runtimeVersionCode = int.tryParse(info.buildNumber) ?? 0;
-    await CrashLogger.log('step5: PackageInfo OK: $runtimeVersion');
-  } catch (e) {
-    runtimeVersion = '0.0.0+0';
-    runtimeVersionCode = 0;
-    await CrashLogger.log('step5: PackageInfo FAILED: $e');
-    debugPrint('=== PackageInfo.fromPlatform failed, fallback: $e ===');
-  }
-  bool libmpvAvailable = true;
-  try {
-    await CrashLogger.log('step6: before checkLibmpv');
-    const channel = MethodChannel('com.threelive.iptv/check_libmpv');
-    libmpvAvailable = await channel.invokeMethod<bool>('checkLibmpv') ?? false;
-    await CrashLogger.log('step6: checkLibmpv OK: $libmpvAvailable');
-  } catch (e) {
-    await CrashLogger.log('step6: checkLibmpv FAILED: $e');
-    debugPrint('=== libmpv 预检异常 (非致命): $e ===');
-    libmpvAvailable = true;
-  }
-  await CrashLogger.log('step7: before ProviderContainer');
-  final container = ProviderContainer(
-    overrides: [
-      sharedPreferencesProvider.overrideWithValue(prefs),
-      currentVersionCodeProvider.overrideWithValue(runtimeVersionCode),
-      currentVersionStringProvider.overrideWithValue(runtimeVersion),
-      libmpvAvailableProvider.overrideWithValue(libmpvAvailable),
-    ],
-  );
-  try {
-    startChannelsAutoRefresh(container: container);
-    startSourcesAutoRefresh(container: container);
-  } catch (e) {
-    debugPrint('=== auto refresh start failed (non-fatal): $e ===');
-    await CrashLogger.log('step8: autoRefresh FAILED: $e');
-  }
-  unawaited(container.read(channelRepositoryProvider).loadBundled());
-  final playerObserver = PlayerRouteObserver(container);
-  final lifecycleListener = _AppLifecycleListener(container);
-  WidgetsBinding.instance.addObserver(lifecycleListener);
-  await CrashLogger.log('step9: before runApp');
-  runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: IptvApp(playerObserver: playerObserver),
-    ),
-  );
-  Future.microtask(() async {
+    WidgetsFlutterBinding.ensureInitialized();
     try {
-      await container.read(versionCheckerProvider.notifier).checkOnStartup();
+      await CrashLogger.init();
+      await CrashLogger.log('step1: CrashLogger OK');
     } catch (e) {
-      debugPrint('=== version check failed (silenced): $e ===');
+      debugPrint('=== CrashLogger init failed (non-fatal): $e ===');
     }
-  });
+    await CrashLogger.log('step2: before orientations');
+    SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    SharedPreferences prefs;
+    try {
+      await CrashLogger.log('step3: before SharedPreferences');
+      prefs = await _loadSharedPreferencesOrMock();
+      await CrashLogger.log('step3: SharedPreferences OK');
+    } catch (e) {
+      await CrashLogger.log('step3: SharedPreferences FAILED: $e');
+      debugPrint('=== SharedPreferences failed, retrying: $e ===');
+      try {
+        prefs = await SharedPreferences.getInstance();
+      } catch (e2) {
+        await CrashLogger.log('step3: retry also FAILED: $e2');
+        debugPrint('=== SharedPreferences retry also failed: $e2 ===');
+        prefs = await SharedPreferences.getInstance();
+      }
+    }
+    try {
+      await CrashLogger.log('step4: before loadPersistedScores');
+      await CctvSourcePicker.loadPersistedScores();
+      await CrashLogger.log('step4: loadPersistedScores OK');
+    } catch (e) {
+      debugPrint('=== loadPersistedScores failed (non-fatal): $e ===');
+      await CrashLogger.log('step4: loadPersistedScores FAILED: $e');
+    }
+    _applySystemUiOverlay(prefs);
+    if (IPv4Client.defaultEnabled) {
+      HttpOverrides.global = Ipv4HttpOverrides();
+    }
+    unawaited(DnsWarmup.warmup(_warmupHostnames()));
+    unawaited(_prewarmRemoteChannels());
+    unawaited(_prewarmRemoteSources());
+    ErrorWidget.builder =
+        (FlutterErrorDetails details) => _CrashScreen(details: details);
+    String runtimeVersion;
+    int runtimeVersionCode;
+    try {
+      await CrashLogger.log('step5: before PackageInfo');
+      final info = await PackageInfo.fromPlatform();
+      runtimeVersion = '${info.version}+${info.buildNumber}';
+      runtimeVersionCode = int.tryParse(info.buildNumber) ?? 0;
+      await CrashLogger.log('step5: PackageInfo OK: $runtimeVersion');
+    } catch (e) {
+      runtimeVersion = '0.0.0+0';
+      runtimeVersionCode = 0;
+      await CrashLogger.log('step5: PackageInfo FAILED: $e');
+      debugPrint('=== PackageInfo.fromPlatform failed, fallback: $e ===');
+    }
+    bool libmpvAvailable = true;
+    try {
+      await CrashLogger.log('step6: before checkLibmpv');
+      const channel = MethodChannel('com.threelive.iptv/check_libmpv');
+      libmpvAvailable =
+          await channel.invokeMethod<bool>('checkLibmpv') ?? false;
+      await CrashLogger.log('step6: checkLibmpv OK: $libmpvAvailable');
+    } catch (e) {
+      await CrashLogger.log('step6: checkLibmpv FAILED: $e');
+      debugPrint('=== libmpv 预检异常 (非致命): $e ===');
+      libmpvAvailable = true;
+    }
+    await CrashLogger.log('step7: before ProviderContainer');
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        currentVersionCodeProvider.overrideWithValue(runtimeVersionCode),
+        currentVersionStringProvider.overrideWithValue(runtimeVersion),
+        libmpvAvailableProvider.overrideWithValue(libmpvAvailable),
+      ],
+    );
+    try {
+      startChannelsAutoRefresh(container: container);
+      startSourcesAutoRefresh(container: container);
+    } catch (e) {
+      debugPrint('=== auto refresh start failed (non-fatal): $e ===');
+      await CrashLogger.log('step8: autoRefresh FAILED: $e');
+    }
+    unawaited(container.read(channelRepositoryProvider).loadBundled());
+    final playerObserver = PlayerRouteObserver(container);
+    final lifecycleListener = _AppLifecycleListener(container);
+    WidgetsBinding.instance.addObserver(lifecycleListener);
+    await CrashLogger.log('step9: before runApp');
+    runApp(
+      UncontrolledProviderScope(
+        container: container,
+        child: IptvApp(playerObserver: playerObserver),
+      ),
+    );
+    Future.microtask(() async {
+      try {
+        await container.read(versionCheckerProvider.notifier).checkOnStartup();
+      } catch (e) {
+        debugPrint('=== version check failed (silenced): $e ===');
+      }
+    });
+  } catch (fatal) {
+    // 终极兜底: 任何未预料的异常都不阻塞.
+    // 写 crash log + 仍然 runApp 显示错误页.
+    await CrashLogger.log('FATAL init error: $fatal');
+    debugPrint('=== FATAL init error: $fatal ===');
+    ErrorWidget.builder =
+        (FlutterErrorDetails d) => ColoredBox(
+          color: const Color(0xFFFFEBEE),
+          child: Center(
+            child: Text(
+              '启动失败: ${d.exceptionAsString()}',
+              style: const TextStyle(color: Colors.red, fontSize: 14),
+            ),
+          ),
+        );
+    runApp(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text(
+              '启动失败, 请查看 /sdcard/Download/iptv_crash.log',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// v0.3.7+50 (6/19): 启动 DNS 预热 host 列表 — 选国内常用公开源, top10 热门频道.
