@@ -84,6 +84,9 @@ class SourceFailover {
   final StreamOpener _opener;
   final Duration perSourceTimeout;
 
+  /// v0.3.10.17: 暴露 opener 给子类 (SmartSourceFailover)
+  StreamOpener get opener => _opener;
+
   /// 尝试打开 [sources] 中的源, 按顺序, 每个最多 [perSourceTimeout]
   ///
   /// 返回第一个成功的源 URL; 全部失败抛 [AllSourcesFailedException]

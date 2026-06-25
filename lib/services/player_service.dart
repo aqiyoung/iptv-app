@@ -9,6 +9,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import '../data/models/channel.dart';
 import '../data/source_dispatcher.dart';
 import '../utils/crash_logger.dart';
+import 'smart_source_router.dart';
 import 'source_failover.dart';
 
 /// 播放状态
@@ -128,14 +129,21 @@ class PlayerService extends ChangeNotifier {
     SourceFailover? failover,
     Player? player,
     FallbackMediaPlayer? fallbackPlayer,
-  })  : _player = player,
-        _failover = failover ?? SourceFailover(opener: opener),
+    SmartSourceRouter? router,
+  })  : _router = router ?? SmartSourceRouter(),
+        _player = player,
+        _failover = failover ??
+            SmartSourceFailover(
+              opener: opener,
+              router: router ?? SmartSourceRouter(),
+            ),
         _fallbackPlayer =
             fallbackPlayer ?? (player == null ? FallbackMediaPlayer() : null);
 
   /// media_kit 的 native player. libmpv.so 加载失败时为 null (v0.3.10.11).
   final Player? _player;
   final SourceFailover _failover;
+  final SmartSourceRouter _router;
   // v0.3.10.11: libmpv init 失败时启用,  通过 platform channel 走 Android
   // MediaPlayer (如果 native 端没注册实现,  静默失败).  null = 用 libmpv 正常路径.
   final FallbackMediaPlayer? _fallbackPlayer;
@@ -306,6 +314,8 @@ class PlayerService extends ChangeNotifier {
     try {
       final ok = await _failover.playSingle(url);
       if (_disposed) return;
+      // v0.3.10.17: 记录单源结果, 更新评分
+      await _router.recordResult(url, ok);
       if (ok) {
         // v0.3.6+42: health_score 动态恢复 — 单源成功后加分
         unawaited(CctvSourcePicker.recordSuccess(url));

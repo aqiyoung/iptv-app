@@ -1,0 +1,301 @@
+/// SmartSourceRouter — 智能源路由 + 负载均衡
+///
+/// 在 SourceFailover 基础上增加:
+/// 1. 源健康度探测 (HEAD 请求测延迟)
+/// 2. 历史成功率评分 (SharedPreferences 持久化)
+/// 3. 按评分排序, 优先走高质量源
+/// 4. 定期刷新评分
+library;
+
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'source_failover.dart';
+
+/// 单个源的健康评分
+@immutable
+class SourceScore {
+  const SourceScore({
+    required this.url,
+    required this.score,
+    required this.latencyMs,
+    required this.successCount,
+    required this.failCount,
+    required this.lastTestedAt,
+  });
+
+  final String url;
+  final double score; // 0.0 ~ 1.0, 越高越好
+  final int latencyMs; // 最近一次探测延迟 (ms)
+  final int successCount;
+  final int failCount;
+  final DateTime lastTestedAt;
+
+  double get successRate =>
+      (successCount + failCount) == 0 ? 0.5 : successCount / (successCount + failCount);
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'score': score,
+        'latencyMs': latencyMs,
+        'successCount': successCount,
+        'failCount': failCount,
+        'lastTestedAt': lastTestedAt.toIso8601String(),
+      };
+
+  factory SourceScore.fromJson(Map<String, dynamic> j) => SourceScore(
+        url: j['url'] as String,
+        score: (j['score'] as num).toDouble(),
+        latencyMs: j['latencyMs'] as int,
+        successCount: j['successCount'] as int,
+        failCount: j['failCount'] as int,
+        lastTestedAt: DateTime.parse(j['lastTestedAt'] as String),
+      );
+
+  SourceScore copyWith({
+    String? url,
+    double? score,
+    int? latencyMs,
+    int? successCount,
+    int? failCount,
+    DateTime? lastTestedAt,
+  }) =>
+      SourceScore(
+        url: url ?? this.url,
+        score: score ?? this.score,
+        latencyMs: latencyMs ?? this.latencyMs,
+        successCount: successCount ?? this.successCount,
+        failCount: failCount ?? this.failCount,
+        lastTestedAt: lastTestedAt ?? this.lastTestedAt,
+      );
+}
+
+/// 智能路由器 — 探测 + 评分 + 排序
+class SmartSourceRouter {
+  SmartSourceRouter({http.Client? client, SharedPreferences? prefs})
+      : _client = client ?? http.Client(),
+        _prefs = prefs;
+
+  final http.Client _client;
+  final SharedPreferences? _prefs;
+  static const String _prefsKey = 'smart_router.scores';
+  static const Duration _cacheMaxAge = Duration(minutes: 30);
+  static const Duration _probeTimeout = Duration(seconds: 3);
+
+  /// 获取评分 (从缓存或探测)
+  Future<Map<String, SourceScore>> getScores(List<String> urls) async {
+    final cached = await _loadCachedScores();
+    final now = DateTime.now();
+    final result = <String, SourceScore>{};
+
+    for (final url in urls) {
+      final cachedScore = cached[url];
+      if (cachedScore != null &&
+          now.difference(cachedScore.lastTestedAt) < _cacheMaxAge) {
+        result[url] = cachedScore;
+      } else {
+        // 缓存过期, 需要重新探测
+        final score = await _probeSource(url);
+        result[url] = score;
+      }
+    }
+
+    await _saveCachedScores(result);
+    return result;
+  }
+
+  /// 探测单个源
+  Future<SourceScore> _probeSource(String url) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      // HEAD 请求测延迟
+      final resp = await _client
+          .head(Uri.parse(url))
+          .timeout(_probeTimeout);
+      stopwatch.stop();
+
+      final latencyMs = stopwatch.elapsedMilliseconds;
+      final isOk = resp.statusCode >= 200 && resp.statusCode < 400;
+
+      // 计算分数: 延迟越低越好, 成功加分
+      double score;
+      if (!isOk) {
+        score = 0.1;
+      } else if (latencyMs < 200) {
+        score = 1.0;
+      } else if (latencyMs < 500) {
+        score = 0.8;
+      } else if (latencyMs < 1000) {
+        score = 0.6;
+      } else if (latencyMs < 2000) {
+        score = 0.4;
+      } else {
+        score = 0.2;
+      }
+
+      return SourceScore(
+        url: url,
+        score: score,
+        latencyMs: latencyMs,
+        successCount: isOk ? 1 : 0,
+        failCount: isOk ? 0 : 1,
+        lastTestedAt: DateTime.now(),
+      );
+    } catch (e) {
+      stopwatch.stop();
+      return SourceScore(
+        url: url,
+        score: 0.05,
+        latencyMs: _probeTimeout.inMilliseconds,
+        successCount: 0,
+        failCount: 1,
+        lastTestedAt: DateTime.now(),
+      );
+    }
+  }
+
+  /// 按评分排序源列表 (高分在前)
+  List<String> rankSources(List<String> urls, Map<String, SourceScore> scores) {
+    final sorted = List<String>.from(urls);
+    sorted.sort((a, b) {
+      final scoreA = scores[a]?.score ?? 0.5;
+      final scoreB = scores[b]?.score ?? 0.5;
+      return scoreB.compareTo(scoreA); // 降序
+    });
+    return sorted;
+  }
+
+  /// 记录播放结果 (成功/失败)
+  Future<void> recordResult(String url, bool success) async {
+    final cached = await _loadCachedScores();
+    final existing = cached[url];
+
+    if (existing == null) {
+      // 不在缓存中, 创建新记录
+      cached[url] = SourceScore(
+        url: url,
+        score: success ? 0.6 : 0.3,
+        latencyMs: 0,
+        successCount: success ? 1 : 0,
+        failCount: success ? 0 : 1,
+        lastTestedAt: DateTime.now(),
+      );
+    } else {
+      final updated = existing.copyWith(
+        successCount: existing.successCount + (success ? 1 : 0),
+        failCount: existing.failCount + (success ? 0 : 1),
+        score: success
+            ? (existing.score + 0.1).clamp(0.0, 1.0)
+            : (existing.score - 0.1).clamp(0.0, 1.0),
+        lastTestedAt: DateTime.now(),
+      );
+      cached[url] = updated;
+    }
+
+    await _saveCachedScores(cached);
+  }
+
+  /// 清除所有评分缓存
+  Future<void> clearCache() async {
+    await _prefs?.remove(_prefsKey);
+  }
+
+  Future<Map<String, SourceScore>> _loadCachedScores() async {
+    final jsonStr = _prefs?.getString(_prefsKey);
+    if (jsonStr == null) return {};
+    try {
+      final map = json.decode(jsonStr) as Map<String, dynamic>;
+      return map.map(
+        (k, v) => MapEntry(k, SourceScore.fromJson(v as Map<String, dynamic>)),
+      );
+    } catch (_) {
+      return {};
+    }
+  }
+
+  Future<void> _saveCachedScores(Map<String, SourceScore> scores) async {
+    if (_prefs == null) return;
+    final map = scores.map((k, v) => MapEntry(k, v.toJson()));
+    await _prefs.setString(_prefsKey, json.encode(map));
+  }
+}
+
+/// 增强版 SourceFailover — 集成智能路由
+class SmartSourceFailover extends SourceFailover {
+  SmartSourceFailover({
+    required super.opener,
+    super.perSourceTimeout,
+    SmartSourceRouter? router,
+  }) : _router = router ?? SmartSourceRouter();
+
+  final SmartSourceRouter _router;
+
+  @override
+  Future<String> play(
+    List<String> sources, {
+    void Function(SourceAttemptEvent event)? onAttempt,
+  }) async {
+    if (sources.isEmpty) {
+      throw const AllSourcesFailedException([]);
+    }
+
+    // 只有一个源, 直接走
+    if (sources.length == 1) {
+      final url = sources.first;
+      onAttempt?.call(SourceAttemptEvent(index: 1, total: 1, url: url));
+      final ok = await opener.open(url, timeout: perSourceTimeout);
+      if (ok) {
+        await _router.recordResult(url, true);
+        return url;
+      }
+      await _router.recordResult(url, false);
+      throw AllSourcesFailedException([(url: url, error: 'single source failed')]);
+    }
+
+    // 多个源: 先探测评分, 按评分排序后尝试
+    final scores = await _router.getScores(sources);
+    final ranked = _router.rankSources(sources, scores);
+
+    final attempts = <({int index, String url, String error})>[];
+
+    for (var i = 0; i < ranked.length; i++) {
+      final url = ranked[i];
+      final score = scores[url];
+      onAttempt?.call(SourceAttemptEvent(
+        index: i + 1,
+        total: ranked.length,
+        url: '${url.length > 60 ? url.substring(0, 60) : url}... (score: ${score?.score.toStringAsFixed(2) ?? "?"})',
+      ));
+
+      try {
+        final ok = await opener.open(url, timeout: perSourceTimeout);
+        if (ok) {
+          await _router.recordResult(url, true);
+          return url;
+        }
+        attempts.add((index: i + 1, url: url, error: 'opener returned false'));
+        await _router.recordResult(url, false);
+      } on TimeoutException {
+        await opener.cancel(url);
+        attempts.add((
+          index: i + 1,
+          url: url,
+          error: 'timeout after ${perSourceTimeout.inMilliseconds}ms',
+        ));
+        await _router.recordResult(url, false);
+      } catch (e) {
+        await opener.cancel(url);
+        attempts.add((index: i + 1, url: url, error: e.toString()));
+        await _router.recordResult(url, false);
+      }
+    }
+
+    throw AllSourcesFailedException(
+      attempts.map((a) => (url: a.url, error: a.error)).toList(growable: false),
+    );
+  }
+}
