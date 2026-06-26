@@ -1,10 +1,11 @@
 // v0.3.7+20 ForceUpdateDialog 单元测试 (P1 feature, 6/18 老板拍板).
+// v0.3.10+20: 更新改为跳转 GitHub releases 页下载, 按钮文字 "去下载".
 //
 // 覆盖:
 //   1. 渲染: 显示新版本号 + 变更日志
 //   2. barrierDismissible: false → 通过 ForceUpdateDialog.show 验证
 //   3. P0/critical 模式: 不显示 "稍后" 按钮
-//   4. P1 普通模式: 显示 "稍后" + "立刻更新" 2 按钮
+//   4. P1 普通模式: 显示 "稍后" + "去下载" 2 按钮
 //   5. 点 "稍后" → 写 dismissed_version + dismissed_at
 //
 // 不测下载流程 (dio.download 走真网络失败,  集成测试另开卡).
@@ -93,9 +94,9 @@ void main() {
                 TextButton(onPressed: onDismiss, child: const Text('稍后')),
               FilledButton(
                 onPressed: () {
-                  // 测时不真下载.  集成测试在卡上 follow-up.
+                  // 测时不真跳转浏览器.
                 },
-                child: const Text('立刻更新'),
+                child: const Text('去下载'),
               ),
             ],
           ),
@@ -125,7 +126,7 @@ void main() {
       );
 
       expect(find.text('稍后'), findsNothing, reason: 'P0 critical 不应显示 "稍后" 按钮');
-      expect(find.text('立刻更新'), findsOneWidget);
+      expect(find.text('去下载'), findsOneWidget);
       expect(find.text('重要更新'), findsOneWidget);
     });
 
@@ -149,7 +150,7 @@ void main() {
       );
 
       expect(find.text('稍后'), findsOneWidget);
-      expect(find.text('立刻更新'), findsOneWidget);
+      expect(find.text('去下载'), findsOneWidget);
       expect(find.text('发现新版本'), findsOneWidget);
     });
   });

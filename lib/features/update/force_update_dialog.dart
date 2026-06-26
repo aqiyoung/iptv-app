@@ -1,15 +1,14 @@
 // 0.3.7+20 后台强制更新弹窗 (P1 feature, 6/18 老板拍板).
+// 0.3.10+20: 改为跳转 GitHub releases 页下载, 不再 Dio 下载 APK + 调系统安装器.
 //
 // 设计要点:
 //   - barrierDismissible: false  → 用户无法通过点击外部 / 返回键关闭.
 //   - 内容: 大标题 (新版本号) + 副标题 (当前版本 → 新版本) +
-//     变更日志 (release body) + 2 按钮 "立刻更新"(主) + "稍后"(次,  24h 内不弹).
+//     变更日志 (release body) + 2 按钮 "去下载"(主) + "稍后"(次, 24h 内不弹).
 //   - P0/critical: release body 含 "**P0**" / "**critical**" 标记时,  dialog
 //     不显示"稍后"按钮,  必须更新.  维持安全门.
 //   - 视觉: 沿用 v0.3.6+19 暗色主题 token,  弹窗在 light / dark 都好看.
-//   - 下载流程: 点"立刻更新" → dio 下载到 getTemporaryDirectory +
-//     install_plugin.install(installPath) 调 Android installer;  iOS
-//     弹"去 App Store"提示 (后端 store URL 暂用 placeholder).
+//   - 下载流程: 点"去下载" → url_launcher 打开 GitHub releases 页, 用户手动下载 APK.
 //
 // 调用方式:
 //   // main.dart
@@ -19,14 +18,9 @@
 //     }
 //   });
 
-import 'dart:io';
-
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:sanyelive/services/version_checker.dart';
 
@@ -58,9 +52,35 @@ class _ForceUpdateDialogContent extends ConsumerStatefulWidget {
 
 class _ForceUpdateDialogContentState
     extends ConsumerState<_ForceUpdateDialogContent> {
-  _DownloadPhase _phase = _DownloadPhase.idle;
-  String? _errorMessage;
-  double _progress = 0;
+  bool _launching = false;
+
+  /// 构建 GitHub releases 页面 URL.
+  String _buildReleasesUrl(String tagName) {
+    return 'https://github.com/aqiyoung/iptv-app/releases/tag/$tagName';
+  }
+
+  Future<void> _openGitHub(BuildContext context, String tagName) async {
+    setState(() => _launching = true);
+    try {
+      final url = Uri.parse(_buildReleasesUrl(tagName));
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('无法打开浏览器, 请手动访问 GitHub')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('打开 GitHub 失败: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('打开失败: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _launching = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,10 +151,9 @@ class _ForceUpdateDialogContentState
                       ? theme.colorScheme.surfaceContainerHighest
                       : theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  // v0.3.8+99: 删边框线,  靠背景色区分 release notes 区域.
                 ),
                 child: Text(
-                  s.releaseNotes.isEmpty ? '（无变更日志）' : s.releaseNotes,
+                  s.releaseNotes.isEmpty ? '(无变更日志)' : s.releaseNotes,
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.5,
@@ -142,70 +161,15 @@ class _ForceUpdateDialogContentState
                   ),
                 ),
               ),
-              if (_phase == _DownloadPhase.downloading) ...[
-                const SizedBox(height: 16),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: _progress > 0 ? _progress : null,
-                    minHeight: 6,
-                    backgroundColor: isDark
-                        ? theme.colorScheme.outline
-                        : theme.colorScheme.outlineVariant,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      theme.colorScheme.primary,
-                    ),
-                  ),
+              const SizedBox(height: 12),
+              Text(
+                '点击"去下载"将跳转 GitHub 下载最新 APK',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: bodyColor.withValues(alpha: 0.6),
+                  fontStyle: FontStyle.italic,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${(_progress * 100).toStringAsFixed(0)}% — 下载中...',
-                  style: TextStyle(fontSize: 12, color: bodyColor),
-                ),
-              ],
-              if (_phase == _DownloadPhase.failed) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline,
-                          size: 16, color: Colors.red.shade700),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          _errorMessage ?? '下载失败',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red.shade900,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              if (_phase == _DownloadPhase.installing) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      '正在唤起安装器...',
-                      style: TextStyle(fontSize: 13, color: bodyColor),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ],
           ),
         ),
@@ -215,42 +179,19 @@ class _ForceUpdateDialogContentState
   }
 
   List<Widget> _buildActions(VersionCheckOutdated s, ThemeData theme) {
-    if (_phase == _DownloadPhase.downloading ||
-        _phase == _DownloadPhase.installing) {
-      return const []; // 进度中,  不让用户点其他按钮
-    }
-
-    if (_phase == _DownloadPhase.failed) {
-      return [
-        if (!s.isCritical)
-          TextButton(
-            onPressed: () async {
-              await ref.read(versionCheckerProvider.notifier).markDismissed();
-              if (mounted) Navigator.of(context).pop();
-            },
-            child: const Text('稍后'),
+    if (_launching) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _phase = _DownloadPhase.idle;
-              _errorMessage = null;
-            });
-          },
-          child: const Text('重试'),
-        ),
-        FilledButton(
-          onPressed: () => _startDownload(s),
-          style: FilledButton.styleFrom(
-            backgroundColor: theme.colorScheme.primary,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('立刻更新'),
         ),
       ];
     }
 
-    // idle 状态
     final actions = <Widget>[];
 
     // P0/critical: 不显示"稍后"按钮.  强制更新.
@@ -268,88 +209,15 @@ class _ForceUpdateDialogContentState
 
     actions.add(
       FilledButton(
-        onPressed: () => _startDownload(s),
+        onPressed: () => _openGitHub(context, s.latestVersion),
         style: FilledButton.styleFrom(
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: Colors.white,
         ),
-        child: const Text('立刻更新'),
+        child: const Text('去下载'),
       ),
     );
 
     return actions;
   }
-
-  Future<void> _startDownload(VersionCheckOutdated s) async {
-    setState(() {
-      _phase = _DownloadPhase.downloading;
-      _progress = 0;
-      _errorMessage = null;
-    });
-
-    try {
-      if (kIsWeb) {
-        // Web 没有 installer 概念;  直接打开下载链接让浏览器处理.
-        // 实际 IPTV APP 不会跑 web,  这里是 defensive.
-        throw UnsupportedError('Web 端不支持自动安装, 请手动下载');
-      }
-
-      // iOS 走 App Store placeholder (没有 Apple Store 上架,  提示用户).
-      if (Platform.isIOS) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('iOS 用户请到 App Store 更新 (暂未上架)'),
-            ),
-          );
-        }
-        setState(() => _phase = _DownloadPhase.idle);
-        return;
-      }
-
-      final tmpDir = await getTemporaryDirectory();
-      final fileName = s.apkAssetName;
-      final savePath = '${tmpDir.path}/$fileName';
-
-      final dio = Dio();
-      await dio.download(
-        s.apkDownloadUrl,
-        savePath,
-        onReceiveProgress: (received, total) {
-          if (total > 0 && mounted) {
-            setState(() => _progress = received / total);
-          }
-        },
-      );
-
-      if (!mounted) return;
-      setState(() => _phase = _DownloadPhase.installing);
-
-      // v0.3.7+20 (6/18): 用自定义 MethodChannel 调系统 installer.
-      // 不用 install_plugin 2.1.0 (缺 namespace + JVM target 不一致,
-      //  AGP 8+ 编译不过).  详见 MainActivity.kt.
-      // channel 名 'com.threelive.iptv/install' — 跟 MainActivity 里一致.
-      const channel = MethodChannel('com.threelive.iptv/install');
-      final ok = await channel.invokeMethod<bool>('installApk', {
-        'path': savePath,
-      });
-      debugPrint('install_method_channel result: $ok');
-
-      // invokeMethod 后,  我们的进程会被切后台 (系统 installer 弹起).
-      // 如果回到 dialog,  说明用户取消了,  重置回 idle 状态.
-      if (mounted) {
-        setState(() => _phase = _DownloadPhase.idle);
-      }
-    } catch (e, st) {
-      debugPrint('强制更新下载/安装失败: $e\n$st');
-      if (mounted) {
-        setState(() {
-          _phase = _DownloadPhase.failed;
-          _errorMessage = e.toString();
-        });
-      }
-    }
-  }
 }
-
-enum _DownloadPhase { idle, downloading, installing, failed }
