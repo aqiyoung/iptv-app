@@ -113,7 +113,7 @@ final Map<String, String> kChannelIdToEpg = {
   'GoldenEagleCartoon.cn': '金鹰卡通',
   'CGTN.cn': 'CGTN英语',
   'CGNT.cn@CNIPTV': 'CGTN西班牙语',
-  'CGNT.cn@CNIPTV_doc': 'CGTN西班牙语',
+  // 'CGNT.cn@CNIPTV_doc' moved to v0.3.10.17 section below (correct value: 'CGTN纪录').
   'CGTNArabic.cn': 'CGTN西班牙语',
   'CGTNDocumentary.cn': 'CGTN西班牙语',
   'CGTNFrench.cn': 'CGTN法语',
