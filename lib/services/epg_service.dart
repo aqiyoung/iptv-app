@@ -219,10 +219,11 @@ class EpgService {
       }
     }
 
-    // 1) 拉全量 XMLTV (此处被调时 _xmltvLoaded == false)
+    // v0.3.10.21 (6/27): 禁用 suzukua/epg 拉取, 直接走占位.
+    // 恢复时取消下方注释, 删掉 return 即可.
+    return _placeholderSchedule(channelId);
+    /*
     try {
-      // v0.3.10 (6/23): 用注入的 client 创 XmltvEpgSource (允许测试 mock),
-      // 默认 IPv4Client (跟 v0.3.7+50 一致).
       _xmltvSource ??= XmltvEpgSource(client: _client);
       final xml = await _xmltvSource!.fetchXml();
       _allEntries = await _xmltvSource!.parseXml(xml);
@@ -234,7 +235,7 @@ class EpgService {
       debugPrint(
           'EpgService: suzukua fetch failed: $e, fallback to placeholder');
       return _placeholderSchedule(channelId);
-    }
+    } */
 
     // 2) 从内存过滤本 channel (跟 fetch() 里 _filterForChannel 等价)
     return _filterForChannel(channelId);
