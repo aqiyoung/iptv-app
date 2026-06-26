@@ -61,6 +61,9 @@ class _ForceUpdateDialogContentState
 
   Future<void> _openGitHub(BuildContext context, VersionCheckOutdated state) async {
     setState(() => _launching = true);
+    // v0.3.10.22: 在 async gap 之前 capture ScaffoldMessenger 引用,
+    // 避免 use_build_context_synchronously lint 警告.
+    final messenger = ScaffoldMessenger.of(context);
     try {
       // v0.3.10.22: 优先用 apkDownloadUrl 直链下载,  失败 fallback 到 releases 页面.
       // apkDownloadUrl 已经是 browser_download_url (如 sanyelive-v0.3.10.20-arm64-v8a.apk),
@@ -82,14 +85,14 @@ class _ForceUpdateDialogContentState
         }
       }
       if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(content: Text('无法打开浏览器, 请手动访问 GitHub')),
         );
       }
     } catch (e) {
       debugPrint('打开 GitHub 失败: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('打开失败: $e')),
         );
       }
@@ -183,7 +186,7 @@ class _ForceUpdateDialogContentState
                 style: TextStyle(
                   fontSize: 12,
                   // v0.3.10.22: withValues 替代 withOpacity (deprecated)
-                color: bodyColor.withValues(alpha: 0.6),
+                color: bodyColor.withValues(alpha: 0.6), // v0.3.10.22: withValues (withOpacity deprecated)
                   fontStyle: FontStyle.italic,
                 ),
               ),
