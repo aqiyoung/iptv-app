@@ -182,7 +182,8 @@ class _ForceUpdateDialogContentState
                 '点击"去下载"将跳转 GitHub 下载最新 APK',
                 style: TextStyle(
                   fontSize: 12,
-                  color: bodyColor.withValues(alpha: 0.6),
+                  // v0.3.10.22: withValues 替代 withOpacity (deprecated)
+                color: bodyColor.withValues(alpha: 0.6),
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -215,8 +216,11 @@ class _ForceUpdateDialogContentState
       actions.add(
         TextButton(
           onPressed: () async {
+            // v0.3.10.22: 先 capture navigator, 避免 async gap 后
+            // 使用 context 触发 use_build_context_synchronously lint.
+            final navigator = Navigator.of(context);
             await ref.read(versionCheckerProvider.notifier).markDismissed();
-            if (mounted) Navigator.of(context).pop();
+            if (mounted) navigator.pop();
           },
           child: const Text('稍后'),
         ),
