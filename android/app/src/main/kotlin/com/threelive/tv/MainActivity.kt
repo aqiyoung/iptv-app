@@ -159,35 +159,35 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
-    }
 
-    // v0.3.10.18: PiP (画中画) 控制通道
-    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipChannelName)
-        .setMethodCallHandler { call, result ->
-            when (call.method) {
-                "enterPip" -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        try {
-                            val ret = enterPictureInPictureMode()
-                            result.success(ret)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "enterPip failed: ${e.message}")
-                            result.error("PIP_ERROR", e.message, null)
+        // v0.3.10.18: PiP (画中画) 控制通道
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "enterPip" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            try {
+                                val ret = enterPictureInPictureMode()
+                                result.success(ret)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "enterPip failed: ${e.message}")
+                                result.error("PIP_ERROR", e.message, null)
+                            }
+                        } else {
+                            result.error("PIP_ERROR", "Android 8.0+ required", null)
                         }
-                    } else {
-                        result.error("PIP_ERROR", "Android 8.0+ required", null)
                     }
-                }
-                "isInPip" -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        result.success(isInPictureInPictureMode())
-                    } else {
-                        result.success(false)
+                    "isInPip" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            result.success(isInPictureInPictureMode())
+                        } else {
+                            result.success(false)
+                        }
                     }
+                    else -> result.notImplemented()
                 }
-                else -> result.notImplemented()
             }
-        }
+    }
 
     /// v0.3.10.13: 安装 native crash handler — 用 Thread.setDefaultUncaughtExceptionHandler
     /// 捕获未处理的 Java/Kotlin 异常,  写到 crash log 文件.
