@@ -139,7 +139,6 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
   void _enterPipIfNeeded() {
     final playerSvc = ref.read(playerServiceProvider);
     if (playerSvc.state.status != PlayerStatus.playing) return;
-    // 检查是否已在 PiP 中
     const pipChannel = MethodChannel('com.threelive.iptv/pip');
     pipChannel.invokeMethod<bool>('isInPip').then((inPip) {
       if (inPip != true) {
@@ -148,6 +147,17 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     }).catchError((_) {
       // PiP 不可用 (Android 8.0 以下) 则忽略
     });
+  }
+
+  /// 切换播放/暂停
+  void _togglePlayPause() {
+    final playerSvc = ref.read(playerServiceProvider);
+    if (playerSvc.state.status == PlayerStatus.playing) {
+      playerSvc.pause();
+    } else {
+      // 如果在 idle/error 状态，尝试重新播放
+      _tryAutoPlay();
+    }
   }
 
   /// v0.3.8+109 (6/20): 让 player state 进入 loading — 不等 addPostFrameCallback
@@ -493,40 +503,87 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
                 // P0-1: 视频区点一下切控件可见性 (原本不可见 -> 显示, 显示中 -> 立即隐藏)
                 return Stack(
                   children: [
-                    // 视频区填满全屏 (控件盖在上面, 隐身时露出视频)
-                    // v0.3.7+79 (6/19 老板反馈): 加 onDoubleTap handler 防止双击切频道误触.
-                    //  老板反馈 "全屏播放双击后切换频道的 bug".
-                    // 根因: GestureDetector 默认有 double-tap recognizer,  双击拆成 2 次
-                    //  onTap,  看着像 控件显示/隐藏快速切换,  加上 _controlsVisible 切
-                    //  节目卡 + 横滑 立即显/隐,  老板误以为 "切频道".
-                    // 修法: 显式 onDoubleTap handler (什么都不做,  只 触发一次),  让 Flutter
-                    //  gesture arena 把双击识别为 "双击" 而不是 2 次单击,  控件不会快速切换.
+                    // 视频区填满全屏
                     Positioned.fill(
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        // v0.3.8+114: 恢复 +111 之前的设计 — onTap 切控件显隐.
-                        // 老板 20:37 反馈: "你那点一下出来, 等 3 秒它自动隐藏,
-                        // 这个必须要有的, 要不然一直挂着不好看".  +113 删 3s 隐
-                        // 是错的逻辑.  恢复 +111 的 IgnorePointer + AnimatedOpacity
-                        // 设计 (3s 自动隐 + 防切频道 bug).
                         onTap: () {
-                          if (_controlsVisible) {
-                            // 显示中: 立即隐藏, 不重置计时器
-                            _hideControlsTimer?.cancel();
-                            setState(() => _controlsVisible = false);
-                          } else {
-                            // 隐藏中: 显示并重置计时器
-                            _resetHideTimer();
-                          }
+                          setState(() => _controlsVisible = !_controlsVisible);
                         },
-                        onDoubleTap: () {
-                          // v0.3.7+79: 显式空 handler.  让 Flutter gesture arena
-                          // 识别为双击 (不拆成 2 次 onTap).  实际行为: 什么都不做.
-                        },
+                        onDoubleTap: () {},
                         child: VideoArea(
                           controller: controller,
                           state: state,
                           channel: channel,
+                        ),
+                      ),
+                    ),
+                    // v0.3.10.18: 中央播放/暂停按钮
+                    Center(
+                      child: AnimatedOpacity(
+                        opacity: _controlsVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: IgnorePointer(
+                          ignoring: !_controlsVisible,
+                          child: GestureDetector(
+                            onTap: _togglePlayPause,
+                            child: Container(
+                              width: 72,
+                              height: 72,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                state.status == PlayerStatus.playing
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                                color: Colors.white,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // v0.3.10.18: 右下角控制栏
+                    Positioned(
+                      right: 16,
+                      bottom: 16,
+                      child: AnimatedOpacity(
+                        opacity: _controlsVisible ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 200),
+                        child: IgnorePointer(
+                          ignoring: !_controlsVisible,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 播放/暂停
+                              _ControlButton(
+                                icon: state.status == PlayerStatus.playing
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                                onTap: _togglePlayPause,
+                              ),
+                              const SizedBox(width: 8),
+                              // PiP 画中画
+                              _ControlButton(
+                                icon: Icons.picture_in_picture,
+                                onTap: () {
+                                  const pip = MethodChannel('com.threelive.iptv/pip');
+                                  pip.invokeMethod('enterPip');
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              // 全屏切换
+                              _ControlButton(
+                                icon: _isFullscreen
+                                    ? Icons.fullscreen_exit
+                                    : Icons.fullscreen,
+                                onTap: _toggleFullscreen,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -592,80 +649,33 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
                     // 按了.  修法:  Container 背景加深到 0.85 + TopBar 里全部强制
                     // Colors.white / Colors.white70 不靠主题.  返回按钮 + 台标 + LIVE 状态 +
                     // 时钟  全都清晰可见.
-                    IgnorePointer(
-                      ignoring: !_controlsVisible,
-                      child: AnimatedOpacity(
-                        opacity: _controlsVisible ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 250),
-                        child: Container(
-                          color: Colors.black.withOpacity(0.85),
-                          child: SafeArea(
-                            bottom: false,
-                            child: TopBar(
-                              channel: channel,
-                              state: state,
-                              onBack: _onTopBarBack,
-                              // v0.3.8+131: 全屏黑底,  白字 (v0.3.8+130 行为).
-                              isFullscreen: true,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // [2] 节目卡 + 频道横滑 — IgnorePointer + AnimatedOpacity 一起,
-                    //  3s 自动隐 + 防切频道 bug.  +115: 整控件层 3s 隐 (含 TopBar).
-                    //  TopBar 在 [1] 也走 _controlsVisible (跟 [2] 同步显隐).
-                    //  关键:  Positioned 放底部 — NowNextProgram + NextChannelsStrip.
-                    //  整体结构:
-                    //    Stack
-                    //      ├── [0] Positioned.fill → 视频 GestureDetector (onTap 切显隐)
-                    //      ├── [1] Padding → TopBar (always show in tree, 走 [2] opacity)
-                    //      └── [2] Positioned(bottom) → IgnorePointer + AnimatedOpacity (TopBar + 节目卡 + 横滑)
-                    //  但实际 +115 还是分开 [1] 和 [2] 各自有自己的 opacity wrap — 这样
-                    //  TopBar 是 Padding non-Positioned, 节目卡是 Positioned bottom,
-                    //  两者 opacity 同步 (都 _controlsVisible).
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: IgnorePointer(
-                        ignoring: !_controlsVisible,
-                        child: AnimatedOpacity(
-                          opacity: _controlsVisible ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 250),
-                          child: Container(
-                            color: Colors.black.withOpacity(0.55),
-                            padding: const EdgeInsets.only(bottom: 24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (channel != null)
-                                  NowNextProgram(channel: channel),
-                                if (channel != null)
-                                  NextChannelsStrip(
-                                    currentChannelId: channel.id,
-                                    allChannels: channels,
-                                    onChannelTap: _switchTo,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // v0.3.7+79 (6/19 老板反馈): 删右上角退出全屏浮动按钮.
-                    // 老板反馈: "右上角的退出全屏 去掉吧".  v0.3.7+64 加的浮动按钮
-                    // 干扰老板,  老板要干净的全屏体验.  退出全屏靠:
-                    //   1. Android back (标准行为)
-                    //   2. TopBar 里的 fullscreen_exit (v0.3.7+64 在 _buildMobile
-                    //      TopBar 里也有全屏/退出全屏按钮,  _controlsVisible=false 时
-                    //      TopBar 隐,  但 Android back 总能用)
-                    //   3. 双击视频不响应 (下面 onDoubleTap 显式 null)
-                    //
                   ],
                 );
               },
             ),
+    );
+  }
+}
+
+/// v0.3.10.18: 右下角控制按钮 (圆形半透明黑底)
+class _ControlButton extends StatelessWidget {
+  const _ControlButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
     );
   }
 }
