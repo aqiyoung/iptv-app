@@ -167,6 +167,16 @@ class MainActivity : FlutterActivity() {
                     "enterPip" -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             try {
+                                // Android 12+: 禁用系统 PiP 控件 (避免假按钮)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    try {
+                                        setPictureInPictureParams(
+                                            android.app.PictureInPictureParams.Builder()
+                                                .setActions(emptyList())
+                                                .build()
+                                        )
+                                    } catch (_) {}
+                                }
                                 val ret = enterPictureInPictureMode()
                                 result.success(ret)
                             } catch (e: Exception) {
