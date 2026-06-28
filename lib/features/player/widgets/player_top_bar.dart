@@ -18,6 +18,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/theme/typography.dart';
 import '../../../data/models/channel.dart';
@@ -102,6 +103,14 @@ class _TopBarState extends State<TopBar> {
           IconButton(
             icon: Icon(Icons.arrow_back, color: iconColor),
             onPressed: widget.onBack,
+          ),
+          // v0.3.10.18: PiP 画中画按钮
+          IconButton(
+            icon: Icon(Icons.picture_in_picture, color: iconColor),
+            onPressed: () {
+              const channel = MethodChannel('com.threelive.iptv/pip');
+              channel.invokeMethod('enterPip');
+            },
           ),
           const SizedBox(width: 4),
           Expanded(
