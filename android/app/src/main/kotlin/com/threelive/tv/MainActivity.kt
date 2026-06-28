@@ -59,6 +59,42 @@ class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
     }
 
+    // v0.3.10.22: 在用户按 Home 键时立即进入 PiP (在 onPause 之前)
+    // 这样可以避免 Flutter 暂停导致视频也暂停
+    override fun onUserLeaveHint() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val ret = enterPictureInPictureMode()
+                Log.d(TAG, "onUserLeaveHint: enterPictureInPictureMode = $ret")
+            } catch (e: Exception) {
+                Log.e(TAG, "onUserLeaveHint: failed: ${e.message}")
+            }
+        }
+        super.onUserLeaveHint()
+    }
+
+    // v0.3.10.22: 监听 PiP 模式变化
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: android.content.res.Configuration?
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        Log.d(TAG, "onPictureInPictureModeChanged: isInPip=$isInPictureInPictureMode")
+        if (!isInPictureInPictureMode) {
+            // 用户关闭了小窗 (点了叉) — 通知 Flutter 端停止播放
+            // 防止再次打开 APP 时出现僵尸小窗
+            try {
+                val messenger = flutterEngine?.dartExecutor?.binaryMessenger
+                if (messenger != null) {
+                    val channel = MethodChannel(messenger, pipChannelName)
+                    channel.invokeMethod("pipClosed", null)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "onPictureInPictureModeChanged: notify pipClosed failed: ${e.message}")
+            }
+        }
+    }
+
     override fun onDestroy() {
         // v0.3.10.22: 释放 MediaSession
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

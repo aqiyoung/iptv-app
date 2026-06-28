@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -133,7 +134,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     // v0.3.10.22: 监听原生层媒体控制命令 (PiP/锁屏控件)
     const pipChannel = MethodChannel('com.threelive.iptv/pip');
     pipChannel.setMethodCallHandler((call) async {
-      _handleMediaCommand(call.method);
+      if (call.method == 'pipClosed') {
+        // 用户关闭了 PiP 小窗 — 停止播放并清理
+        _handlePipClosed();
+      } else {
+        _handleMediaCommand(call.method);
+      }
     });
     // v0.3.10.22: 监听播放器状态变化, 同步到 MediaSession
     ref.listen(currentPlayerStateProvider, (prev, next) {
@@ -179,11 +185,8 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // v0.3.10.18: 退出到后台时自动进入 PiP
-    if (state == AppLifecycleState.inactive) {
-      _enterPipIfNeeded();
-    }
     // v0.3.10.22: 从 PiP 返回时恢复播放
+    // 注意: 进入 PiP 现在由 MainActivity.onUserLeaveHint() 处理
     if (state == AppLifecycleState.resumed) {
       _tryResumeFromPip();
     }
@@ -197,6 +200,19 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     if (playerSvc.state.status == PlayerStatus.idle ||
         playerSvc.state.status == PlayerStatus.error) {
       _tryAutoPlay();
+    }
+  }
+
+  /// v0.3.10.22: 用户关闭 PiP 小窗时调用 — 停止播放防止僵尸窗口
+  void _handlePipClosed() {
+    if (!mounted) return;
+    debugPrint('PlayerPage: PiP closed by user, stopping player...');
+    final playerSvc = ref.read(playerServiceProvider);
+    // 停止播放
+    playerSvc.stop();
+    // 退出页面
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
     }
   }
 
