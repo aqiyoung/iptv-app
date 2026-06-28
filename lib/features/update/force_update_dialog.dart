@@ -166,7 +166,7 @@ class _ForceUpdateDialogContentState
                 '点击"去下载"将跳转 GitHub 下载最新 APK',
                 style: TextStyle(
                   fontSize: 12,
-                  color: bodyColor.withValues(alpha: 0.6),
+                  color: bodyColor.withOpacity(0.6),
                   fontStyle: FontStyle.italic,
                 ),
               ),

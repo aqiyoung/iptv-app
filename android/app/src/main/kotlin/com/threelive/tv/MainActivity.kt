@@ -108,40 +108,41 @@ class MainActivity : FlutterActivity() {
     private fun initMediaSession() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
         try {
+            val callback = object : MediaSession.Callback() {
+                override fun onPlay() {
+                    Log.d(TAG, "MediaSession: onPlay")
+                    runOnUiThread {
+                        sendPlayerCommand("play")
+                    }
+                }
+                override fun onPause() {
+                    Log.d(TAG, "MediaSession: onPause")
+                    runOnUiThread {
+                        sendPlayerCommand("pause")
+                    }
+                }
+                override fun onSkipToPrevious() {
+                    Log.d(TAG, "MediaSession: onSkipToPrevious")
+                    runOnUiThread {
+                        sendPlayerCommand("previous")
+                    }
+                }
+                override fun onSkipToNext() {
+                    Log.d(TAG, "MediaSession: onSkipToNext")
+                    runOnUiThread {
+                        sendPlayerCommand("next")
+                    }
+                }
+            }
+            _mediaSessionCallback = callback
             mediaSession = MediaSession(this, "SanyeliveMediaSession").apply {
                 setFlags(
                     MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or
                     MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS
                 )
-                setCallback(object : MediaSession.Callback() {
-                    override fun onPlay() {
-                        Log.d(TAG, "MediaSession: onPlay")
-                        runOnUiThread {
-                            sendPlayerCommand("play")
-                        }
-                    }
-                    override fun onPause() {
-                        Log.d(TAG, "MediaSession: onPause")
-                        runOnUiThread {
-                            sendPlayerCommand("pause")
-                        }
-                    }
-                    override fun onSkipToPrevious() {
-                        Log.d(TAG, "MediaSession: onSkipToPrevious")
-                        runOnUiThread {
-                            sendPlayerCommand("previous")
-                        }
-                    }
-                    override fun onSkipToNext() {
-                        Log.d(TAG, "MediaSession: onSkipToNext")
-                        runOnUiThread {
-                            sendPlayerCommand("next")
-                        }
-                    }
-                })
+                setCallback(callback)
                 isActive = true
             }
-            _mediaSessionCallback = mediaSession?.callback
         } catch (e: Exception) {
             Log.e(TAG, "initMediaSession failed: ${e.message}")
         }
@@ -150,7 +151,12 @@ class MainActivity : FlutterActivity() {
     /// 发送播放控制命令到 Flutter (通过 pip channel 转发)
     private fun sendPlayerCommand(command: String) {
         try {
-            val channel = MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger, pipChannelName)
+            val messenger = flutterEngine?.dartExecutor?.binaryMessenger
+            if (messenger == null) {
+                Log.e(TAG, "sendPlayerCommand $command failed: binaryMessenger is null")
+                return
+            }
+            val channel = MethodChannel(messenger, pipChannelName)
             channel.invokeMethod(command, null)
         } catch (e: Exception) {
             Log.e(TAG, "sendPlayerCommand $command failed: ${e.message}")
@@ -293,16 +299,6 @@ class MainActivity : FlutterActivity() {
                     "enterPip" -> {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             try {
-                                // Android 12+: 禁用系统 PiP 控件 (避免假按钮)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                    try {
-                                        setPictureInPictureParams(
-                                            android.app.PictureInPictureParams.Builder()
-                                                .setActions(emptyList())
-                                                .build()
-                                        )
-                                    } catch (_) {}
-                                }
                                 val ret = enterPictureInPictureMode()
                                 result.success(ret)
                             } catch (e: Exception) {
