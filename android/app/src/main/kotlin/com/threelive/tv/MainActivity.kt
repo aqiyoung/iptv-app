@@ -3,6 +3,9 @@ package com.threelive.tv
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.MediaMetadata
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -39,7 +42,13 @@ class MainActivity : FlutterActivity() {
     private val fallbackChannelName = "com.threelive.iptv/fallback_player"
     private val libmpvCheckChannelName = "com.threelive.iptv/check_libmpv"
     private val pipChannelName = "com.threelive.iptv/pip"
+    private val mediaSessionChannelName = "com.threelive.iptv/media_session"
     private val TAG = "SanyeliveMain"
+
+    // v0.3.10.22: MediaSession — 让系统 PiP 控件/锁屏控件真正工作
+    private var mediaSession: MediaSession? = null
+    private var currentPlaybackState = PlaybackState.STATE_NONE
+    private var currentChannelId: String? = null
     private val REQUEST_PERMISSIONS = 1001
 
     // v0.3.10.22: 在 Flutter 引擎启动前就请求存储权限 —
@@ -48,6 +57,15 @@ class MainActivity : FlutterActivity() {
         installNativeCrashHandler()
         requestStoragePermissions()
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onDestroy() {
+        // v0.3.10.22: 释放 MediaSession
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mediaSession?.release()
+            mediaSession = null
+        }
+        super.onDestroy()
     }
 
     private fun requestStoragePermissions() {
@@ -80,6 +98,82 @@ class MainActivity : FlutterActivity() {
         }
         if (perms.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, perms.toTypedArray(), REQUEST_PERMISSIONS)
+        }
+    }
+
+    // v0.3.10.22: MediaSession callback (由 Dart 端通过 MethodChannel 触发)
+    private var _mediaSessionCallback: MediaSession.Callback? = null
+
+    /// 初始化 MediaSession
+    private fun initMediaSession() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
+        try {
+            mediaSession = MediaSession(this, "SanyeliveMediaSession").apply {
+                setFlags(
+                    MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or
+                    MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS
+                )
+                setCallback(object : MediaSession.Callback() {
+                    override fun onPlay() {
+                        Log.d(TAG, "MediaSession: onPlay")
+                        runOnUiThread {
+                            sendPlayerCommand("play")
+                        }
+                    }
+                    override fun onPause() {
+                        Log.d(TAG, "MediaSession: onPause")
+                        runOnUiThread {
+                            sendPlayerCommand("pause")
+                        }
+                    }
+                    override fun onSkipToPrevious() {
+                        Log.d(TAG, "MediaSession: onSkipToPrevious")
+                        runOnUiThread {
+                            sendPlayerCommand("previous")
+                        }
+                    }
+                    override fun onSkipToNext() {
+                        Log.d(TAG, "MediaSession: onSkipToNext")
+                        runOnUiThread {
+                            sendPlayerCommand("next")
+                        }
+                    }
+                })
+                isActive = true
+            }
+            _mediaSessionCallback = mediaSession?.callback
+        } catch (e: Exception) {
+            Log.e(TAG, "initMediaSession failed: ${e.message}")
+        }
+    }
+
+    /// 发送播放控制命令到 Flutter (通过 pip channel 转发)
+    private fun sendPlayerCommand(command: String) {
+        try {
+            val channel = MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger, pipChannelName)
+            channel.invokeMethod(command, null)
+        } catch (e: Exception) {
+            Log.e(TAG, "sendPlayerCommand $command failed: ${e.message}")
+        }
+    }
+
+    /// 更新播放状态 (Dart 端调用)
+    private fun updatePlaybackState(playing: Boolean, channelId: String?) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
+        try {
+            currentChannelId = channelId
+            currentPlaybackState = if (playing) PlaybackState.STATE_PLAYING else PlaybackState.STATE_PAUSED
+            val stateBuilder = PlaybackState.Builder()
+                .setActions(
+                    PlaybackState.ACTION_PLAY or
+                    PlaybackState.ACTION_PAUSE or
+                    PlaybackState.ACTION_SKIP_TO_PREVIOUS or
+                    PlaybackState.ACTION_SKIP_TO_NEXT
+                )
+                .setState(currentPlaybackState, 0, 1.0f)
+            mediaSession?.setPlaybackState(stateBuilder.build())
+        } catch (e: Exception) {
+            Log.e(TAG, "updatePlaybackState failed: ${e.message}")
         }
     }
 
@@ -155,6 +249,38 @@ class MainActivity : FlutterActivity() {
                             Log.e(TAG, "libmpv.so 加载异常: ${e.message}")
                             result.success(false)
                         }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // v0.3.10.22: MediaSession — 让系统 PiP 控件真正工作
+        initMediaSession()
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, mediaSessionChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "play" -> {
+                        _mediaSessionCallback?.onPlay()
+                        result.success(true)
+                    }
+                    "pause" -> {
+                        _mediaSessionCallback?.onPause()
+                        result.success(true)
+                    }
+                    "previous" -> {
+                        _mediaSessionCallback?.onSkipToPrevious()
+                        result.success(true)
+                    }
+                    "next" -> {
+                        _mediaSessionCallback?.onSkipToNext()
+                        result.success(true)
+                    }
+                    "updateState" -> {
+                        // Dart 端更新播放状态
+                        val playing = call.argument<Boolean>("playing") ?: false
+                        val channelId = call.argument<String>("channelId")
+                        updatePlaybackState(playing, channelId)
+                        result.success(true)
                     }
                     else -> result.notImplemented()
                 }

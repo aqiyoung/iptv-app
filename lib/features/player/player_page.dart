@@ -71,6 +71,48 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     return MediaQuery.of(context).size.shortestSide < 600;
   }
 
+  // v0.3.10.22: MediaSession 通道 — 通知原生层播放状态变化
+  static const _mediaSessionChannel = MethodChannel('com.threelive.iptv/media_session');
+
+  /// 通知原生层更新播放状态 (用于系统 PiP/锁屏控件)
+  void _updateMediaSessionState(bool playing) {
+    try {
+      _mediaSessionChannel.invokeMethod('updateState', {
+        'playing': playing,
+        'channelId': widget.channelId,
+      });
+    } catch (_) {}
+  }
+
+  /// 处理来自原生层的媒体控制命令 (PiP/锁屏控件)
+  void _handleMediaCommand(String command) {
+    switch (command) {
+      case 'play':
+        _tryAutoPlay();
+        break;
+      case 'pause':
+        final svc = ref.read(playerServiceProvider);
+        svc.pause();
+        break;
+      case 'previous':
+        _switchToPreviousChannel();
+        break;
+      case 'next':
+        _switchToNextChannel();
+        break;
+    }
+  }
+
+  /// 切换到上一个频道
+  void _switchToPreviousChannel() {
+    // TODO: 实现上一个频道逻辑
+  }
+
+  /// 切换到下一个频道
+  void _switchToNextChannel() {
+    // TODO: 实现下一个频道逻辑
+  }
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +129,15 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _applySystemUiOverlayForPlayer();
+    });
+    // v0.3.10.22: 监听原生层媒体控制命令 (PiP/锁屏控件)
+    const pipChannel = MethodChannel('com.threelive.iptv/pip');
+    pipChannel.setMethodCallHandler((call) async {
+      _handleMediaCommand(call.method);
+    });
+    // v0.3.10.22: 监听播放器状态变化, 同步到 MediaSession
+    ref.listen(currentPlayerStateProvider, (prev, next) {
+      _updateMediaSessionState(next.status == PlayerStatus.playing);
     });
     // v0.3.8+109 (6/20 17:52 老板反馈 "点频道 半天进不去 必须点第二下"):
     // 之前 _tryAutoPlay 在 addPostFrameCallback 里跑.  1帧后  await channelsProvider
@@ -129,9 +180,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // v0.3.10.18: 退出到后台时自动进入 PiP
-    // 注意: 必须在 inactive 状态时进入 PiP, 不能等 paused (paused 时 Flutter 已暂停渲染)
     if (state == AppLifecycleState.inactive) {
       _enterPipIfNeeded();
+    }
+    // v0.3.10.22: 从 PiP 返回时恢复播放
+    if (state == AppLifecycleState.resumed) {
+      _tryResumeFromPip();
     }
   }
 
