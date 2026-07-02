@@ -25,6 +25,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import com.threelive.tv.pip.PipPlayerManager
+
 /// v0.3.7+20 (6/18): 后台强制更新 — MethodChannel 调 Android installer.
 ///
 /// 不用 install_plugin 2.1.0 (package 缺 namespace + JVM target 不一致,
@@ -384,29 +386,29 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
-    }
 
-    // v0.3.10.22: PiP 原生视频播放器控制通道
-    // Dart 端传入当前播放的 URL, 原生 SurfaceView 接管渲染
-    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipPlayerChannelName)
-        .setMethodCallHandler { call, result ->
-            when (call.method) {
-                "startPipPlayer" -> {
-                    val url = call.argument<String>("url")
-                    if (url == null) {
-                        result.error("ARG_ERROR", "url is required", null)
-                        return@setMethodCallHandler
+        // v0.3.10.22: PiP 原生视频播放器控制通道
+        // Dart 端传入当前播放的 URL, 原生 SurfaceView 接管渲染
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipPlayerChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "startPipPlayer" -> {
+                        val url = call.argument<String>("url")
+                        if (url == null) {
+                            result.error("ARG_ERROR", "url is required", null)
+                            return@setMethodCallHandler
+                        }
+                        pipPlayer.start(url)
+                        result.success(true)
                     }
-                    pipPlayer.start(url)
-                    result.success(true)
+                    "stopPipPlayer" -> {
+                        pipPlayer.stop()
+                        result.success(true)
+                    }
+                    else -> result.notImplemented()
                 }
-                "stopPipPlayer" -> {
-                    pipPlayer.stop()
-                    result.success(true)
-                }
-                else -> result.notImplemented()
             }
-        }
+    }
 
     /// v0.3.10.13: 安装 native crash handler — 用 Thread.setDefaultUncaughtExceptionHandler
     /// 捕获未处理的 Java/Kotlin 异常,  写到 crash log 文件.
