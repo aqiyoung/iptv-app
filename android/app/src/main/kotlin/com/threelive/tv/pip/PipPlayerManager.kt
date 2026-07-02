@@ -115,15 +115,15 @@ class PipPlayerManager(private val context: Context) {
 
         try {
             mediaPlayer?.stop()
-        } catch (_) {}
+        } catch (e: Exception) { Log.d(TAG, "stop: mediaPlayer.stop error: ${e.message}") }
         try {
             mediaPlayer?.release()
-        } catch (_) {}
+        } catch (e: Exception) { Log.d(TAG, "stop: mediaPlayer.release error: ${e.message}") }
         mediaPlayer = null
 
         try {
             surfaceView?.holder?.surface?.release()
-        } catch (_) {}
+        } catch (e: Exception) { Log.d(TAG, "stop: surface.release error: ${e.message}") }
 
         try {
             if (surfaceView != null && windowManager != null) {
