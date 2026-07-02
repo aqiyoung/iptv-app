@@ -9,6 +9,8 @@ import android.media.session.PlaybackState
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -71,35 +73,41 @@ class MainActivity : FlutterActivity() {
         super.onUserLeaveHint()
     }
 
-    // v0.3.10.22: PiP 模式下不暂停 Flutter, 保持视频播放
-    override fun onPause() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
-            Log.d(TAG, "onPause: in PiP mode, skip Flutter pause")
-            // 在 PiP 模式下, 不调用 super.onPause() 可防止 Flutter 暂停渲染
-            // 这样 texture/platform view 会继续刷新, 视频继续播放
-            return
+    private val pipKeepaliveHandler = Handler(Looper.getMainLooper())
+    private var pipKeepaliveRunning = false
+
+    // v0.3.10.22: PiP 模式下周期性刷新 Flutter 视图, 防止视频暂停
+    private val pipKeepaliveRunnable = object : Runnable {
+        override fun run() {
+            if (!pipKeepaliveRunning) return
+            flutterEngine?.let { engine ->
+                // 强制 Flutter 引擎继续处理帧
+                engine.renderer.createSurfaceTexture()
+            }
+            window?.decorView?.invalidate()
+            pipKeepaliveHandler.postDelayed(this, 100)
         }
-        super.onPause()
     }
 
-    override fun onStop() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) {
-            Log.d(TAG, "onStop: in PiP mode, skip Flutter stop")
-            return
-        }
-        super.onStop()
-    }
-
-    // v0.3.10.22: 监听 PiP 模式变化
+    // v0.3.10.22: PiP 模式下启动/停止 keepalive
     override fun onPictureInPictureModeChanged(
         isInPictureInPictureMode: Boolean,
         newConfig: android.content.res.Configuration?
     ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        Log.d(TAG, "onPictureInPictureModeChanged: isInPip=$isInPictureInPictureMode")
+        if (isInPictureInPictureMode) {
+            // 进入 PiP: 启动 keepalive
+            pipKeepaliveRunning = true
+            pipKeepaliveHandler.post(pipKeepaliveRunnable)
+            Log.d(TAG, "onPictureInPictureModeChanged: entered PiP, keepalive started")
+        } else {
+            // 退出 PiP: 停止 keepalive
+            pipKeepaliveRunning = false
+            pipKeepaliveHandler.removeCallbacks(pipKeepaliveRunnable)
+            Log.d(TAG, "onPictureInPictureModeChanged: exited PiP, keepalive stopped")
+        }
         if (!isInPictureInPictureMode) {
             // 用户关闭了小窗 (点了叉) — 通知 Flutter 端停止播放
-            // 防止再次打开 APP 时出现僵尸小窗
             try {
                 val messenger = flutterEngine?.dartExecutor?.binaryMessenger
                 if (messenger != null) {
