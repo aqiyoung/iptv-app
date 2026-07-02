@@ -53,6 +53,10 @@ class MainActivity : FlutterActivity() {
     private var currentChannelId: String? = null
     private val REQUEST_PERMISSIONS = 1001
 
+    // v0.3.10.22: PiP 原生视频播放器
+    private val pipPlayer = PipPlayerManager(this)
+    private val pipPlayerChannelName = "com.threelive.iptv/pip_player"
+
     // v0.3.10.22: 在 Flutter 引擎启动前就请求存储权限 —
     // 某些 TV 盒子 ROM 会在 app 不请求权限时直接杀进程.
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -381,6 +385,28 @@ class MainActivity : FlutterActivity() {
                 }
             }
     }
+
+    // v0.3.10.22: PiP 原生视频播放器控制通道
+    // Dart 端传入当前播放的 URL, 原生 SurfaceView 接管渲染
+    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipPlayerChannelName)
+        .setMethodCallHandler { call, result ->
+            when (call.method) {
+                "startPipPlayer" -> {
+                    val url = call.argument<String>("url")
+                    if (url == null) {
+                        result.error("ARG_ERROR", "url is required", null)
+                        return@setMethodCallHandler
+                    }
+                    pipPlayer.start(url)
+                    result.success(true)
+                }
+                "stopPipPlayer" -> {
+                    pipPlayer.stop()
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
 
     /// v0.3.10.13: 安装 native crash handler — 用 Thread.setDefaultUncaughtExceptionHandler
     /// 捕获未处理的 Java/Kotlin 异常,  写到 crash log 文件.

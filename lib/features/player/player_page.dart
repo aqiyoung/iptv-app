@@ -185,10 +185,13 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // v0.3.10.22: 从 PiP 返回时恢复播放
-    // 注意: 进入 PiP 现在由 MainActivity.onUserLeaveHint() 处理
     if (state == AppLifecycleState.resumed) {
-      _tryResumeFromPip();
+      // 从 PiP 返回时, 停止原生 SurfaceView, 恢复 Flutter 播放
+      _exitPiP();
+    }
+    if (state == AppLifecycleState.inactive) {
+      // 后台切换时进入 PiP
+      _enterPiP();
     }
   }
 
@@ -203,58 +206,31 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     }
   }
 
-  /// v0.3.10.22: 用户关闭 PiP 小窗时调用 — 停止播放防止僵尸窗口
+  /// v0.3.10.22: 用户关闭 PiP 小窗时调用 — 停止原生渲染
   void _handlePipClosed() {
     if (!mounted) return;
-    debugPrint('PlayerPage: PiP closed by user, stopping player...');
-    final playerSvc = ref.read(playerServiceProvider);
-    // 停止播放
-    playerSvc.stop();
-    // 退出页面
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    }
+    debugPrint('PlayerPage: PiP closed by user');
+    _exitPiP();
   }
 
-  /// 自动进入 PiP (如果正在播放且未在 PiP 中)
-  void _enterPipIfNeeded() {
+  static const _pipPlayerChannel = MethodChannel('com.threelive.iptv/pip_player');
+  static const _pipChannel = MethodChannel('com.threelive.iptv/pip');
+
+  /// 进入 PiP 模式 — 先告诉原生层当前 URL, 让 SurfaceView 接管渲染
+  void _enterPiP() {
     final playerSvc = ref.read(playerServiceProvider);
-    if (playerSvc.state.status != PlayerStatus.playing) {
-      // 如果暂停了，先恢复播放
-      _tryAutoPlay();
-      // 等一下再进入 PiP
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) _enterPipNow();
-      });
-      return;
+    final currentUrl = playerSvc.currentUrl;
+    if (currentUrl != null && currentUrl.isNotEmpty) {
+      // 告诉原生层开始用 SurfaceView 渲染 (独立于 Flutter 生命周期)
+      _pipPlayerChannel.invokeMethod('startPipPlayer', {'url': currentUrl});
     }
-    _enterPipNow();
+    // 进入系统 PiP
+    _pipChannel.invokeMethod('enterPip');
   }
 
-  void _enterPipNow() {
-    final playerSvc = ref.read(playerServiceProvider);
-    // 确保播放中
-    if (playerSvc.state.status != PlayerStatus.playing) {
-      _tryAutoPlay();
-    }
-    const pipChannel = MethodChannel('com.threelive.iptv/pip');
-    pipChannel.invokeMethod<bool>('isInPip').then((inPip) {
-      if (inPip != true) {
-        pipChannel.invokeMethod('enterPip').then((_) {
-          // PiP 进入后，确保播放器仍在播放
-          // 某些设备进入 PiP 后会暂停，需要恢复
-          Future.delayed(const Duration(milliseconds: 300), () {
-            if (!mounted) return;
-            final svc = ref.read(playerServiceProvider);
-            if (svc.state.status != PlayerStatus.playing) {
-              _tryAutoPlay();
-            }
-          });
-        });
-      }
-    }).catchError((_) {
-      // PiP 不可用 (Android 8.0 以下) 则忽略
-    });
+  /// 退出 PiP — 告诉原生层停止 SurfaceView
+  void _exitPiP() {
+    _pipPlayerChannel.invokeMethod('stopPipPlayer');
   }
 
   /// 切换播放/暂停
@@ -674,13 +650,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
                                 onTap: _togglePlayPause,
                               ),
                               const SizedBox(width: 8),
-                              // PiP 画中画
+                              // PiP 画中画 — 原生 SurfaceView 接管渲染
                               _ControlButton(
                                 icon: Icons.picture_in_picture,
-                                onTap: () {
-                                  const pip = MethodChannel('com.threelive.iptv/pip');
-                                  pip.invokeMethod('enterPip');
-                                },
+                                onTap: _enterPiP,
                               ),
                               const SizedBox(width: 8),
                               // 全屏切换

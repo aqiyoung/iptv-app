@@ -157,6 +157,9 @@ class PlayerService extends ChangeNotifier {
   PlayerState _state = const PlayerState.idle();
   PlayerState get state => _state;
 
+  /// v0.3.10.22: 当前播放的流 URL (供 PiP 原生渲染用)
+  String? get currentUrl => _state.currentSource;
+
   /// v0.3.8+109 (6/20 老板反馈 "点频道 半天进不去 必须点第二下"):
   /// 立即让 state 进入 loading — 不等 addPostFrameCallback 也不等 channelsProvider.
   /// PlayerPage.initState 调用后第一帧就看到 "正在打开…" loading.
