@@ -24,6 +24,7 @@ class MainActivity : FlutterActivity() {
     private val channelName = "com.threelive.iptv/install"
     private val fallbackChannelName = "com.threelive.iptv/fallback_player"
     private val libmpvCheckChannelName = "com.threelive.iptv/check_libmpv"
+    private val pipChannelName = "com.threelive.iptv/pip"
     private val TAG = "SanyeliveMain"
     private val REQUEST_PERMISSIONS = 1001
 
@@ -31,6 +32,18 @@ class MainActivity : FlutterActivity() {
         installNativeCrashHandler()
         requestStoragePermissions()
         super.onCreate(savedInstanceState)
+    }
+
+    // v0.3.11: 按 Home 键 → 自动进入 PiP
+    override fun onUserLeaveHint() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                enterPictureInPictureMode()
+            } catch (e: Exception) {
+                Log.e(TAG, "onUserLeaveHint: ${e.message}")
+            }
+        }
+        super.onUserLeaveHint()
     }
 
     override fun onDestroy() {
@@ -129,6 +142,34 @@ class MainActivity : FlutterActivity() {
                             result.success(false)
                         } catch (e: Throwable) {
                             Log.e(TAG, "libmpv.so ошибка загрузки: ${e.message}")
+                            result.success(false)
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // v0.3.11: PiP (画中画) 控制通道
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "enterPip" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            try {
+                                val ret = enterPictureInPictureMode()
+                                result.success(ret)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "enterPip failed: ${e.message}")
+                                result.error("PIP_ERROR", e.message, null)
+                            }
+                        } else {
+                            result.error("PIP_ERROR", "Android 8.0+ required", null)
+                        }
+                    }
+                    "isInPip" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            result.success(isInPictureInPictureMode())
+                        } else {
                             result.success(false)
                         }
                     }
