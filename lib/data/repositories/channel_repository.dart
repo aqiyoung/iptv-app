@@ -161,6 +161,12 @@ class ChannelRepository {
     final known = await knownFuture;
 
     final merged = <Channel>[...cn, ...i18n];
+    // v0.3.11: 高速源 (0701) 优先 — 已验证 10/10 频道可播, 响应 0.1s
+    // 0701 源是代理跳转地址 (302 → miguvideo HLS), media_kv 自动跟随重定向
+    final fastSources = await _loadFastSources();
+    if (fastSources != null && fastSources.isNotEmpty) {
+      _prependFastSources(merged, fastSources);
+    }
     if (known != null) {
       mergeKnownSources(merged, known);
     }
@@ -204,6 +210,49 @@ class ChannelRepository {
     } catch (e) {
       debugPrint('ChannelRepository._loadKnownSources failed: $e');
       return null;
+    }
+  }
+
+  /// v0.3.11: 加载 0701 高速源 JSON
+  Future<Map<String, List<String>>?> _loadFastSources() async {
+    try {
+      final raw = await rootBundle.loadString('assets/data/iptv0701_sources.json');
+      final data = json.decode(raw) as Map<String, dynamic>;
+      return data.map((k, v) => MapEntry(k, (v as List).cast<String>()));
+    } catch (e) {
+      debugPrint('ChannelRepository._loadFastSources failed: $e');
+      return null;
+    }
+  }
+
+  /// v0.3.11: 将高速源前置到频道 sources 列表最前面 (优先级最高)
+  void _prependFastSources(List<Channel> channels, Map<String, List<String>> fast) {
+    for (var i = 0; i < channels.length; i++) {
+      final c = channels[i];
+      final List<String>? fastUrls = fast[c.id];
+      if (fastUrls == null || fastUrls.isEmpty) continue;
+      final merged = <String>[];
+      final seen = <String>{};
+      // 高速源放前面
+      for (final url in fastUrls) {
+        if (seen.add(url)) merged.add(url);
+      }
+      // 原有源放后面
+      for (final s in c.sources) {
+        if (seen.add(s)) merged.add(s);
+      }
+      channels[i] = Channel(
+        id: c.id,
+        name: c.name,
+        country: c.country,
+        categories: c.categories,
+        altNames: c.altNames,
+        website: c.website,
+        logoUrl: c.logoUrl,
+        sources: merged,
+        cctvSource: c.cctvSource,
+        isNsfw: c.isNsfw,
+      );
     }
   }
 
