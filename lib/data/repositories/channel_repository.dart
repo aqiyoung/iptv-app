@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart'
     show compute, debugPrint, visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../models/channel.dart';
 // v0.3.8+125 (6/21 老板拍):  远程频道数据源 — 优先用 aqiyoung/iptv-channels-organized
@@ -74,27 +76,73 @@ class ChannelRepository {
   /// bypass FutureProvider 的 cache,  走 repo 的 cache 才能真正零 IO.
   static List<Channel>? _cached;
   static Future<List<Channel>>? _pending;
+  static const String _cachePrefsKey = 'channel_cache.v2';
+  static const String _cacheVersionKey = 'channel_cache.version';
 
   Future<List<Channel>> loadBundled() async {
-    // 命中缓存 → 零 IO,  直接返回.
+    // 1. 内存缓存命中 → 零 IO
     final cached = _cached;
-    if (cached != null) {
-      return cached;
+    if (cached != null) return cached;
+
+    // 2. 检查持久化缓存 (SharedPreferences)
+    final prefs = await SharedPreferences.getInstance();
+    final cachedVersion = prefs.getString(_cacheVersionKey);
+    final currentVersion = await _getAppVersion();
+
+    if (cachedVersion == currentVersion) {
+      // 版本匹配 → 从缓存恢复
+      final cachedJson = prefs.getString(_cachePrefsKey);
+      if (cachedJson != null && cachedJson.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(cachedJson) as List;
+          final channels = decoded
+              .map((e) => Channel.fromJson(e as Map<String, dynamic>))
+              .toList();
+          _cached = channels;
+          debugPrint('ChannelRepository: loaded ${channels.length} channels from disk cache');
+          return channels;
+        } catch (e) {
+          debugPrint('ChannelRepository: cache decode failed: $e');
+        }
+      }
     }
-    // 并发去重: 多个 widget 同时 init 调 loadBundled() 时,  只跑一次
-    // rootBundle.loadString,  其余 await 同一个 Future.
+
+    // 3. 无缓存或版本不匹配 → 正常加载
     final pending = _pending;
-    if (pending != null) {
-      return pending;
-    }
+    if (pending != null) return pending;
+
     final future = _loadBundledImpl();
     _pending = future;
     try {
       final result = await future;
       _cached = result;
+      // 异步保存到磁盘 (不阻塞返回)
+      _saveToDiskCache(result);
       return result;
     } finally {
       _pending = null;
+    }
+  }
+
+  Future<void> _saveToDiskCache(List<Channel> channels) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final version = await _getAppVersion();
+      final jsonStr = jsonEncode(channels.map((c) => c.toJson()).toList());
+      await prefs.setString(_cacheVersionKey, version);
+      await prefs.setString(_cachePrefsKey, jsonStr);
+      debugPrint('ChannelRepository: saved ${channels.length} channels to disk cache');
+    } catch (e) {
+      debugPrint('ChannelRepository: save cache failed: $e');
+    }
+  }
+
+  Future<String> _getAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      return '${info.version}+${info.buildNumber}';
+    } catch (_) {
+      return 'unknown';
     }
   }
 
