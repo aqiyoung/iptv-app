@@ -133,7 +133,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
   // ── 4. 分类入口 ──
   Widget _buildCategoryRow() {
     const items = [
-      ('电视直播', Icons.tv, 0xFFE53935),
+      ('直播', Icons.tv, 0xFFE53935),
       ('电影', Icons.movie, 0xFFFF6F00),
       ('电视剧', Icons.live_tv, 0xFF2E7D32),
       ('综艺', Icons.star, 0xFF1565C0),
