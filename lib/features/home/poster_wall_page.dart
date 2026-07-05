@@ -210,34 +210,62 @@ class _HeroBannerState extends State<_HeroBanner> {
   }
 
   Widget _heroCard(Content movie, String imageUrl, BuildContext context) {
+    final hue = (movie.title.codeUnitAt(0) * 47 + 120) % 360;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-        ),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [
-              Colors.black.withOpacity(0.85),
-              Colors.transparent,
-            ],
+      child: Stack(
+        children: [
+          // 背景图 (用 Image.network + errorBuilder 避免炸全局)
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        HSLColor.fromAHSL(1, hue.toDouble(), 0.55, 0.30).toColor(),
+                        HSLColor.fromAHSL(1, (hue + 40) % 360, 0.50, 0.12).toColor(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(16),
-        alignment: Alignment.bottomLeft,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(movie.title,
+          // 渐变遮罩
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.85),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // 内容
+          Positioned(
+            left: 16,
+            bottom: 16,
+            right: 16,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(movie.title,
                 maxLines: 1,
                 style: const TextStyle(
                     fontSize: 20,

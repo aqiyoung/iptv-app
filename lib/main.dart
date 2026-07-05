@@ -352,6 +352,10 @@ class _ErrorBoundaryState extends State<_ErrorBoundary> {
     return exc.contains('http request failed') ||
         exc.contains('network_image') ||
         exc.contains('image resource') ||
+        exc.contains('httpexception') ||
+        exc.contains('无效请求方法') ||
+        exc.contains('connection refused') ||
+        exc.contains('连接被拒绝') ||
         (details.stack?.toString().contains('network_image_io') ?? false);
   }
 
