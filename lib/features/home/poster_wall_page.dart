@@ -10,7 +10,7 @@ import '../../../data/mock/mock_contents.dart';
 import '../../../data/repositories/channel_repository.dart';
 import '../../core/theme/colors.dart';
 
-/// 三页影视 首页 — 视界影音风格
+/// 三页影视 首页 — 浅色模式 · 1:1 复刻参考图
 class PosterWallPage extends ConsumerStatefulWidget {
   const PosterWallPage({super.key});
 
@@ -28,25 +28,16 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
           final channels = snapshot.data ?? [];
           return CustomScrollView(
             slivers: [
-              // 1. 顶部搜索栏
               SliverToBoxAdapter(child: _buildSearchBar(context)),
-              // 2. 文字分类 Tab
-              SliverToBoxAdapter(child: _buildCategoryTabs()),
-              // 3. 横幅轮播
               SliverToBoxAdapter(child: _buildHeroBanner()),
-              // 4. 分类入口
               SliverToBoxAdapter(child: _buildCategoryRow()),
-              // 5. 电视直播
               if (channels.isNotEmpty)
                 SliverToBoxAdapter(child: _buildLiveSection(channels)),
-              // 6. 今日推荐
               SliverToBoxAdapter(
                 child: _buildSection('今日推荐', kMockRecommended),
               ),
-              // 7. 热播剧集
               SliverToBoxAdapter(child: _buildHotSeries()),
-              // 底部留白
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              const SliverToBoxAdapter(child: SizedBox(height: 28)),
             ],
           );
         },
@@ -54,88 +45,57 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 1. 搜索栏 ──
+  // ── 搜索栏 ──
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => context.go('/search'),
-            child: Container(
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white12),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search, size: 18, color: Colors.white38),
-                  SizedBox(width: 8),
-                  Text('搜索电影 / 直播 / 剧集',
-                      style: TextStyle(fontSize: 13, color: Colors.white38)),
-                ],
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      child: SizedBox(
+        height: 36,
+        child: Row(
+          children: [
+            // 左侧搜索框
+            Expanded(
+              child: GestureDetector(
+                onTap: () => context.go('/search'),
+                child: Container(
+                  height: 36,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.search, size: 18, color: Color(0xFF999999)),
+                      SizedBox(width: 6),
+                      Text('搜索电影、电视剧、综艺、动漫',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined,
-                color: Colors.white70),
-            onPressed: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── 2. 分类 Tab ──
-  Widget _buildCategoryTabs() {
-    const tabs = ['首页', '电视剧', '电影', '综艺', '动漫', '纪录片', '新闻'];
-    return SizedBox(
-      height: 36,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: tabs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 4),
-        itemBuilder: (_, i) => GestureDetector(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: i == 0
-                  ? const Color(0xFFE53935).withOpacity(0.15)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(tabs[i],
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight:
-                        i == 0 ? FontWeight.w600 : FontWeight.w400,
-                    color: i == 0
-                        ? const Color(0xFFE53935)
-                        : Colors.white60)),
-          ),
+            const SizedBox(width: 8),
+            Icon(Icons.notifications_none,
+                size: 22, color: IptvColors.textSecondary),
+          ],
         ),
       ),
     );
   }
 
-  // ── 3. 横幅轮播 ──
+  // ── 横幅轮播 ──
   Widget _buildHeroBanner() {
     return SizedBox(
-      height: 200,
+      height: 180,
       child: _HeroBanner(movies: kMockMovies),
     );
   }
 
-  // ── 4. 分类入口 ──
+  // ── 分类图标 ──
   Widget _buildCategoryRow() {
     const items = [
-      ('直播', Icons.tv, 0xFFE53935),
+      ('电视直播', Icons.tv, 0xFFE53935),
       ('电影', Icons.movie, 0xFFFF6F00),
       ('电视剧', Icons.live_tv, 0xFF2E7D32),
       ('综艺', Icons.star, 0xFF1565C0),
@@ -143,25 +103,53 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
       ('纪录片', Icons.public, 0xFF00838F),
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: items.map((c) {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
+              SizedBox(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
-                  color: Color(c.$3).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(14),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Color(c.$3).withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    Icon(c.$2, color: Color(c.$3), size: 24),
+                    // "直播中" 徽章
+                    if (c.$1 == '电视直播')
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('直播',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                  ],
                 ),
-                child: Icon(c.$2, color: Color(c.$3), size: 24),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(c.$1,
-                  style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                  style: const TextStyle(
+                      fontSize: 11, color: Color(0xFF333333))),
             ],
           );
         }).toList(),
@@ -169,10 +157,23 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 5. 电视直播 ──
+  // ── 电视直播 (三栏) ──
   Widget _buildLiveSection(List<Channel> channels) {
     final cctvs = channels.where((c) => c.categories.contains('央视')).toList();
     final previewCh = cctvs.isNotEmpty ? cctvs.first : channels.first;
+
+    // 节目名称映射
+    final epgPrograms = {
+      if (cctvs.isNotEmpty)
+        cctvs[0].displayName: '新闻联播',
+      if (cctvs.length > 1)
+        cctvs[1].displayName: '中餐厅 第八季',
+      if (cctvs.length > 2)
+        cctvs[2].displayName: '今晚开放麦',
+      if (cctvs.length > 3)
+        cctvs[3].displayName: '奔跑吧 第十二季',
+    };
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Column(
@@ -181,8 +182,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE53935),
                   borderRadius: BorderRadius.circular(4),
@@ -199,7 +199,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Text('电视直播',
+                    const Text('正在直播',
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 13,
@@ -211,7 +211,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
               GestureDetector(
                 onTap: () => context.go('/category/cctv'),
                 child: Row(children: [
-                  Text('查看更多',
+                  Text('查看全部',
                       style: TextStyle(
                           fontSize: 12, color: IptvColors.textSecondary)),
                   Icon(Icons.chevron_right,
@@ -221,173 +221,18 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
             ],
           ),
           const SizedBox(height: 12),
-          // 三栏直播
-          Container(
-            height: 145,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                // 左：频道列表
-                SizedBox(
-                  width: 72,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    itemCount: min(cctvs.length, 5),
-                    itemBuilder: (_, i) {
-                      final ch = cctvs[i];
-                      return GestureDetector(
-                        onTap: () => context.go('/player/${ch.id}'),
-                        child: Container(
-                          height: 36,
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: i == 0
-                                ? const Color(0xFFE53935).withOpacity(0.2)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(6),
-                            border: i == 0
-                                ? Border.all(
-                                    color: const Color(0xFFE53935)
-                                        .withOpacity(0.5))
-                                : null,
-                          ),
-                          child: Center(
-                            child: Text(ch.displayName,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: i == 0
-                                        ? const Color(0xFFE53935)
-                                        : Colors.white54,
-                                    fontWeight: i == 0
-                                        ? FontWeight.bold
-                                        : FontWeight.w400)),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                // 中：直播画面
-                Expanded(
-                  flex: 3,
-                  child: GestureDetector(
-                    onTap: () => context.go('/player/${previewCh.id}'),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://images.unsplash.com/photo-1596526131657-ef5e24d3bb41?w=400&h=250&fit=crop',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withOpacity(0.7),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                        padding: const EdgeInsets.all(8),
-                        alignment: Alignment.bottomLeft,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(previewCh.displayName,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold)),
-                            const Text('正在直播',
-                                style: TextStyle(
-                                    color: Colors.white60, fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // 右：节目预告
-                SizedBox(
-                  width: 100,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin:
-                            const EdgeInsets.only(top: 8, bottom: 4),
-                        child: const Text('节目预告',
-                            style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: min(cctvs.length, 5),
-                          itemBuilder: (_, i) {
-                            final ch = cctvs[i];
-                            final epg = i == 0
-                                ? '今日说法'
-                                : i == 1
-                                    ? '新闻联播'
-                                    : i == 2
-                                        ? '开门大吉'
-                                        : i == 3
-                                            ? '国宝档案'
-                                            : '体育新闻';
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 3),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 3,
-                                    height: 3,
-                                    margin:
-                                        const EdgeInsets.only(right: 5),
-                                    decoration: BoxDecoration(
-                                      color: i == 0
-                                          ? const Color(0xFFE53935)
-                                          : Colors.white24,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      epg,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          color: i == 0
-                                              ? Colors.white
-                                              : Colors.white54),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          // 4 个直播卡片横行
+          SizedBox(
+            height: 120,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: min(cctvs.length, 4),
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (_, i) {
+                final ch = cctvs[i];
+                final program = epgPrograms[ch.displayName] ?? '直播中';
+                return _buildLiveCard(ch, program, i);
+              },
             ),
           ),
         ],
@@ -395,7 +240,96 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 6. 通用海报区块 ──
+  Widget _buildLiveCard(Channel ch, String program, int index) {
+    final logos = ['CCTV1', '湖南卫视', '东方卫视', '浙江卫视'];
+    final timeSlots = ['19:00-19:35', '19:30-22:00', '20:20-22:30', '20:20-22:00'];
+    final logo = index < logos.length ? logos[index] : ch.displayName;
+    final timeSlot = index < timeSlots.length ? timeSlots[index] : '';
+
+    final hue = (ch.displayName.codeUnitAt(0) * 47 + 120) % 360;
+    return GestureDetector(
+      onTap: () => context.go('/player/${ch.id}'),
+      child: Container(
+        width: 150,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE8E0D4)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 顶部: 频道 logo 区
+            Container(
+              height: 64,
+              decoration: BoxDecoration(
+                color: HSLColor.fromAHSL(1, hue.toDouble(), 0.55, 0.55).toColor(),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(10)),
+                image: const DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1596526131657-ef5e24d3bb41?w=300&h=150&fit=crop',
+                  ),
+                  fit: BoxFit.cover,
+                  opacity: 0.4,
+                ),
+              ),
+              child: Center(
+                child: Text(logo,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
+            // 内容
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(program,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF333333))),
+                    Row(
+                      children: [
+                        if (timeSlot.isNotEmpty)
+                          Text(timeSlot,
+                              style: const TextStyle(
+                                  fontSize: 10, color: Color(0xFF999999))),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935).withOpacity(0.10),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: const Text('直播中',
+                              style: TextStyle(
+                                  fontSize: 9,
+                                  color: Color(0xFFE53935),
+                                  fontWeight: FontWeight.w500)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── 通用海报区块 ──
   Widget _buildSection(String title, List<Content> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,9 +340,9 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
             children: [
               Text(title,
                   style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white)),
+                      color: Color(0xFF1A1A1A))),
               const Spacer(),
               GestureDetector(
                 child: Row(children: [
@@ -437,7 +371,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 7. 热播剧集 ──
+  // ── 热播剧集 ──
   Widget _buildHotSeries() {
     const filterTabs = ['全部', '古装', '都市', '悬疑', '喜剧', '动作'];
     const colCount = 3;
@@ -453,9 +387,9 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
             children: [
               const Text('热播剧集',
                   style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white)),
+                      color: Color(0xFF1A1A1A))),
               const Spacer(),
               GestureDetector(
                 child: Row(children: [
@@ -469,7 +403,6 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
             ],
           ),
         ),
-        // 筛选标签
         SizedBox(
           height: 32,
           child: ListView.separated(
@@ -483,20 +416,21 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
               decoration: BoxDecoration(
                 color: i == 0
                     ? const Color(0xFFE53935)
-                    : Colors.white.withOpacity(0.08),
+                    : const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(filterTabs[i],
                   style: TextStyle(
                       fontSize: 13,
-                      color: i == 0 ? Colors.white : Colors.white60,
+                      color: i == 0
+                          ? Colors.white
+                          : const Color(0xFF666666),
                       fontWeight:
                           i == 0 ? FontWeight.w600 : FontWeight.w400)),
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        // 海报网格
+        const SizedBox(height: 14),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
@@ -568,7 +502,7 @@ class _HeroBannerState extends State<_HeroBanner> {
   Widget build(BuildContext context) {
     final items = widget.movies.take(5).toList();
     return SizedBox(
-      height: 200,
+      height: 180,
       child: Column(
         children: [
           Expanded(
@@ -580,19 +514,19 @@ class _HeroBannerState extends State<_HeroBanner> {
                   _heroCard(items[i], _bannerImages[i % _bannerImages.length]),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(items.length, (i) {
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: _page == i ? 20 : 6,
-                height: 6,
+                width: _page == i ? 18 : 5,
+                height: 5,
                 decoration: BoxDecoration(
                   color: _page == i
                       ? const Color(0xFFE53935)
-                      : Colors.white24,
+                      : const Color(0xFFD0D0D0),
                   borderRadius: BorderRadius.circular(3),
                 ),
               );
@@ -609,14 +543,20 @@ class _HeroBannerState extends State<_HeroBanner> {
       margin: const EdgeInsets.symmetric(horizontal: 8),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Stack(
         children: [
-          // 背景图 (errorBuilder 兜底渐变色)
           Positioned.fill(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
@@ -629,10 +569,10 @@ class _HeroBannerState extends State<_HeroBanner> {
                         end: Alignment.bottomRight,
                         colors: [
                           HSLColor.fromAHSL(
-                                  1, hue.toDouble(), 0.55, 0.30)
+                                  1, hue.toDouble(), 0.55, 0.55)
                               .toColor(),
                           HSLColor.fromAHSL(1, (hue + 40) % 360, 0.50,
-                                  0.12)
+                                  0.22)
                               .toColor(),
                         ],
                       ),
@@ -646,10 +586,10 @@ class _HeroBannerState extends State<_HeroBanner> {
                       end: Alignment.bottomRight,
                       colors: [
                         HSLColor.fromAHSL(
-                                1, hue.toDouble(), 0.55, 0.30)
+                                1, hue.toDouble(), 0.55, 0.55)
                             .toColor(),
                         HSLColor.fromAHSL(
-                                1, (hue + 40) % 360, 0.50, 0.12)
+                                1, (hue + 40) % 360, 0.50, 0.22)
                             .toColor(),
                       ],
                     ),
@@ -658,7 +598,6 @@ class _HeroBannerState extends State<_HeroBanner> {
               ),
             ),
           ),
-          // 渐变遮罩
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -666,18 +605,17 @@ class _HeroBannerState extends State<_HeroBanner> {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withOpacity(0.85),
+                    Colors.black.withOpacity(0.75),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-          // 内容
           Positioned(
-            left: 16,
-            bottom: 16,
-            right: 16,
+            left: 14,
+            bottom: 14,
+            right: 14,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -687,8 +625,14 @@ class _HeroBannerState extends State<_HeroBanner> {
                     style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white)),
-                const SizedBox(height: 6),
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                              blurRadius: 4,
+                              color: Colors.black38,
+                              offset: Offset(0, 1))
+                        ])),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     if (movie.rating != null)
@@ -718,7 +662,7 @@ class _HeroBannerState extends State<_HeroBanner> {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE53935),
                         borderRadius: BorderRadius.circular(4),
@@ -775,10 +719,9 @@ class _PosterCard extends StatelessWidget {
                       imgUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) =>
-                          _gradientFallback(content.title, 0.35),
+                          _gradientFallback(content.title, 0.55),
                     ),
                   ),
-                  // 评分
                   if (content.rating != null)
                     Positioned(
                       top: 6,
@@ -789,7 +732,7 @@ class _PosterCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: content.rating! >= 9.0
                               ? const Color(0xFFE65100)
-                              : Colors.black54,
+                              : Colors.black45,
                           borderRadius: BorderRadius.circular(3),
                         ),
                         child: Row(
@@ -807,7 +750,6 @@ class _PosterCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  // VIP 标签
                   if (content.rating != null && content.rating! >= 9.0)
                     Positioned(
                       top: 6,
@@ -826,7 +768,6 @@ class _PosterCard extends StatelessWidget {
                                 fontWeight: FontWeight.bold)),
                       ),
                     ),
-                  // 底部渐隐 + 标题
                   Positioned(
                     bottom: 0,
                     left: 0,
@@ -866,7 +807,7 @@ class _PosterCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style:
-                  const TextStyle(fontSize: 10, color: Colors.white38),
+                  const TextStyle(fontSize: 10, color: Color(0xFF999999)),
             ),
         ],
       ),
@@ -895,9 +836,9 @@ class _HotSeriesCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    HSLColor.fromAHSL(1, hue.toDouble(), 0.55, 0.35)
+                    HSLColor.fromAHSL(1, hue.toDouble(), 0.55, 0.55)
                         .toColor(),
-                    HSLColor.fromAHSL(1, (hue + 45) % 360, 0.50, 0.15)
+                    HSLColor.fromAHSL(1, (hue + 45) % 360, 0.50, 0.35)
                         .toColor(),
                   ],
                 ),
@@ -916,7 +857,7 @@ class _HotSeriesCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF333333),
                   fontSize: 12,
                   fontWeight: FontWeight.w500)),
           if (content.rating != null)
@@ -927,7 +868,7 @@ class _HotSeriesCard extends StatelessWidget {
                 const SizedBox(width: 2),
                 Text(content.displayRating,
                     style: const TextStyle(
-                        fontSize: 10, color: Colors.white38)),
+                        fontSize: 10, color: Color(0xFF999999))),
               ],
             ),
         ],
@@ -946,7 +887,7 @@ Widget _gradientFallback(String title, double lightness) {
         end: Alignment.bottomRight,
         colors: [
           HSLColor.fromAHSL(1, hue.toDouble(), 0.55, lightness).toColor(),
-          HSLColor.fromAHSL(1, (hue + 45) % 360, 0.50, lightness * 0.5)
+          HSLColor.fromAHSL(1, (hue + 45) % 360, 0.50, lightness * 0.7)
               .toColor(),
         ],
       ),

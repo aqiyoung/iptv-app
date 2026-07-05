@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'poster_wall_page.dart';
 
-/// 三页影视 主页 — 底部导航 + 海报墙
+/// 三页影视 主页 — 浅色模式底部导航 + 海报墙
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -18,7 +18,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
+      backgroundColor: Colors.white,
       body: IndexedStack(
         index: _currentIndex,
         children: const [
@@ -32,15 +32,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(
-            top: BorderSide(color: Colors.white12, width: 0.5),
+            top: BorderSide(color: Color(0xFFE8E0D4), width: 0.5),
           ),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
-          backgroundColor: const Color(0xFF0B0F1A),
+          backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFFE53935),
-          unselectedItemColor: Colors.white38,
+          unselectedItemColor: const Color(0xFF999999),
           showSelectedLabels: true,
           showUnselectedLabels: true,
           type: BottomNavigationBarType.fixed,
@@ -89,7 +89,7 @@ class _PlaceholderPage extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(
-          color: Colors.white38,
+          color: Color(0xFF999999),
           fontSize: 16,
         ),
       ),
