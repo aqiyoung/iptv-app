@@ -31,7 +31,6 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             android:stopWithTask="true"
-            android:supportsPictureInPicture="true"
             android:resizeableActivity="true">
             <!-- android:stopWithTask="true"  (P3-1 6/18):
                  任务栏划掉 APP / 系统回收任务时, 强制结束 native Activity
