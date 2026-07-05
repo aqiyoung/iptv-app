@@ -34,7 +34,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
               if (channels.isNotEmpty)
                 SliverToBoxAdapter(child: _buildLiveSection(channels)),
               SliverToBoxAdapter(
-                child: _buildSection('猜你喜欢', kMockRecommended),
+                child: _buildSection('今日推荐', kMockRecommended),
               ),
               SliverToBoxAdapter(child: _buildHotSeries()),
               const SliverToBoxAdapter(child: SizedBox(height: 28)),
@@ -45,7 +45,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 搜索栏 ──
+  // ── 搜索栏 (参考图: 筛选 + 历史) ──
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
@@ -53,7 +53,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
         height: 36,
         child: Row(
           children: [
-            // 左侧搜索框
+            // 搜索框
             Expanded(
               child: GestureDetector(
                 onTap: () => context.go('/search'),
@@ -76,8 +76,9 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.notifications_none,
-                size: 22, color: IptvColors.textSecondary),
+            Icon(Icons.filter_list, size: 22, color: IptvColors.textSecondary),
+            const SizedBox(width: 8),
+            Icon(Icons.history, size: 22, color: IptvColors.textSecondary),
           ],
         ),
       ),
@@ -101,6 +102,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
       ('综艺', Icons.star, 0xFF1565C0),
       ('动漫', Icons.emoji_emotions, 0xFF6A1B9A),
       ('纪录片', Icons.public, 0xFF00838F),
+      ('体育', Icons.sports_soccer, 0xFF0D47A1),
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
@@ -157,21 +159,23 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 电视直播 (三栏) ──
+  // ── 电视直播 (参考图: 左大预览 + 右频道列表) ──
   Widget _buildLiveSection(List<Channel> channels) {
     final cctvs = channels.where((c) => c.categories.contains('央视')).toList();
     final previewCh = cctvs.isNotEmpty ? cctvs.first : channels.first;
 
-    // 节目名称映射
-    final epgPrograms = {
-      if (cctvs.isNotEmpty)
-        cctvs[0].displayName: '新闻联播',
-      if (cctvs.length > 1)
-        cctvs[1].displayName: '中餐厅 第八季',
-      if (cctvs.length > 2)
-        cctvs[2].displayName: '今晚开放麦',
-      if (cctvs.length > 3)
-        cctvs[3].displayName: '奔跑吧 第十二季',
+    // EPG 节目映射
+    final epgPrograms = <String, String>{
+      'CCTV-1': '新闻联播',
+      'CCTV-5': '体育新闻',
+      '湖南卫视': '中餐厅 第八季',
+      '东方卫视': '今晚开放麦',
+    };
+    final epgTimes = <String, String>{
+      'CCTV-1': '19:00-19:35',
+      'CCTV-5': '18:00-19:00',
+      '湖南卫视': '19:30-22:00',
+      '东方卫视': '20:20-22:30',
     };
 
     return Padding(
@@ -179,39 +183,19 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 标题栏
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE53935),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('正在直播',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
+              const Text('电视直播',
+                  style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A))),
               const Spacer(),
               GestureDetector(
                 onTap: () => context.go('/category/cctv'),
                 child: Row(children: [
-                  Text('查看全部',
+                  Text('更多频道',
                       style: TextStyle(
                           fontSize: 12, color: IptvColors.textSecondary)),
                   Icon(Icons.chevron_right,
@@ -220,19 +204,32 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // 4 个直播卡片横行
+          const SizedBox(height: 10),
+          // 左大预览 + 右频道列表
           SizedBox(
-            height: 120,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: min(cctvs.length, 4),
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (_, i) {
-                final ch = cctvs[i];
-                final program = epgPrograms[ch.displayName] ?? '直播中';
-                return _buildLiveCard(ch, program, i);
-              },
+            height: 160,
+            child: Row(
+              children: [
+                // 左侧: 大预览卡
+                Expanded(
+                  flex: 3,
+                  child: _buildLivePreview(previewCh),
+                ),
+                const SizedBox(width: 10),
+                // 右侧: 频道列表
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: cctvs.take(3).toList().asMap().entries.map((e) {
+                      final ch = e.value;
+                      final displayName = ch.displayName;
+                      final program = epgPrograms[displayName] ?? '直播中';
+                      final timeSlot = epgTimes[displayName] ?? '';
+                      return _buildLiveListItem(ch, program, timeSlot);
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -240,88 +237,152 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  Widget _buildLiveCard(Channel ch, String program, int index) {
-    final logos = ['CCTV1', '湖南卫视', '东方卫视', '浙江卫视'];
-    final timeSlots = ['19:00-19:35', '19:30-22:00', '20:20-22:30', '20:20-22:00'];
-    final logo = index < logos.length ? logos[index] : ch.displayName;
-    final timeSlot = index < timeSlots.length ? timeSlots[index] : '';
-
+  Widget _buildLivePreview(Channel ch) {
     final hue = (ch.displayName.codeUnitAt(0) * 47 + 120) % 360;
     return GestureDetector(
       onTap: () => context.go('/player/${ch.id}'),
       child: Container(
-        width: 150,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: HSLColor.fromAHSL(1, hue.toDouble(), 0.55, 0.55).toColor(),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE8E0D4)),
+          image: const DecorationImage(
+            image: NetworkImage(
+              'https://images.unsplash.com/photo-1596526131657-ef5e24d3bb41?w=400&h=300&fit=crop',
+            ),
+            fit: BoxFit.cover,
+            opacity: 0.3,
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
           children: [
-            // 顶部: 频道 logo 区
-            Container(
-              height: 64,
-              decoration: BoxDecoration(
-                color: HSLColor.fromAHSL(1, hue.toDouble(), 0.55, 0.55).toColor(),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(10)),
-                image: const DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1596526131657-ef5e24d3bb41?w=300&h=150&fit=crop',
-                  ),
-                  fit: BoxFit.cover,
-                  opacity: 0.4,
+            // 频道标识
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-              ),
-              child: Center(
-                child: Text(logo,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold)),
+                child: const Text('CCTV-1 综合',
+                    style:
+                        TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ),
-            // 内容
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(program,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF333333))),
-                    Row(
-                      children: [
-                        if (timeSlot.isNotEmpty)
-                          Text(timeSlot,
-                              style: const TextStyle(
-                                  fontSize: 10, color: Color(0xFF999999))),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE53935).withOpacity(0.10),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: const Text('直播中',
-                              style: TextStyle(
-                                  fontSize: 9,
-                                  color: Color(0xFFE53935),
-                                  fontWeight: FontWeight.w500)),
-                        ),
-                      ],
+            // 底部内容
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 10,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('新闻联播',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  // 进度条
+                  Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                  ],
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: 0.6,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text('19:00-19:35',
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 10)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLiveListItem(Channel ch, String program, String timeSlot) {
+    return GestureDetector(
+      onTap: () => context.go('/player/${ch.id}'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE8E0D4)),
+        ),
+        child: Row(
+          children: [
+            // 频道图标
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  ch.displayName.length > 6
+                      ? ch.displayName.substring(0, 4)
+                      : ch.displayName,
+                  style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF333333)),
                 ),
               ),
+            ),
+            const SizedBox(width: 8),
+            // 节目信息
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(program,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF333333))),
+                  const SizedBox(height: 2),
+                  Text(timeSlot,
+                      style: const TextStyle(
+                          fontSize: 10, color: Color(0xFF999999))),
+                ],
+              ),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53935).withOpacity(0.10),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: const Text('直播中',
+                  style: TextStyle(
+                      fontSize: 9,
+                      color: Color(0xFFE53935),
+                      fontWeight: FontWeight.w500)),
             ),
           ],
         ),
