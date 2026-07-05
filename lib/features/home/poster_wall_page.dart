@@ -312,7 +312,7 @@ class _HeroBannerState extends State<_HeroBanner> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white15,
+                            color: Colors.white12,
                             borderRadius: BorderRadius.circular(3),
                           ),
                           child: Text(g,
@@ -720,7 +720,7 @@ class _PosterCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 5, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white20,
+                            color: Colors.white24,
                             borderRadius: BorderRadius.circular(3),
                           ),
                           child: Text(content.genres.first,
