@@ -29,6 +29,7 @@ import '../../services/version_checker.dart'
         endpointProvider,
         kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
+import 'theme_provider.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
 
@@ -81,9 +82,34 @@ class SettingsPage extends ConsumerWidget {
         // 参见 iOS Settings.app + Material 3 cards 设计语言.
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          // v0.3.8+102 (6/20 15:02 老板反馈): 删"外观 / 主题"卡片 (锁死浅色).
-          // 之前这里有 主题 tile + _pickTheme 对话框. 现在直接跳到"系统".
-          // ─── 卡片 1: 系统 ──────────────────────────────────────────────
+          // ─── 卡片 1: 外观 ──────────────────────────────────────────────
+          const _SettingsGroupLabel(label: '外观'),
+          const SizedBox(height: 6),
+          _SettingsCard(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.brightness_6_outlined),
+                title: const Text('主题模式'),
+                subtitle: Consumer(
+                  builder: (context, ref, _) {
+                    final mode = ref.watch(themeModeProvider);
+                    return Text(_modeLabel(mode));
+                  },
+                ),
+                onTap: () => _showThemeDialog(context, ref),
+              ),
+              const _SettingsGap(),
+              SwitchListTile(
+                secondary: const Icon(Icons.auto_awesome),
+                title: const Text('自动深色'),
+                subtitle: const Text('日落后自动切换深色'),
+                value: _autoDarkMode,
+                onChanged: (v) => _setAutoDark(context, ref, v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // ─── 卡片 2: 系统 ──────────────────────────────────────────────
           const _SettingsGroupLabel(label: '系统'),
           const SizedBox(height: 6),
           _SettingsCard(
@@ -499,4 +525,59 @@ class _AboutSection extends StatelessWidget {
       ],
     );
   }
+}
+
+// ─── 主题模式辅助 ───
+
+String _modeLabel(ThemeMode mode) {
+  switch (mode) {
+    case ThemeMode.system:
+      return '跟随系统';
+    case ThemeMode.light:
+      return '浅色';
+    case ThemeMode.dark:
+      return '深色';
+  }
+}
+
+bool _autoDarkMode = false;
+
+Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
+  final current = ref.read(themeModeProvider);
+  var selected = current;
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('主题模式'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: ThemeMode.values.map((mode) {
+          return RadioListTile<ThemeMode>(
+            title: Text(_modeLabel(mode)),
+            value: mode,
+            groupValue: selected,
+            onChanged: (v) => Navigator.of(ctx).pop(),
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            ref.read(themeModeProvider.notifier).setMode(selected);
+            Navigator.of(ctx).pop();
+          },
+          child: const Text('确定'),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _setAutoDark(BuildContext context, WidgetRef ref, bool value) async {
+  _autoDarkMode = value;
+  // TODO: 实现自动深色 (日落检测)
 }

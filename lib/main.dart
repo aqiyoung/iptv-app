@@ -297,7 +297,7 @@ class IptvApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
       darkTheme: IptvTheme.dark(),
-      themeMode: ThemeMode.light,
+      themeMode: ref.watch(themeModeProvider),
       routerConfig: buildRouter(playerObserver: playerObserver),
       // v0.3.8+178 (6/23 B+C splash fix): 换 SanyeliveSplash (SVG logo +
       // 完整动画).  保留 +177 的 MaterialApp.builder 架构 — context 在
