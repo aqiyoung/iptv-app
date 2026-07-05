@@ -12,12 +12,10 @@ class PosterWallPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 顶部栏
+    return SafeArea(
+      child: Column(
+        children: [
+            // 顶部搜索栏
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Row(
@@ -43,8 +41,7 @@ class PosterWallPage extends ConsumerWidget {
             const Expanded(child: _PosterWallTabs()),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
