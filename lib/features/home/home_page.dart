@@ -48,9 +48,9 @@ class _HomePageState extends ConsumerState<HomePage> {
           unselectedFontSize: 11,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined, size: 22),
-              activeIcon: Icon(Icons.home, size: 22),
-              label: '首页',
+              icon: Icon(Icons.live_tv_outlined, size: 22),
+              activeIcon: Icon(Icons.live_tv, size: 22),
+              label: '直播',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.play_circle_outline, size: 22),
