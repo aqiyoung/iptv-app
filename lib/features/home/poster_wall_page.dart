@@ -13,9 +13,9 @@ class PosterWallPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF101010),
-      body: SafeArea(
+    return ColoredBox(
+      color: const Color(0xFF101010),
+      child: SafeArea(
         bottom: false,
         child: FutureBuilder<List<Channel>>(
           future: ref.read(channelRepositoryProvider).loadBundled(),
@@ -30,7 +30,7 @@ class PosterWallPage extends ConsumerWidget {
                 const _HomeTopBar(),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.only(bottom: 92),
+                    padding: const EdgeInsets.only(bottom: 20),
                     children: [
                       const _HeroBanner(),
                       const SizedBox(height: 18),
@@ -64,7 +64,6 @@ class PosterWallPage extends ConsumerWidget {
           },
         ),
       ),
-      bottomNavigationBar: const _BottomNavBar(),
     );
   }
 }
@@ -195,6 +194,16 @@ class _HeroBanner extends StatelessWidget {
                 top: 18,
                 child: _Badge(label: '独播', color: const Color(0xFFE53935)),
               ),
+              Positioned.fill(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.go('/search'),
+                    splashColor: Colors.white.withOpacity(0.06),
+                    highlightColor: Colors.white.withOpacity(0.03),
+                  ),
+                ),
+              ),
               const Positioned(
                 left: 20,
                 bottom: 30,
@@ -242,12 +251,12 @@ class _CategoryShortcutBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final shortcuts = [
       _Shortcut('电视直播', Icons.live_tv_rounded, const Color(0xFFE53935), '/category/cctv'),
-      _Shortcut('电影', Icons.movie_creation_rounded, const Color(0xFF8E44AD), null),
-      _Shortcut('电视剧', Icons.tv_rounded, const Color(0xFF3D7CFF), null),
-      _Shortcut('综艺', Icons.star_rounded, const Color(0xFF35B36B), null),
-      _Shortcut('动漫', Icons.face_retouching_natural_rounded, const Color(0xFFF0B429), null),
-      _Shortcut('纪录片', Icons.public_rounded, const Color(0xFF42A5F5), null),
-      _Shortcut('体育', Icons.sports_soccer_rounded, const Color(0xFF43A047), '/category/satellite'),
+      _Shortcut('电影', Icons.movie_creation_rounded, const Color(0xFF8E44AD), '/category/影视'),
+      _Shortcut('电视剧', Icons.tv_rounded, const Color(0xFF3D7CFF), '/search'),
+      _Shortcut('综艺', Icons.star_rounded, const Color(0xFF35B36B), '/category/娱乐'),
+      _Shortcut('动漫', Icons.face_retouching_natural_rounded, const Color(0xFFF0B429), '/category/少儿'),
+      _Shortcut('纪录片', Icons.public_rounded, const Color(0xFF42A5F5), '/category/科教'),
+      _Shortcut('体育', Icons.sports_soccer_rounded, const Color(0xFF43A047), '/category/体育'),
     ];
 
     return SizedBox(
@@ -444,8 +453,15 @@ class _ContentSection extends StatelessWidget {
             children: [
               Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
               const Spacer(),
-              Text('更多', style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13)),
-              Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.55), size: 18),
+              GestureDetector(
+                onTap: () => context.go('/search'),
+                child: Row(
+                  children: [
+                    Text('更多', style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13)),
+                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.55), size: 18),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -482,9 +498,11 @@ class _PosterCard extends StatelessWidget {
             ? const Color(0xFFE53935)
             : const Color(0xFF8E44AD);
 
-    return SizedBox(
-      width: 104,
-      child: Column(
+    return GestureDetector(
+      onTap: () => context.go('/search'),
+      child: SizedBox(
+        width: 104,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
@@ -534,7 +552,8 @@ class _PosterCard extends StatelessWidget {
           Text(content.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
           const SizedBox(height: 2),
           Text(content.subtitle ?? '${content.year ?? '热播'} · ${content.genres.take(2).join(' ')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF8E8E8E), fontSize: 11)),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -555,60 +574,19 @@ class _FilterPills extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final active = index == 0;
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-            decoration: BoxDecoration(
-              color: active ? const Color(0x22E53935) : const Color(0xFF242424),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: active ? const Color(0xFFE53935) : Colors.white.withOpacity(0.04)),
+          return GestureDetector(
+            onTap: active ? null : () => context.go('/search'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: active ? const Color(0x22E53935) : const Color(0xFF242424),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: active ? const Color(0xFFE53935) : Colors.white.withOpacity(0.04)),
+              ),
+              child: Text(filters[index], style: TextStyle(color: active ? Colors.white : const Color(0xFFD6D6D6), fontSize: 13, fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
             ),
-            child: Text(filters[index], style: TextStyle(color: active ? Colors.white : const Color(0xFFD6D6D6), fontSize: 13, fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
           );
         },
-      ),
-    );
-  }
-}
-
-class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    const items = [
-      (Icons.home_rounded, '首页', true),
-      (Icons.smart_display_rounded, '短视频', false),
-      (Icons.workspace_premium_rounded, '会员', false),
-      (Icons.explore_rounded, '发现', false),
-      (Icons.person_rounded, '我的', false),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF151515),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.06))),
-      ),
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 18),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: items.map((item) {
-          final active = item.$3;
-          final color = active ? const Color(0xFFE53935) : const Color(0xFF8E8E8E);
-          return GestureDetector(
-            onTap: item.$2 == '我的' ? () => context.go('/settings') : null,
-            child: SizedBox(
-              width: 58,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(item.$1, color: color, size: 24),
-                  const SizedBox(height: 4),
-                  Text(item.$2, style: TextStyle(color: color, fontSize: 11, fontWeight: active ? FontWeight.w700 : FontWeight.w500)),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }
