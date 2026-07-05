@@ -419,7 +419,7 @@ class _LiveSection extends StatelessWidget {
           Container(
             height: 145,
             decoration: BoxDecoration(
-              color: Colors.white8,
+              color: Colors.white.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
