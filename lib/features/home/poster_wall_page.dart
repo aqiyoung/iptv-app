@@ -45,15 +45,33 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
     );
   }
 
-  // ── 搜索栏 (参考图: 筛选 + 历史) ──
+  // ── 搜索栏 (设计档: Logo + 搜索框 + 筛选/历史/会员) ──
   Widget _buildSearchBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
       child: SizedBox(
-        height: 36,
+        height: 56,
         child: Row(
           children: [
-            // 搜索框
+            // Logo (红色播放图标 + App名)
+            Container(
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53935),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.play_arrow_rounded,
+                  color: Colors.white, size: 22),
+            ),
+            const Text('视界',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A))),
+            const SizedBox(width: 10),
+            // 搜索框 (圆角胶囊)
             Expanded(
               child: GestureDetector(
                 onTap: () => context.go('/search'),
@@ -62,14 +80,14 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Row(
                     children: [
                       Icon(Icons.search, size: 18, color: Color(0xFF999999)),
                       SizedBox(width: 6),
-                      Text('搜索电影、电视剧、综艺、动漫',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                      Text('庆余年 第二季',
+                          style: TextStyle(fontSize: 13, color: Color(0xFF999999))),
                     ],
                   ),
                 ),
@@ -79,6 +97,8 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
             Icon(Icons.filter_list, size: 22, color: IptvColors.textSecondary),
             const SizedBox(width: 8),
             Icon(Icons.history, size: 22, color: IptvColors.textSecondary),
+            const SizedBox(width: 8),
+            Icon(Icons.person_outline, size: 22, color: IptvColors.textSecondary),
           ],
         ),
       ),
@@ -267,9 +287,39 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
                   color: Colors.black.withOpacity(0.6),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('CCTV-1 综合',
-                    style:
-                        TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('CCTV-1 综合',
+                        style: TextStyle(
+                            color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: const Text('直播中',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // 播放按钮 overlay
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.50),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+                  ),
+                  child: const Icon(Icons.play_arrow, color: Colors.white, size: 24),
+                ),
               ),
             ),
             // 底部内容
@@ -673,6 +723,21 @@ class _HeroBannerState extends State<_HeroBanner> {
               ),
             ),
           ),
+          // 左黑渐变 (增强文字可读性)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.black.withOpacity(0.40),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
           // 独播标签
           Positioned(
             top: 10,
@@ -747,6 +812,20 @@ class _HeroBannerState extends State<_HeroBanner> {
                               color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w600)),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('详情',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500)),
                     ),
                   ],
                 ),

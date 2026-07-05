@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +37,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             top: BorderSide(color: Color(0xFFE8E0D4), width: 0.5),
           ),
         ),
-        child: BottomNavigationBar(
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
           backgroundColor: Colors.white,
@@ -63,9 +68,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               label: '会员',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined, size: 22),
-              activeIcon: Icon(Icons.explore, size: 22),
-              label: '发现',
+              icon: Icon(Icons.live_tv_outlined, size: 22),
+              activeIcon: Icon(Icons.live_tv, size: 22),
+              label: '直播',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline, size: 22),
@@ -74,7 +79,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
+        ),
       ),
+    ),
     );
   }
 }
