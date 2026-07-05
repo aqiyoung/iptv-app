@@ -34,7 +34,7 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
               if (channels.isNotEmpty)
                 SliverToBoxAdapter(child: _buildLiveSection(channels)),
               SliverToBoxAdapter(
-                child: _buildSection('今日推荐', kMockRecommended),
+                child: _buildSection('猜你喜欢', kMockRecommended),
               ),
               SliverToBoxAdapter(child: _buildHotSeries()),
               const SliverToBoxAdapter(child: SizedBox(height: 28)),
@@ -612,10 +612,24 @@ class _HeroBannerState extends State<_HeroBanner> {
               ),
             ),
           ),
+          // 独播标签
           Positioned(
-            left: 14,
-            bottom: 14,
+            top: 10,
             right: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('全网独播',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600)),
+            ),
+          ),
+          Positioned(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
