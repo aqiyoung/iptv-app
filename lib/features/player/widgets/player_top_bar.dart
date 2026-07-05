@@ -104,14 +104,6 @@ class _TopBarState extends State<TopBar> {
             icon: Icon(Icons.arrow_back, color: iconColor),
             onPressed: widget.onBack,
           ),
-          // v0.3.10.18: PiP 画中画按钮
-          IconButton(
-            icon: Icon(Icons.picture_in_picture, color: iconColor),
-            onPressed: () {
-              const channel = MethodChannel('com.threelive.iptv/pip');
-              channel.invokeMethod('enterPip');
-            },
-          ),
           const SizedBox(width: 4),
           Expanded(
             child: Column(
