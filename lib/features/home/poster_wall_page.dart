@@ -30,11 +30,13 @@ class _PosterWallPageState extends ConsumerState<PosterWallPage> {
             slivers: [
               // 1. 顶部搜索栏
               SliverToBoxAdapter(child: _buildSearchBar(context)),
-              // 2. 横幅轮播
+              // 2. 文字分类 Tab
+              SliverToBoxAdapter(child: _buildCategoryTabs()),
+              // 3. 横幅轮播
               SliverToBoxAdapter(child: _buildHeroBanner()),
-              // 3. 分类入口
+              // 4. 分类入口
               SliverToBoxAdapter(child: _buildCategoryRow()),
-              // 4. 电视直播
+              // 5. 电视直播
               if (channels.isNotEmpty)
                 SliverToBoxAdapter(child: _buildLiveSection(channels)),
               // 6. 今日推荐
