@@ -96,7 +96,7 @@ jobs:
       - name: 修改 APP 名称为 Beta 版
         run: |
           # Beta 版在 app_name 后面加 " (Beta)" 方便区分
-          sed -i 's|<string name="app_name">三页直播</string>|<string name="app_name">三页直播 (Beta)</string>|' android/app/src/main/res/values/strings.xml
+          sed -i 's|<string name="app_name">三页影视</string>|<string name="app_name">三页影视 (Beta)</string>|' android/app/src/main/res/values/strings.xml
           cat android/app/src/main/res/values/strings.xml
 
       - name: Build APK (release, signed, beta)
