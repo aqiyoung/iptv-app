@@ -338,8 +338,21 @@ class _ErrorBoundaryState extends State<_ErrorBoundary> {
     FlutterError.onError = (details) {
       // Still call the default handler (prints to console / debugDumpApp).
       FlutterError.presentError(details);
+      // v0.3.10+21 fix: 图片加载失败 (HTTP 400/404/502) 是非致命错误,
+      // CachedNetworkImage 的 errorWidget 已兜底显示默认图标,
+      // 不要拦截到 crash screen 上.
+      if (_isNetworkImageError(details)) return;
       if (mounted) setState(() => _error = details);
     };
+  }
+
+  /// 判断是否为网络图片加载失败 (非致命, 不应触发 crash screen).
+  bool _isNetworkImageError(FlutterErrorDetails details) {
+    final exc = details.exceptionAsString().toLowerCase();
+    return exc.contains('http request failed') ||
+        exc.contains('network_image') ||
+        exc.contains('image resource') ||
+        (details.stack?.toString().contains('network_image_io') ?? false);
   }
 
   @override
