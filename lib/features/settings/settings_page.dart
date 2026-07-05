@@ -170,7 +170,7 @@ class SettingsPage extends ConsumerWidget {
                   return ListTile(
                     leading: const Icon(Icons.tag_outlined),
                     title: const Text('版本号'),
-                    subtitle: Text('$displayVersion (build $code)'),
+                    subtitle: Text('$displayVersion'),
                   );
                 },
               ),
