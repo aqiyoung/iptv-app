@@ -1,318 +1,256 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/models/channel.dart';
+import '../../../data/repositories/channel_repository.dart';
 import '../../core/theme/colors.dart';
 
-/// 三页影视 首页 — 海报墙
-class PosterWallPage extends StatefulWidget {
+/// 三页影视 海报墙首页
+class PosterWallPage extends ConsumerWidget {
   const PosterWallPage({super.key});
 
   @override
-  State<PosterWallPage> createState() => _PosterWallPageState();
-}
-
-class _PosterWallPageState extends State<PosterWallPage> {
-  int _currentTab = 0;
-  List<dynamic>? _channels;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadChannels();
-  }
-
-  Future<void> _loadChannels() async {
-    try {
-      // 直接加载 assets, 不用 repository (避免缓存/版本检查导致的崩溃)
-      await Future.delayed(const Duration(milliseconds: 300)); // 让 splash 显示
-      final raw = await DefaultAssetBundle.of(context)
-          .loadString('assets/data/channels_cn.json');
-      final decoded = json.decode(raw);
-      final list = (decoded as List?) ?? [];
-      if (mounted) {
-        setState(() => _channels = list);
-      }
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: IptvColors.bgParchment,
       body: SafeArea(
         child: Column(
           children: [
-            _buildTopBar(context),
-            _buildTabs(),
-            Expanded(child: _buildContent()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        children: [
-          const Text(
-            '三页影视',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => context.go('/search'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.go('/settings'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabs() {
-    const tabs = ['直播', '点播', '收藏'];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: List.generate(tabs.length, (i) {
-          final active = i == _currentTab;
-          return GestureDetector(
-            onTap: () => setState(() => _currentTab = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: active ? Theme.of(context).colorScheme.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: active
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.outlineVariant,
-                  width: 1.5,
-                ),
-              ),
-              child: Text(
-                tabs[i],
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: active ? FontWeight.bold : FontWeight.w500,
-                  color: active ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                ),
+            // 顶部栏
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                children: [
+                  Text('三页影视',
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () => context.go('/search'),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined),
+                    onPressed: () => context.go('/settings'),
+                  ),
+                ],
               ),
             ),
-          );
-        }),
+            // 内容
+            const Expanded(child: _PosterWallTabs()),
+          ],
+        ),
       ),
     );
   }
+}
 
-  Widget _buildContent() {
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-            const SizedBox(height: 12),
-            Text('加载失败', style: TextStyle(fontSize: 16, color: IptvColors.textSecondary)),
-            const SizedBox(height: 8),
-            Text(_error!, style: TextStyle(fontSize: 12, color: IptvColors.textSecondary)),
-            const SizedBox(height: 16),
-            FilledButton(onPressed: () => _loadChannels(), child: const Text('重试')),
-          ],
-        ),
-      );
-    }
+class _PosterWallTabs extends ConsumerStatefulWidget {
+  const _PosterWallTabs();
 
-    if (_channels == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+  @override
+  ConsumerState<_PosterWallTabs> createState() => _PosterWallTabsState();
+}
 
-    return _currentTab == 0
-        ? _buildLiveScreen()
-        : _currentTab == 1
-            ? _buildComingSoon('点播', Icons.movie)
-            : _buildComingSoon('收藏', Icons.favorite);
-  }
+class _PosterWallTabsState extends ConsumerState<_PosterWallTabs> {
+  int _currentTab = 0;
 
-  Widget _buildLiveScreen() {
-    // 解析分类
-    final cctv = <Map>[];
-    final satellite = <Map>[];
-    final local = <Map>[];
-
-    for (final ch in _channels!) {
-      if (ch is! Map) continue;
-      final cats = (ch['categories'] as List?)?.cast<String>() ?? [];
-      final name = (ch['name'] as String?) ?? (ch['id'] as String? ?? '');
-      final logo = ch['logo'] as String?;
-      final id = ch['id'] as String? ?? '';
-      final item = {'id': id, 'name': name, 'logo': logo};
-
-      if (cats.contains('央视')) {
-        cctv.add(item);
-      } else if (cats.contains('卫视')) {
-        satellite.add(item);
-      } else if (cats.contains('地方')) {
-        local.add(item);
-      }
-    }
-
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       children: [
-        if (cctv.isNotEmpty)
-          _buildSection('央视频道', cctv.take(10).toList(),
-              () => context.go('/category/cctv')),
-        if (satellite.isNotEmpty)
-          _buildSection('卫视频道', satellite.take(15).toList(),
-              () => context.go('/category/satellite')),
-        if (local.isNotEmpty)
-          _buildSection('地方频道', local.take(10).toList(),
-              () => context.go('/category/local')),
+        // Tab 栏
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: List.generate(3, (i) {
+              const tabs = ['直播', '点播', '收藏'];
+              final active = i == _currentTab;
+              return GestureDetector(
+                onTap: () => setState(() => _currentTab = i),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: active
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: active
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outlineVariant,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    tabs[i],
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: active ? FontWeight.bold : FontWeight.w500,
+                      color: active
+                          ? Colors.white
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        // 内容
+        Expanded(
+          child: _currentTab == 0 ? const _LiveScreenContent() : _ComingSoonScreen(tab: _currentTab),
+        ),
       ],
     );
   }
+}
 
-  Widget _buildSection(String title, List<Map> items, VoidCallback onSeeAll) {
-    if (items.isEmpty) return const SizedBox.shrink();
-    final cardWidth = MediaQuery.of(context).size.width > 600 ? 130.0 : 100.0;
+class _LiveScreenContent extends ConsumerWidget {
+  const _LiveScreenContent();
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return FutureBuilder<List<Channel>>(
+      future: ref.read(channelRepositoryProvider).loadBundled(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                const SizedBox(height: 12),
+                const Text('加载失败', style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 8),
+                Text(snapshot.error.toString(), style: const TextStyle(fontSize: 12)),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => ref.invalidate(channelRepositoryProvider),
+                  child: const Text('重试'),
+                ),
+              ],
+            ),
+          );
+        }
+        final channels = snapshot.data ?? [];
+        // 分组
+        final cctv = <Channel>[];
+        final satellite = <Channel>[];
+        final local = <Channel>[];
+        for (final ch in channels) {
+          if (ch.categories.contains('央视')) {
+            cctv.add(ch);
+          } else if (ch.categories.contains('卫视')) {
+            satellite.add(ch);
+          } else {
+            local.add(ch);
+          }
+        }
+        return ListView(
+          children: [
+            if (cctv.isNotEmpty) _buildSection(context, '📺 央视频道', cctv, () => context.go('/category/cctv')),
+            if (satellite.isNotEmpty) _buildSection(context, '📡 卫视频道', satellite, () => context.go('/category/satellite')),
+            if (local.isNotEmpty) _buildSection(context, '🏙️ 地方频道', local, () => context.go('/category/local')),
+            const SizedBox(height: 24),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSection(BuildContext context, String title, List<Channel> items, VoidCallback onSeeAll) {
+    final cardWidth = MediaQuery.of(context).size.width > 600 ? 130.0 : 95.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(
             children: [
-              Container(
-                width: 4,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+              Container(width: 4, height: 18, decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(2))),
               const SizedBox(width: 8),
-              Text(title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const Spacer(),
-              GestureDetector(
-                onTap: onSeeAll,
-                child: Row(
-                  children: [
-                    Text('查看全部',
-                        style: TextStyle(fontSize: 13, color: IptvColors.textSecondary)),
-                    Icon(Icons.chevron_right, size: 18, color: IptvColors.textSecondary),
-                  ],
-                ),
-              ),
+              GestureDetector(onTap: onSeeAll, child: Row(children: [Text('查看全部', style: TextStyle(fontSize: 13, color: IptvColors.textSecondary)), Icon(Icons.chevron_right, size: 18, color: IptvColors.textSecondary)])),
             ],
           ),
         ),
         SizedBox(
-          height: cardWidth / 0.7 + 32,
+          height: cardWidth / 0.65 + 28,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
-            itemBuilder: (_, i) => _buildCard(items[i], cardWidth),
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (_, i) => _ChannelCard(channel: items[i], width: cardWidth),
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildCard(Map item, double width) {
-    final name = item['name'] as String? ?? '';
-    final logo = item['logo'] as String?;
-    final id = item['id'] as String? ?? '';
-    final h = width / 0.7;
+class _ChannelCard extends StatelessWidget {
+  const _ChannelCard({required this.channel, required this.width});
 
+  final Channel channel;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final height = width / 0.65;
     return GestureDetector(
-      onTap: () {
-        if (id.isNotEmpty) context.go('/player/$id');
-      },
+      onTap: () => context.go('/player/${channel.id}'),
       child: SizedBox(
         width: width,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
                 width: width,
-                height: h,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                      Theme.of(context).colorScheme.primary.withOpacity(0.05),
-                    ],
-                  ),
-                ),
-                child: Center(
-                  child: logo != null && logo.isNotEmpty
-                      ? Image.network(logo,
-                          width: width * 0.5,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(name, width))
-                      : _buildPlaceholder(name, width),
-                ),
+                height: height,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: channel.logoUrl != null && channel.logoUrl!.isNotEmpty
+                    ? Image.network(channel.logoUrl!, fit: BoxFit.contain, width: width, errorBuilder: (_, __, ___) => _Initial(firstChar(channel.displayName)))
+                    : _Initial(firstChar(channel.displayName)),
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-            ),
+            Text(channel.displayName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildPlaceholder(String name, double width) {
-    return Text(
-      name.isNotEmpty ? name.substring(0, 1) : '?',
-      style: TextStyle(
-        fontSize: width * 0.3,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.primary,
-      ),
-    );
-  }
+class _Initial extends StatelessWidget {
+  const _Initial(this.char);
+  final String char;
+  @override
+  Widget build(BuildContext context) => Center(child: Text(char, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)));
+}
 
-  Widget _buildComingSoon(String title, IconData icon) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 64, color: IptvColors.textSecondary),
-          const SizedBox(height: 16),
-          Text('$title功能开发中…',
-              style: const TextStyle(fontSize: 16, color: IptvColors.textSecondary)),
-          const SizedBox(height: 8),
-          Text('即将上线，敬请期待',
-              style: TextStyle(fontSize: 13, color: IptvColors.textSecondary)),
-        ],
-      ),
-    );
+class _ComingSoonScreen extends StatelessWidget {
+  const _ComingSoonScreen({required this.tab});
+  final int tab;
+
+  @override
+  Widget build(BuildContext context) {
+    final info = tab == 1 ? ('点播', Icons.movie) : ('收藏', Icons.favorite);
+    return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Icon(info.$2, size: 64, color: IptvColors.textSecondary), const SizedBox(height: 16), Text('${info.$1}功能开发中…', style: const TextStyle(fontSize: 16)), const SizedBox(height: 8), Text('即将上线，敬请期待', style: TextStyle(fontSize: 13, color: IptvColors.textSecondary))]));
   }
 }
+
+String firstChar(String s) => s.isNotEmpty ? s[0] : '?';
