@@ -16,11 +16,9 @@ class PosterWallPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
-      body: SafeArea(
-        child: Column(
-          children: [
+    return SafeArea(
+      child: Column(
+        children: [
             // 顶部搜索栏
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
@@ -67,8 +65,7 @@ class PosterWallPage extends ConsumerWidget {
             const Expanded(child: _HomeBody()),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -317,6 +314,8 @@ class _HeroBannerState extends State<_HeroBanner> {
           ],
         ),
       ),
+    ],
+  ),
     );
   }
 }
@@ -335,7 +334,7 @@ class _CategoryRow extends StatelessWidget {
       _Cat('综艺', Icons.star, 0xFF1565C0),
       _Cat('动漫', Icons.emoji_emotions, 0xFF6A1B9A),
       _Cat('纪录片', Icons.public, 0xFF00838F),
-    ];
+    ],
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       child: Row(
