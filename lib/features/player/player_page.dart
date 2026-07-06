@@ -26,9 +26,10 @@ import 'widgets/video_area.dart';
 /// TV 端 (shortestSide >= 600) 保持
 /// v0.3.0 Stack 全屏覆盖模式, 因为 TV 整个屏幕就是视频区.
 class PlayerPage extends ConsumerStatefulWidget {
-  const PlayerPage({super.key, required this.channelId, this.vodTitle});
+  const PlayerPage({super.key, required this.channelId, this.vodUrl, this.vodTitle});
 
   final String channelId;
+  final String? vodUrl;
   final String? vodTitle;
 
   @override
@@ -300,10 +301,11 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   Future<void> _tryAutoPlay() async {
-    // v0.3.11.62: VOD 点播模式 — channelId 形如 vod://<encodedUrl>，
+    // v0.3.11.62: VOD 点播模式 — channelId='vod' + url 在 query 参数里,
     // 直接播 URL，不查频道库（海报墙影视卡片点进来走这）。
-    if (widget.channelId.startsWith('vod://')) {
-      final url = Uri.decodeComponent(widget.channelId.substring('vod://'.length));
+    if (widget.channelId == 'vod') {
+      final url = widget.vodUrl;
+      if (url == null || url.isEmpty) return;
       final title = widget.vodTitle ?? '影视点播';
       unawaited(ref.read(playerServiceProvider).playSingleSource(url,
           channel: Channel.fromVod(url, title: title)));
@@ -376,7 +378,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                 ),
                 data: (channels) {
                   // v0.3.11.62: VOD 模式不查频道库, 用 player state 里的临时频道.
-                  final channel = widget.channelId.startsWith('vod://')
+                  final channel = widget.channelId == 'vod'
                       ? state.channel
                       : _findChannel(channels, widget.channelId);
                   return Column(

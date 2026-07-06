@@ -511,8 +511,7 @@ class _PosterCard extends StatelessWidget {
         // v0.3.11.62: 有真实可播源 → 直接点播; 否则跳搜索
         if (content.sourceUrls.isNotEmpty &&
             !content.sourceUrls.first.contains('example.com')) {
-          final encoded = Uri.encodeComponent(content.sourceUrls.first);
-          context.go('/player/vod://$encoded?title=${Uri.encodeComponent(content.title)}');
+          context.go('/player/vod?url=${Uri.encodeComponent(content.sourceUrls.first)}&title=${Uri.encodeComponent(content.title)}');
         } else {
           context.go('/search');
         }
