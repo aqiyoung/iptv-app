@@ -115,13 +115,13 @@ class CategoryPage extends ConsumerWidget {
         return all
             .where((ch) =>
                 ch.sources.isNotEmpty &&
-                (ch.category == '央视' ||
-                    ch.category == '卫视' ||
-                    ch.category == '体育' ||
-                    ch.category == '地方' ||
-                    ch.category == '影视' ||
-                    ch.category == '新闻' ||
-                    ch.category == '娱乐'))
+                (ch.primaryCategory == '央视' ||
+                    ch.primaryCategory == '卫视' ||
+                    ch.primaryCategory == '体育' ||
+                    ch.primaryCategory == '地方' ||
+                    ch.primaryCategory == '影视' ||
+                    ch.primaryCategory == '新闻' ||
+                    ch.primaryCategory == '娱乐'))
             .toList();
       case 'cctv':
         return ChannelFilter.cctv(all);
