@@ -139,8 +139,10 @@ class _MinePage extends ConsumerWidget {
       child: SafeArea(
         bottom: false,
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
+        child: Padding(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
           children: [
             Row(
               children: [
@@ -195,6 +197,7 @@ class _MinePage extends ConsumerWidget {
             _MineTile(icon: Icons.settings_rounded, title: '设置', subtitle: '主题、更新、版本信息', onTap: () => context.go('/settings')),
           ],
         ),
+      ),
       ),
     );
   }
