@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../services/version_checker.dart';
 import '../favorites/favorites_service.dart';
+import '../vod/vod_home_page.dart';
 import 'poster_wall_page.dart';
 
 /// 三页影视主页 — 外层统一管理底部导航
@@ -57,13 +58,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             primaryLabel: '去搜索内容',
             onPrimary: () => context.go('/search'),
           ),
-          _ActionHubPage(
-            title: '会员',
-            subtitle: '会员体系暂未上线，当前所有直播入口都可直接使用。',
-            icon: Icons.workspace_premium_rounded,
-            primaryLabel: '看电视直播',
-            onPrimary: () => context.go('/category/live'),
-          ),
+          const VODHomePage(),
           _ActionHubPage(
             title: '发现',
             subtitle: '发现页先聚合频道分类，后续再接专题内容。',
@@ -137,9 +132,9 @@ class _StreamingBottomNav extends StatelessWidget {
                   label: '短视频',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.workspace_premium_outlined, size: 23),
-                  activeIcon: Icon(Icons.workspace_premium_rounded, size: 23),
-                  label: '会员',
+                  icon: Icon(Icons.movie_outlined, size: 23),
+                  activeIcon: Icon(Icons.movie_rounded, size: 23),
+                  label: '点播',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.explore_outlined, size: 23),
