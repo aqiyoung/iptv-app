@@ -199,8 +199,11 @@ class _ForceUpdateDialogContentState
       actions.add(
         TextButton(
           onPressed: () async {
+            // v0.3.10.22: 先 capture navigator, 避免 async gap 后
+            // 使用 context 触发 use_build_context_synchronously lint.
+            final navigator = Navigator.of(context);
             await ref.read(versionCheckerProvider.notifier).markDismissed();
-            if (mounted) Navigator.of(context).pop();
+            if (mounted) navigator.pop();
           },
           child: const Text('稍后'),
         ),

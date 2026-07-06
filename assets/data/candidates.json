@@ -256,19 +256,19 @@
         "method": "iptv_org"
       },
       {
-        "url": "http://go.bkpcp.top/mg/cctv13",
-        "alive": false,
-        "score": 0.0,
-        "rttMs": 0,
-        "error": "KNOWN_DEAD_HOSTS:go.bkpcp.top",
-        "method": "skipped"
-      },
-      {
         "url": "https://cdn3.163189.xyz/163189/cctv13",
         "alive": false,
         "score": 0.0,
         "rttMs": 0,
         "error": "KNOWN_DEAD_HOSTS:cdn3.163189.xyz",
+        "method": "skipped"
+      },
+      {
+        "url": "http://go.bkpcp.top/mg/cctv13",
+        "alive": false,
+        "score": 0.0,
+        "rttMs": 0,
+        "error": "KNOWN_DEAD_HOSTS:go.bkpcp.top",
         "method": "skipped"
       }
     ],
@@ -573,7 +573,7 @@
         "url": "http://118.122.2.29:9999/hls/47/index.m3u8",
         "alive": false,
         "score": 0.0,
-        "rttMs": 5005,
+        "rttMs": 5000,
         "error": "URLError: <urlopen error timed out>",
         "method": "skipped"
       }
@@ -801,7 +801,7 @@
         "url": "http://222.80.13.33:4022/udp/238.125.3.175:5140",
         "alive": false,
         "score": 0.0,
-        "rttMs": 5005,
+        "rttMs": 5007,
         "error": "URLError: <urlopen error timed out>",
         "method": "skipped"
       }
@@ -816,7 +816,7 @@
         "method": "iptv_org"
       },
       {
-        "url": "http://110.153.180.106:55555/out_2/index.m3u8",
+        "url": "http://218.84.35.38:3000/m3u8/live/tctv-2/index.m3u8",
         "alive": true,
         "score": 0.876,
         "rttMs": 622,
@@ -862,7 +862,7 @@
         "method": "skipped"
       },
       {
-        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225744/index.m3u8",
+        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225703/index.m3u8",
         "alive": false,
         "score": 0.0,
         "rttMs": 5003,
@@ -870,7 +870,7 @@
         "method": "skipped"
       },
       {
-        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225703/index.m3u8",
+        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225744/index.m3u8",
         "alive": false,
         "score": 0.0,
         "rttMs": 5005,
@@ -1012,7 +1012,7 @@
         "method": "skipped"
       },
       {
-        "url": "http://223.110.245.145/ott.js.chinamobile.com/PLTV/3/224/3221225814/index.m3u8",
+        "url": "http://183.207.248.71/gitv/live1/SCWS/SCWS",
         "alive": false,
         "score": 0.0,
         "rttMs": 5005,
@@ -1020,7 +1020,7 @@
         "method": "skipped"
       },
       {
-        "url": "http://183.207.248.71/gitv/live1/SCWS/SCWS",
+        "url": "http://223.110.245.145/ott.js.chinamobile.com/PLTV/3/224/3221225814/index.m3u8",
         "alive": false,
         "score": 0.0,
         "rttMs": 5409,
@@ -1132,14 +1132,6 @@
     ],
     "ShandongTV.cn": [
       {
-        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225697/index.m3u8",
-        "alive": false,
-        "score": 0.0,
-        "rttMs": 5005,
-        "error": "URLError: <urlopen error timed out>",
-        "method": "skipped"
-      },
-      {
         "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225738/index.m3u8",
         "alive": false,
         "score": 0.0,
@@ -1149,6 +1141,14 @@
       },
       {
         "url": "http://117.169.120.140:8080/live/hdshandongstv/.m3u8",
+        "alive": false,
+        "score": 0.0,
+        "rttMs": 5005,
+        "error": "URLError: <urlopen error timed out>",
+        "method": "skipped"
+      },
+      {
+        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225697/index.m3u8",
         "alive": false,
         "score": 0.0,
         "rttMs": 5005,
@@ -1287,7 +1287,7 @@
         "url": "http://117.156.28.119/270000001111/1110000028/index.m3u8",
         "alive": false,
         "score": 0.0,
-        "rttMs": 5005,
+        "rttMs": 5004,
         "error": "URLError: <urlopen error timed out>",
         "method": "skipped"
       }
@@ -1330,18 +1330,18 @@
     ],
     "JiangsuSatelliteTV.cn": [
       {
-        "url": "http://39.134.24.166/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226200/index.m3u8",
+        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225702/index.m3u8",
         "alive": false,
         "score": 0.0,
-        "rttMs": 5005,
+        "rttMs": 5000,
         "error": "URLError: <urlopen error timed out>",
         "method": "skipped"
       },
       {
-        "url": "http://39.134.115.163:8080/PLTV/88888910/224/3221225702/index.m3u8",
+        "url": "http://39.134.24.166/dbiptv.sn.chinamobile.com/PLTV/88888890/224/3221226200/index.m3u8",
         "alive": false,
         "score": 0.0,
-        "rttMs": 5005,
+        "rttMs": 5002,
         "error": "URLError: <urlopen error timed out>",
         "method": "skipped"
       },
@@ -1391,6 +1391,14 @@
       }
     ],
     "JiangsuEducationalChannel.cn": [
+      {
+        "url": "http://183.207.248.71/gitv/live1/G_JSJY/G_JSJY",
+        "alive": false,
+        "score": 0.0,
+        "rttMs": 5002,
+        "error": "URLError: <urlopen error timed out>",
+        "method": "skipped"
+      },
       {
         "url": "http://223.110.245.151/ott.js.chinamobile.com/PLTV/3/224/3221225923/index.m3u8",
         "alive": false,
