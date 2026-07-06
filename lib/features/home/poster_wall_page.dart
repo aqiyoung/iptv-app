@@ -17,6 +17,7 @@ class PosterWallPage extends ConsumerWidget {
       color: const Color(0xFF101010),
       child: SafeArea(
         bottom: false,
+        top: false,
         child: FutureBuilder<List<Channel>>(
           future: ref.read(channelRepositoryProvider).loadBundled(),
           builder: (context, snapshot) {

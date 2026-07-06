@@ -556,7 +556,7 @@ Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
             title: Text(_modeLabel(mode)),
             value: mode,
             groupValue: selected,
-            onChanged: (v) => Navigator.of(ctx).pop(),
+            onChanged: (v) => selected = v!,
           );
         }).toList(),
       ),

@@ -245,19 +245,21 @@ Future<void> _prewarmRemoteSources() async {
 }
 
 void _applySystemUiOverlay(SharedPreferences prefs) {
-  // v0.3.7+59 (6/19): 启动时默认 overlay 跟当前主题走 — 浅色主题用深状态栏图标 +
-  // 米色导航栏; 暗色主题用白状态栏图标 + 深色导航栏.  之前 v0.3.7+50 写死浅色,
-  // 暗色主题下状态栏图标深色在深背景上看不清, 导航栏还是米色扮眼.
-  // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  之前用
-  // 持久化 themeMode 控制 status bar / nav bar 颜色,  现在强制浅色.
-  // prefs 参数保留但暂未用 (其他功能如 favorite / endpoint / version cache 还用).
+  // 从 SharedPreferences 读已持久化的主题模式。
+  // 之前 v0.3.8+102 硬编码浅色，现在恢复运行时读取主题模式。
+  final rawMode = prefs.getString('theme_mode');
+  final isDark = rawMode == 'dark';
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
+    SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-      systemNavigationBarColor: IptvColors.bgParchment,
-      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness:
+          isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor:
+          isDark ? IptvColors.darkBg : IptvColors.bgParchment,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
     ),
   );
 }

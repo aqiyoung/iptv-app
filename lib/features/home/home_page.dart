@@ -138,6 +138,7 @@ class _MinePage extends ConsumerWidget {
       color: const Color(0xFF101010),
       child: SafeArea(
         bottom: false,
+        top: false,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
           children: [
@@ -223,9 +224,10 @@ class _ActionHubPage extends StatelessWidget {
     return ColoredBox(
       color: const Color(0xFF101010),
       child: SafeArea(
+        top: false,
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 24),
             child: Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
