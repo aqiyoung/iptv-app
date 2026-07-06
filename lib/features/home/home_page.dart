@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../services/version_checker.dart';
 import '../favorites/favorites_service.dart';
-import '../settings/theme_provider.dart';
 import 'poster_wall_page.dart';
 
 /// 三页影视主页 — 外层统一管理底部导航
@@ -24,34 +23,25 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    ref.listenManual<ThemeMode>(themeModeProvider, (prev, next) {
-      // AnnotatedRegion 会自动响应，此处只做全局兜底
-      _syncGlobalOverlay(next);
-    });
+    // app 已锁死深色：首页状态栏固定白图标，不再跟随旧 theme_mode prefs。
+    _syncGlobalOverlay();
   }
 
-  void _syncGlobalOverlay(ThemeMode mode) {
-    final isDark = mode == ThemeMode.dark ||
-        (mode == ThemeMode.system &&
-            WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+  void _syncGlobalOverlay() {
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
+      const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness:
-            isDark ? Brightness.light : Brightness.dark,
-        statusBarBrightness:
-            isDark ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor:
-            isDark ? const Color(0xFF151515) : const Color(0xFFF5F4ED),
-        systemNavigationBarIconBrightness:
-            isDark ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Color(0xFF151515),
+        systemNavigationBarIconBrightness: Brightness.light,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final overlay = _resolveOverlay(ref.watch(themeModeProvider));
+    final overlay = _resolveOverlay();
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlay,
       child: Scaffold(
@@ -94,20 +84,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  SystemUiOverlayStyle _resolveOverlay(ThemeMode mode) {
-    final isDark = mode == ThemeMode.dark ||
-        (mode == ThemeMode.system &&
-            WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
-    return SystemUiOverlayStyle(
+  SystemUiOverlayStyle _resolveOverlay() {
+    return const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness:
-          isDark ? Brightness.light : Brightness.dark,
-      statusBarBrightness:
-          isDark ? Brightness.dark : Brightness.light,
-      systemNavigationBarColor:
-          isDark ? const Color(0xFF151515) : const Color(0xFFF5F4ED),
-      systemNavigationBarIconBrightness:
-          isDark ? Brightness.light : Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFF151515),
+      systemNavigationBarIconBrightness: Brightness.light,
     );
   }
 }
