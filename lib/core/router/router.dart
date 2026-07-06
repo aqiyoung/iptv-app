@@ -8,10 +8,6 @@ import '../../features/home/home_page.dart';
 import '../../features/player/player_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/settings/settings_page.dart';
-import '../../features/vod/vod_home_page.dart';
-import '../../features/vod/vod_detail_page.dart';
-import '../../features/vod/tvbox_config_page.dart';
-import '../../data/vod/mac_cms_service.dart';
 import '../../services/player_service.dart';
 
 class AppRoutes {
@@ -79,25 +75,6 @@ GoRouter buildRouter({NavigatorObserver? playerObserver}) {
             path: 'settings',
             name: 'settings',
             builder: (context, state) => const SettingsPage(),
-          ),
-          GoRoute(
-            path: 'vod',
-            name: 'vod',
-            builder: (context, state) => const VODHomePage(),
-          ),
-          GoRoute(
-            path: 'vod/detail',
-            name: 'vod-detail',
-            builder: (context, state) {
-              final item = state.extra as VODItem?;
-              if (item == null) return const VODHomePage();
-              return VODDetailPage(item: item);
-            },
-          ),
-          GoRoute(
-            path: 'vod/config',
-            name: 'vod-config',
-            builder: (context, state) => const TVBoxConfigPage(),
           ),
         ],
       ),
