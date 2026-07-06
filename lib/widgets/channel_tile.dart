@@ -46,7 +46,9 @@ class ChannelTile extends StatelessWidget {
           // 容器".  跟 settings page 的 _SettingsCard 是同一套语言.
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: IptvColors.bgElevated, // v0.3.8+169: 引用 design token, 不硬编码
+            color: Theme.of(context).brightness == Brightness.dark
+                ? IptvColors.darkSurface
+                : IptvColors.bgElevated,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -67,7 +69,7 @@ class ChannelTile extends StatelessWidget {
                   children: [
                     Text(
                       primaryName,
-                      style: IptvTypography.sansTitle,
+                      style: Theme.of(context).textTheme.titleMedium ?? IptvTypography.sansTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
