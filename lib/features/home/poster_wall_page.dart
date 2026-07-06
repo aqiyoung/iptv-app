@@ -22,7 +22,6 @@ class PosterWallPage extends ConsumerWidget {
           builder: (context, snapshot) {
             final channels = snapshot.data ?? const <Channel>[];
             final cctv = channels.where((ch) => ch.categories.contains('央视')).toList();
-            final satellite = channels.where((ch) => ch.categories.contains('卫视')).toList();
             final liveChannels = cctv.isNotEmpty ? cctv : channels;
 
             return Column(
