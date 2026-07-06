@@ -24,24 +24,32 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
+
+    // 初始加载时立即应用一次状态栏 overlay
+    _applyOverlay(ref.read(themeModeProvider));
+
     ref.listenManual<ThemeMode>(themeModeProvider, (prev, next) {
-      final isDark = next == ThemeMode.dark ||
-          (next == ThemeMode.system &&
-              WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              isDark ? Brightness.light : Brightness.dark,
-          statusBarBrightness:
-              isDark ? Brightness.dark : Brightness.light,
-          systemNavigationBarColor:
-              isDark ? const Color(0xFF151515) : const Color(0xFFF5F4ED),
-          systemNavigationBarIconBrightness:
-              isDark ? Brightness.light : Brightness.dark,
-        ),
-      );
+      _applyOverlay(next);
     });
+  }
+
+  void _applyOverlay(ThemeMode mode) {
+    final isDark = mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness:
+            isDark ? Brightness.dark : Brightness.light,
+        systemNavigationBarColor:
+            isDark ? const Color(0xFF151515) : const Color(0xFFF5F4ED),
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+      ),
+    );
   }
 
   @override

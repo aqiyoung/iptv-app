@@ -248,7 +248,9 @@ void _applySystemUiOverlay(SharedPreferences prefs) {
   // 从 SharedPreferences 读已持久化的主题模式。
   // 之前 v0.3.8+102 硬编码浅色，现在恢复运行时读取主题模式。
   final rawMode = prefs.getString('theme_mode');
-  final isDark = rawMode == 'dark';
+  final isDark = rawMode == 'dark' ||
+      (rawMode != 'light' &&
+          WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,

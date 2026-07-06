@@ -22,8 +22,10 @@ class PosterWallPage extends ConsumerWidget {
           future: ref.read(channelRepositoryProvider).loadBundled(),
           builder: (context, snapshot) {
             final channels = snapshot.data ?? const <Channel>[];
-            final cctv = channels.where((ch) => ch.categories.contains('央视')).toList();
-            final liveChannels = cctv.isNotEmpty ? cctv : channels;
+            final liveChannels = channels
+                .where((ch) => ch.categories.any((c) => ['央视', '卫视', '体育', '本地'].contains(c)))
+                .toList();
+            final displayChannels = liveChannels.isNotEmpty ? liveChannels : channels;
 
             return Column(
               children: [
@@ -38,7 +40,7 @@ class PosterWallPage extends ConsumerWidget {
                       const SizedBox(height: 18),
                       _LiveTvModule(
                         isLoading: snapshot.connectionState == ConnectionState.waiting,
-                        channels: liveChannels.take(4).toList(),
+                        channels: displayChannels.take(4).toList(),
                         error: snapshot.error,
                       ),
                       const SizedBox(height: 20),
@@ -359,7 +361,7 @@ class _LiveTvModule extends StatelessWidget {
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    const Text('12:00', style: TextStyle(color: Color(0xFFBEBEBE), fontSize: 10)),
+                                    const Text('12:00', style: TextStyle(color: Color(0xFFD0D0D0), fontSize: 10)),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: ClipRRect(
@@ -373,7 +375,7 @@ class _LiveTvModule extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    const Text('12:30', style: TextStyle(color: Color(0xFFBEBEBE), fontSize: 10)),
+                                    const Text('12:30', style: TextStyle(color: Color(0xFFD0D0D0), fontSize: 10)),
                                   ],
                                 ),
                               ],
@@ -429,7 +431,7 @@ class _LiveListText extends StatelessWidget {
       children: [
         Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
-        Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF8E8E8E), fontSize: 11)),
+        Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFB8B8B8), fontSize: 11)),
       ],
     );
   }
