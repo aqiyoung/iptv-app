@@ -56,23 +56,17 @@ class CategoryPage extends ConsumerWidget {
             ],
           ),
         ),
-        // v0.3.8+108 (6/20 老板反馈): 删 _CctvUnavailableBanner.
-        // 之前 v0.3.7+62 加这个 banner 是为了告诉老板 CCTV 公开源难搞.
-        // 但老板今天说 "去掉吧" — 看到就烦.  现在直接进频道列表,
-        // 播放页 failover 多个候选源尝试.
         if (filtered.isEmpty)
           const SliverFillRemaining(
             hasScrollBody: false,
             child: _EmptyState(),
           )
+        else if (categoryId == 'live')
+          ..._buildGroupedSections(context, filtered)
         else
           Builder(
             builder: (context) {
-              // 6/17 v0.2.3 P1-5: TV 端 TvFocus 套住 ChannelTile
               final isTv = context.deviceTier == DeviceTier.tv;
-              // v0.3.8+101 (6/20 15:02 老板反馈): ChannelTile 现在是独立
-              // 容器 (浅一档米色 + 圆角 12),  list 加左右 16 padding + 上
-              // 8 下 24 padding,  item 间插 SizedBox(10) 让容器之间有间隔.
               return SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 sliver: SliverList.builder(
@@ -107,6 +101,78 @@ class CategoryPage extends ConsumerWidget {
         const SliverToBoxAdapter(child: SizedBox(height: 24)),
       ],
     );
+  }
+
+  /// v0.3.11.59: live 页按 primaryCategory 分组渲染, 每组一个标题 + 频道列表
+  List<Widget> _buildGroupedSections(BuildContext context, List<Channel> all) {
+    // 按 primaryCategory 分组, 保持插入顺序
+    final order = <String>[];
+    final groups = <String, List<Channel>>{};
+    for (final ch in all) {
+      final cat = ch.primaryCategory;
+      if (!groups.containsKey(cat)) {
+        order.add(cat);
+        groups[cat] = [];
+      }
+      groups[cat]!.add(ch);
+    }
+
+    final isTv = context.deviceTier == DeviceTier.tv;
+    final slivers = <Widget>[];
+
+    for (final cat in order) {
+      final items = groups[cat]!;
+      // 分组标题
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Text(
+              cat,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ),
+      );
+      // 分组频道列表
+      slivers.add(
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          sliver: SliverList.builder(
+            itemCount: items.length,
+            itemBuilder: (context, i) {
+              final ch = items[i];
+              final tile = ChannelTile(
+                channel: ch,
+                channelNumber: (i + 1).toString().padLeft(2, '0'),
+                channelName: ch.name,
+                isLive: ch.sources.isNotEmpty,
+                onTap: () => context.push('/player/${ch.id}'),
+              );
+              final wrapped = Padding(
+                padding: EdgeInsets.only(
+                  bottom: i == items.length - 1 ? 0 : 10,
+                ),
+                child: tile,
+              );
+              if (!isTv) return wrapped;
+              return TvFocus(
+                autofocus: i == 0,
+                onTap: () => context.push('/player/${ch.id}'),
+                borderRadius: 12,
+                child: wrapped,
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return slivers;
   }
 
   List<Channel> _filter(List<Channel> all) {
