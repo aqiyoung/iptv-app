@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../services/version_checker.dart';
 import '../favorites/favorites_service.dart';
+import '../settings/theme_provider.dart';
 import 'poster_wall_page.dart';
 
 /// 三页影视主页 — 外层统一管理底部导航
@@ -18,6 +20,29 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual<ThemeMode>(themeModeProvider, (prev, next) {
+      final isDark = next == ThemeMode.dark ||
+          (next == ThemeMode.system &&
+              WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness:
+              isDark ? Brightness.dark : Brightness.light,
+          systemNavigationBarColor:
+              isDark ? const Color(0xFF151515) : const Color(0xFFF5F4ED),
+          systemNavigationBarIconBrightness:
+              isDark ? Brightness.light : Brightness.dark,
+        ),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
