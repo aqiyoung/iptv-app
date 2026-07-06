@@ -111,6 +111,18 @@ class CategoryPage extends ConsumerWidget {
 
   List<Channel> _filter(List<Channel> all) {
     switch (categoryId) {
+      case 'live':
+        return all
+            .where((ch) =>
+                ch.sources.isNotEmpty &&
+                (ch.category == '央视' ||
+                    ch.category == '卫视' ||
+                    ch.category == '体育' ||
+                    ch.category == '地方' ||
+                    ch.category == '影视' ||
+                    ch.category == '新闻' ||
+                    ch.category == '娱乐'))
+            .toList();
       case 'cctv':
         return ChannelFilter.cctv(all);
       case 'satellite':
@@ -128,6 +140,8 @@ class CategoryPage extends ConsumerWidget {
 
   String _defaultTitle() {
     switch (categoryId) {
+      case 'live':
+        return '电视直播';
       case 'cctv':
         return '央视';
       case 'satellite':

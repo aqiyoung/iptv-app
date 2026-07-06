@@ -128,7 +128,7 @@ class _HomeTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _TopIcon(icon: Icons.tune_rounded, onTap: () => context.go('/category/cctv')),
+          _TopIcon(icon: Icons.tune_rounded, onTap: () => context.go('/category/live')),
           _TopIcon(icon: Icons.history_rounded, onTap: () => context.go('/favorites')),
         ],
       ),
@@ -252,7 +252,7 @@ class _CategoryShortcutBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shortcuts = [
-      _Shortcut('电视直播', Icons.live_tv_rounded, const Color(0xFFE53935), '/category/cctv'),
+      _Shortcut('电视直播', Icons.live_tv_rounded, const Color(0xFFE53935), '/category/live'),
       _Shortcut('电影', Icons.movie_creation_rounded, const Color(0xFF8E44AD), '/category/影视'),
       _Shortcut('电视剧', Icons.tv_rounded, const Color(0xFF3D7CFF), '/search'),
       _Shortcut('综艺', Icons.star_rounded, const Color(0xFF35B36B), '/category/娱乐'),

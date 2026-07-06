@@ -9,7 +9,7 @@
 //  (省 1MB + Android query intent 配置),  复制 URL 让老板自己粘贴到浏览器看.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:flutter/services.dart' show Clipboard, ClipboardData, SystemUiOverlayStyle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -50,14 +50,19 @@ class SettingsPage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF101010),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF101010),
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         title: const Text(
           '设置',
-          // v0.3.8+103 (6/20 15:46 老板反馈): 显式 color: textPrimary.
-          // 之前 AppBar title 靠 theme.appBarTheme.titleTextStyle = serifTitle
-          // (没 hardcode color,  走 system default).  老板装 +102 后看
-          // 到"设置"是白色的看不清.  现在显式指定 color 跟 textPrimary.
-          style: TextStyle(color: IptvColors.textPrimary),
+          style: TextStyle(color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -438,7 +443,7 @@ class _SettingsGap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 8,
-      color: const Color(0xFFF5F4ED), // bgParchment 跟 scaffold 同色
+      color: const Color(0xFF101010),
       margin: EdgeInsets.zero,
     );
   }
@@ -455,7 +460,7 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFCF6), // bgElevated — 浅一档米色, 跟 bgParchment 区分
+        color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(12),
         // v0.3.8+97: 不画边框, 靠背景色差 + 圆角 + 阴影让卡片"浮"起来
         // boxShadow: [
