@@ -23,7 +23,7 @@ class PosterWallPage extends ConsumerWidget {
           builder: (context, snapshot) {
             final channels = snapshot.data ?? const <Channel>[];
             final liveChannels = channels
-                .where((ch) => ch.categories.any((c) => ['央视', '卫视', '体育', '本地'].contains(c)))
+                .where((ch) => ch.categories.any((c) => ['央视', '卫视', '体育', '地方', '影视'].contains(c)))
                 .toList();
             final displayChannels = liveChannels.isNotEmpty ? liveChannels : channels;
 
@@ -307,6 +307,12 @@ class _LiveTvModule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF0F0F0);
+    final borderColor = Colors.white.withOpacity(isDark ? 0.06 : 0.15);
+    final textColor = isDark ? Colors.white : const Color(0xFF222222);
+    final mutedColor = isDark ? const Color(0xFFB8B8B8) : const Color(0xFF888888);
+
     final primary = channels.isNotEmpty ? channels.first : null;
 
     return Padding(
@@ -314,9 +320,9 @@ class _LiveTvModule extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: bgColor,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,7 +400,7 @@ class _LiveTvModule extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('正在直播', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
+                  Text('正在直播', style: TextStyle(color: textColor, fontSize: 17, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 10),
                   if (isLoading)
                     const _LiveListText(title: '加载频道中', subtitle: '正在读取本地频道库')
@@ -431,7 +437,7 @@ class _LiveListText extends StatelessWidget {
       children: [
         Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
-        Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFB8B8B8), fontSize: 11)),
+        Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFB8B8B8) : const Color(0xFF888888), fontSize: 11)),
       ],
     );
   }

@@ -24,16 +24,13 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-
-    // 初始加载时立即应用一次状态栏 overlay
-    _applyOverlay(ref.read(themeModeProvider));
-
     ref.listenManual<ThemeMode>(themeModeProvider, (prev, next) {
-      _applyOverlay(next);
+      // AnnotatedRegion 会自动响应，此处只做全局兜底
+      _syncGlobalOverlay(next);
     });
   }
 
-  void _applyOverlay(ThemeMode mode) {
+  void _syncGlobalOverlay(ThemeMode mode) {
     final isDark = mode == ThemeMode.dark ||
         (mode == ThemeMode.system &&
             WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
@@ -54,7 +51,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final overlay = _resolveOverlay(ref.watch(themeModeProvider));
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlay,
+      child: Scaffold(
       backgroundColor: const Color(0xFF101010),
       body: IndexedStack(
         index: _currentIndex,
@@ -90,6 +90,24 @@ class _HomePageState extends ConsumerState<HomePage> {
         currentIndex: _currentIndex,
         onTap: (i) => setState(() => _currentIndex = i),
       ),
+    ),
+    );
+  }
+
+  SystemUiOverlayStyle _resolveOverlay(ThemeMode mode) {
+    final isDark = mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness:
+          isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor:
+          isDark ? const Color(0xFF151515) : const Color(0xFFF5F4ED),
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
     );
   }
 }
