@@ -318,7 +318,6 @@ class _LiveTvModule extends StatelessWidget {
     final bgColor = const Color(0xFF1A1A1A);
     final borderColor = Colors.white.withOpacity(0.06);
     final textColor = Colors.white;
-    final mutedColor = const Color(0xFFB8B8B8);
 
     final primary = channels.isNotEmpty ? channels.first : null;
 
@@ -445,55 +444,6 @@ class _LiveListText extends StatelessWidget {
         Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
         Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFB8B8B8), fontSize: 11)),
-      ],
-    );
-  }
-}
-
-class _ContentSection extends StatelessWidget {
-  const _ContentSection({required this.title, required this.items, required this.badges});
-
-  final String title;
-  final List<Content> items;
-  final List<String> badges;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => context.go('/search'),
-                child: Row(
-                  children: [
-                    Text('更多', style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13)),
-                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.55), size: 18),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 194,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) => _PosterCard(
-              content: items[index],
-              badge: badges[index % badges.length],
-            ),
-          ),
-        ),
       ],
     );
   }

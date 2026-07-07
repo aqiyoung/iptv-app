@@ -16,11 +16,9 @@ import 'package:go_router/go_router.dart';
 // v0.3.11 Beta 分支
 
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
-import '../../core/theme/colors.dart';
 import '../../services/version_checker.dart'
     show
         currentVersionStringProvider,
-        currentVersionCodeProvider,
         versionCheckerProvider,
         VersionCheckState,
         VersionCheckUpToDate,
@@ -476,50 +474,6 @@ class _SettingsCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: children,
-      ),
-    );
-  }
-}
-
-/// 视界品牌 header — 我的页顶部展示 App icon + 名称.
-class _BrandHeader extends StatelessWidget {
-  const _BrandHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.asset(
-              'assets/icons/shijie_logo.png',
-              width: 72,
-              height: 72,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            '视界',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '全新品牌升级 \u2022 直播 + 影视',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.45),
-              fontSize: 12,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
       ),
     );
   }

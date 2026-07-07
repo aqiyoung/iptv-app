@@ -83,7 +83,6 @@ class SmartSourceRouter {
   final http.Client _client;
   final SharedPreferences? _prefs;
   static const String _prefsKey = 'smart_router.scores';
-  static const Duration _cacheMaxAge = Duration(minutes: 30);
   static const Duration _probeTimeout = Duration(seconds: 3);
 
   /// 获取评分 (从缓存或探测)

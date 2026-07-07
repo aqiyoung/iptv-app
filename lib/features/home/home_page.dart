@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../services/version_checker.dart';
 import '../favorites/favorites_service.dart';
 import 'poster_wall_page.dart';
 
@@ -165,8 +164,6 @@ class _MinePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favorites = ref.watch(favoritesProvider);
-
     return ColoredBox(
       color: const Color(0xFF101010),
       child: SafeArea(
@@ -177,7 +174,7 @@ class _MinePage extends ConsumerWidget {
           children: [
             Stack(
               children: [
-                const Center(
+                Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

@@ -14,7 +14,6 @@ final vodApiServiceProvider = Provider<VodApiService>((ref) {
 const _typeIdMovie = 20;      // 电影 (type_id=20 是 API 实际分类, 1 不存在)
 const _typeIdSeries = 30;     // 电视剧 (包含国产剧/欧美剧/日韩剧等)
 const _typeIdVariety = 45;    // 综艺片
-const _typeIdAnime = 39;      // 动漫
 
 /// 推荐内容: 混合分类的最新更新
 final vodRecommendedProvider = FutureProvider<List<Content>>((ref) async {

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/models/channel.dart';
 import '../data/source_dispatcher.dart';
