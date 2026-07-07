@@ -1,5 +1,5 @@
 name: sanyelive
-description: "三页影视 - 视频播放器 - 极简新中式设计 - 家用电视/盒子场景"
+description: "视界 - 直播 + 影视综合平台 - 极简新中式设计 - 家用电视/盒子/手机场景"
 publish_to: "none"
 # 0.2.1: UI 优化 + libmpv native + 频道中文化 + CCTV5 源 + 状态栏修复
 # 0.2.1+10: 包名 com.aqiyoung.iptv_app → com.threelive.iptv
@@ -102,7 +102,7 @@ publish_to: "none"
 #   pubspec 0.3.5+24 → 0.3.5+25, tag v0.3.5.6, versionCode 25 (上一个 24).
 # 0.3.10+20 (6/26): 更新改为跳转 GitHub releases 页下载, 不再 Dio 下载
 #   APK + 调系统安装器. 加 url_launcher, 按钮 "立刻更新" → "去下载".
-version: 0.3.12+86
+version: 0.3.12+87
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

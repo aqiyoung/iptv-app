@@ -199,7 +199,7 @@ class SettingsPage extends ConsumerWidget {
 
   // ─── 关于对话框 ───────────────────────────────────────────────────────────
   // v0.3.7+80: 弹一个 dialog,  描述项目 (基于 Flutter + media_kit 视频播放,
-  // 极简新中式设计,  IPTV 直播).  底部贴 GitHub 地址 + 复制按钮.
+  // 极简新中式设计,  直播 + 影视).  底部贴 GitHub 地址 + 复制按钮.
   void _showAbout(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     showDialog<void>(
@@ -212,7 +212,7 @@ class SettingsPage extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '视界是一款 IPTV 直播 APP, 面向家用电视 / 盒子 / 手机, 极简新中式设计。',
+                '视界是一款直播 + 影视综合平台, 面向家用电视 / 盒子 / 手机, 极简新中式设计。',
                 style: TextStyle(color: scheme.onSurface, height: 1.6),
               ),
               const SizedBox(height: 16),

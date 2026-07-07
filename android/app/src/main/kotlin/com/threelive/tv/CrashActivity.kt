@@ -25,7 +25,7 @@ class CrashActivity : Activity() {
 
         val textView = TextView(this).apply {
             text = buildString {
-                appendLine("=== 三页直播 崩溃报告 ===")
+                appendLine("=== 视界 崩溃报告 ===")
                 appendLine()
                 appendLine("错误: $errorText")
                 appendLine()

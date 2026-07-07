@@ -8,11 +8,11 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: SerifHeadline('三页直播'),
+          body: SerifHeadline('视界'),
         ),
       ),
     );
-    expect(find.text('三页直播'), findsOneWidget);
+    expect(find.text('视界'), findsOneWidget);
   });
 
   testWidgets('SerifHeadline renders subtitle when provided', (tester) async {
