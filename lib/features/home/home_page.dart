@@ -210,30 +210,10 @@ class _MinePage extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 22),
-            Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                    label: '我的收藏',
-                    value: favorites.maybeWhen(data: (ids) => '${ids.length}', orElse: () => '0'),
-                    icon: Icons.favorite_rounded,
-                    onTap: () => context.go('/favorites'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _StatCard(
-                    label: '直播频道',
-                    value: '央视',
-                    icon: Icons.live_tv_rounded,
-                    onTap: () => context.go('/category/live'),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 18),
             _MineTile(icon: Icons.search_rounded, title: '搜索节目', subtitle: '快速查找频道和内容', onTap: () => context.go('/search')),
+            _MineTile(icon: Icons.favorite_border_rounded, title: '我的收藏', subtitle: '查看已收藏的直播频道', onTap: () => context.go('/favorites')),
+            _MineTile(icon: Icons.tv_rounded, title: '电视频道', subtitle: '央视 / 卫视 / 体育 / 娱乐', onTap: () => context.go('/category/live')),
             _MineTile(icon: Icons.settings_rounded, title: '设置', subtitle: '主题、更新、版本信息', onTap: () => context.go('/settings')),
           ],
         ),
@@ -296,40 +276,6 @@ class _ActionHubPage extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value, required this.icon, required this.onTap});
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: const Color(0xFFE53935), size: 24),
-            const SizedBox(height: 12),
-            Text(value, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 3),
-            Text(label, style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 12)),
-          ],
         ),
       ),
     );
