@@ -156,8 +156,61 @@ class _TopIcon extends StatelessWidget {
   }
 }
 
-class _HeroBanner extends StatelessWidget {
+class _HeroBanner extends StatefulWidget {
   const _HeroBanner();
+
+  @override
+  State<_HeroBanner> createState() => _HeroBannerState();
+}
+
+class _HeroBannerState extends State<_HeroBanner> {
+  late final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<_PosterItem> _posters = [
+    _PosterItem(
+      gradientColors: const [Color(0xFF4B1F1D), Color(0xFF151515), Color(0xFF2C1A12)],
+      circleColor: const Color(0xFFE8A449),
+      badge: '独播',
+      badgeColor: const Color(0xFFE53935),
+      title: '庆余年 第二季',
+      subtitle: '余年有幸  与君再相逢',
+      enTitle: 'QING YU NIAN',
+    ),
+    _PosterItem(
+      gradientColors: const [Color(0xFF0D2137), Color(0xFF151515), Color(0xFF1A2A3A)],
+      circleColor: const Color(0xFF4FC3F7),
+      badge: '科幻',
+      badgeColor: const Color(0xFF1565C0),
+      title: '三体',
+      subtitle: '人类文明的至暗时刻',
+      enTitle: 'THE THREE-BODY PROBLEM',
+    ),
+    _PosterItem(
+      gradientColors: const [Color(0xFF2A0D1A), Color(0xFF151515), Color(0xFF2A1515)],
+      circleColor: const Color(0xFFE040FB),
+      badge: '悬疑',
+      badgeColor: const Color(0xFF7B1FA2),
+      title: '漫长的季节',
+      subtitle: '往前看，别回头',
+      enTitle: 'THE LONG SEASON',
+    ),
+    _PosterItem(
+      gradientColors: const [Color(0xFF1A3A1A), Color(0xFF151515), Color(0xFF1A2A1A)],
+      circleColor: const Color(0xFF66BB6A),
+      badge: '动作',
+      badgeColor: const Color(0xFF2E7D32),
+      title: '狂飙',
+      subtitle: '正义与罪恶的较量',
+      enTitle: 'THE KNOCKOUT',
+    ),
+  ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,65 +218,14 @@ class _HeroBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
-        child: Container(
+        child: SizedBox(
           height: 178,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF4B1F1D), Color(0xFF151515), Color(0xFF2C1A12)],
-            ),
-          ),
           child: Stack(
-            fit: StackFit.expand,
             children: [
-              Positioned(
-                right: -28,
-                top: -18,
-                bottom: -12,
-                child: Container(
-                  width: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        const Color(0xFFE8A449).withOpacity(0.45),
-                        const Color(0xFFE53935).withOpacity(0.12),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 20,
-                top: 18,
-                child: _Badge(label: '独播', color: const Color(0xFFE53935)),
-              ),
-              Positioned.fill(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => context.go('/search'),
-                    splashColor: Colors.white.withOpacity(0.06),
-                    highlightColor: Colors.white.withOpacity(0.03),
-                  ),
-                ),
-              ),
-              const Positioned(
-                left: 20,
-                bottom: 30,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('庆余年 第二季', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.w900, height: 1.1)),
-                    SizedBox(height: 8),
-                    Text('余年有幸  与君再相逢', style: TextStyle(color: Color(0xFFD5D5D5), fontSize: 13)),
-                    SizedBox(height: 12),
-                    Text('QING YU NIAN', style: TextStyle(color: Color(0x55FFFFFF), fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 2.5)),
-                  ],
-                ),
+              PageView(
+                controller: _pageController,
+                onPageChanged: (i) => setState(() => _currentPage = i),
+                children: _posters.map((p) => _PosterSlide(item: p)).toList(),
               ),
               Positioned(
                 left: 0,
@@ -231,12 +233,15 @@ class _HeroBanner extends StatelessWidget {
                 bottom: 10,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(4, (i) => Container(
-                        width: i == 0 ? 16 : 6,
+                  children: List.generate(_posters.length, (i) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: _currentPage == i ? 18 : 6,
                         height: 6,
                         margin: const EdgeInsets.symmetric(horizontal: 3),
                         decoration: BoxDecoration(
-                          color: i == 0 ? Colors.white : Colors.white.withOpacity(0.35),
+                          color: _currentPage == i
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.35),
                           borderRadius: BorderRadius.circular(8),
                         ),
                       )),
@@ -245,6 +250,97 @@ class _HeroBanner extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PosterItem {
+  final List<Color> gradientColors;
+  final Color circleColor;
+  final String badge;
+  final Color badgeColor;
+  final String title;
+  final String subtitle;
+  final String enTitle;
+
+  const _PosterItem({
+    required this.gradientColors,
+    required this.circleColor,
+    required this.badge,
+    required this.badgeColor,
+    required this.title,
+    required this.subtitle,
+    required this.enTitle,
+  });
+}
+
+class _PosterSlide extends StatelessWidget {
+  final _PosterItem item;
+  const _PosterSlide({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: item.gradientColors,
+        ),
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            right: -28,
+            top: -18,
+            bottom: -12,
+            child: Container(
+              width: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    item.circleColor.withOpacity(0.45),
+                    item.circleColor.withOpacity(0.12),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 20,
+            top: 18,
+            child: _Badge(label: item.badge, color: item.badgeColor),
+          ),
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => context.go('/search'),
+                splashColor: Colors.white.withOpacity(0.06),
+                highlightColor: Colors.white.withOpacity(0.03),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 20,
+            bottom: 30,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.w900, height: 1.1)),
+                const SizedBox(height: 8),
+                Text(item.subtitle, style: const TextStyle(color: Color(0xFFD5D5D5), fontSize: 13)),
+                const SizedBox(height: 12),
+                Text(item.enTitle, style: const TextStyle(color: Color(0x55FFFFFF), fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 2.5)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
