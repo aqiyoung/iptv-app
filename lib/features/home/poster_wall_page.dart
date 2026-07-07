@@ -85,14 +85,15 @@ class _HomeTopBar extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 10 + MediaQuery.of(context).padding.top, 16, 8),
       child: Row(
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE53935),
-              borderRadius: BorderRadius.circular(9),
+          // GPT 设计的品牌 icon
+          ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: Image.asset(
+              'assets/icons/shijie_logo.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.cover,
             ),
-            child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 8),
           const Text(

@@ -87,6 +87,9 @@ class SettingsPage extends ConsumerWidget {
         // 参见 iOS Settings.app + Material 3 cards 设计语言.
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
+          // ─── 品牌 header: 视界 logo ──────────────────────────────────
+          const _BrandHeader(),
+          const SizedBox(height: 20),
           // ─── 卡片 1: 外观 ──────────────────────────────────────────────
           const _SettingsGroupLabel(label: '外观'),
           const SizedBox(height: 6),
@@ -475,6 +478,50 @@ class _SettingsCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: children,
+      ),
+    );
+  }
+}
+
+/// 视界品牌 header — 我的页顶部展示 App icon + 名称.
+class _BrandHeader extends StatelessWidget {
+  const _BrandHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(
+              'assets/icons/shijie_logo.png',
+              width: 72,
+              height: 72,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            '视界',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '全新品牌升级 \u2022 直播 + 影视',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.45),
+              fontSize: 12,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
       ),
     );
   }

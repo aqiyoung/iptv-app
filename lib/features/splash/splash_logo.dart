@@ -1,14 +1,10 @@
-// v0.3.12+1 (2026-07-07): 视界品牌升级 — 简化 splash, 去掉 TV 直播元素.
+// v0.3.12+66 (2026-07-07): 视界品牌升级 v2 — 改用 GPT 设计 icon 做 splash.
 //
 // 设计变更:
-//   - 旧: 红底 + TV body + 天线 + 播放三角 (三页直播风格)
-//   - 新: 红底 + 白色播放三角 (视界通用品牌)
-//   - 动画简化: 2s total (0.5s scale-in + 1s hold + 0.5s fade-out)
-//   - 去掉 CustomPaint / 天线 / TV body, 改用 primitives + Icon
-//
-// 品牌一致性:
-//   - Launcher icon: 同款红底 + 播放三角 (各 mipmap 密度已更新)
-//   - App name: "视界" (strings.xml 已更新)
+//   - 旧 v1: 红底 + Icons.play_arrow_rounded (Flutter primitive)
+//   - 新 v2: GPT 设计原图 (红→深紫渐变 + 白三角 + 3D 光泽)
+//   - 动画: 2s total (0.5s scale-in 0.5→1.0 overshoot + 1s hold + 0.5s fade-out)
+//   - Asset: assets/icons/shijie_logo.png (GPT 原图缩放)
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -63,27 +59,20 @@ class _SplashScreenState extends State<SplashScreen>
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
-                final t = _controller.value; // 0.0 → 1.0 over 2s.
-                
-                // Entrance: 0-0.25 (0.5s) scale 0.6 → 1.0
-                // Hold: 0.25-0.75 (1.0s)
-                // Fade out: 0.75-1.0 (0.5s)
+                final t = _controller.value;
                 double scale;
                 if (t < 0.25) {
                   final p = t / 0.25;
-                  // ease-out-back approximation
-                  scale = 0.6 + 0.4 * (1.0 + 0.2 * (1.0 - p) * (1.0 - p));
+                  scale = 0.5 + 0.5 * (1.0 + 0.2 * (1.0 - p) * (1.0 - p));
                 } else {
                   scale = 1.0;
                 }
-                
                 double opacity;
                 if (t < 0.75) {
                   opacity = 1.0;
                 } else {
                   opacity = 1.0 - (t - 0.75) / 0.25;
                 }
-                
                 return Opacity(
                   opacity: opacity.clamp(0.0, 1.0),
                   child: Transform.scale(
@@ -107,23 +96,25 @@ class _SplashLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 160,
-        height: 160,
+        width: 180,
+        height: 180,
         decoration: BoxDecoration(
-          color: const Color(0xFFE53935),
-          borderRadius: BorderRadius.circular(36),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE53935).withOpacity(0.3),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+              color: const Color(0xFFE53935).withOpacity(0.35),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: const Icon(
-          Icons.play_arrow_rounded,
-          color: Colors.white,
-          size: 80,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(40),
+          child: Image.asset(
+            'assets/icons/shijie_logo.png',
+            width: 180,
+            height: 180,
+            fit: BoxFit.cover,
+          ),
         ),
       ),
     );
