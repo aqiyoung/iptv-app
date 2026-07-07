@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/category/category_page.dart';
 import '../../features/favorites/favorites_page.dart';
 import '../../features/home/home_page.dart';
+import '../../features/home/vod_category_browser_page.dart';
 import '../../features/player/player_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/settings/settings_page.dart';
@@ -51,6 +52,14 @@ GoRouter buildRouter({NavigatorObserver? playerObserver}) {
               final catId = state.pathParameters['catId']!;
               final title = state.uri.queryParameters['title'];
               return CategoryPage(categoryId: catId, title: title);
+            },
+          ),
+          GoRoute(
+            path: 'vod-category',
+            name: 'vod-category',
+            builder: (context, state) {
+              final tabParam = state.uri.queryParameters['tab'] ?? '0';
+              return VodCategoryBrowserPage(initialTab: int.tryParse(tabParam) ?? 0);
             },
           ),
           GoRoute(
