@@ -647,7 +647,7 @@ class _VodSection extends ConsumerWidget {
   const _VodSection({required this.title, required this.provider, required this.badges});
 
   final String title;
-  final AutoDisposeFutureProvider<List<Content>> provider;
+  final FutureProvider<List<Content>> provider;
   final List<String> badges;
 
   @override
