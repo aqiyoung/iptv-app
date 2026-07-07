@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../favorites/favorites_service.dart';
 import 'poster_wall_page.dart';
 
 /// 视界主页 — 外层统一管理底部导航
