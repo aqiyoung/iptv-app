@@ -9,7 +9,7 @@ import '../../services/version_checker.dart';
 import '../favorites/favorites_service.dart';
 import 'poster_wall_page.dart';
 
-/// 三页影视主页 — 外层统一管理底部导航
+/// 视界主页 — 外层统一管理底部导航
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -187,14 +187,22 @@ class _MinePage extends ConsumerWidget {
                     color: const Color(0xFFE53935),
                     borderRadius: BorderRadius.circular(22),
                   ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 34),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/icons/shijie_logo.png',
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('三页影视', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                      const Text('视界', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
                       const SizedBox(height: 5),
                       Text('极简 IPTV · Beta $version', style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)),
                     ],

@@ -290,7 +290,7 @@ class IptvApp extends ConsumerWidget {
       }
     });
     return MaterialApp.router(
-      title: '三页影视',
+      title: '视界',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
       darkTheme: IptvTheme.dark(),

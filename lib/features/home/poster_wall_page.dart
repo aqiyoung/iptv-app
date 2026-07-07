@@ -7,7 +7,7 @@ import '../../../data/models/channel.dart';
 import '../../../data/models/content.dart';
 import '../../../data/repositories/channel_repository.dart';
 
-/// 三页影视 海报墙首页
+/// 视界 海报墙首页
 class PosterWallPage extends ConsumerWidget {
   const PosterWallPage({super.key});
 
