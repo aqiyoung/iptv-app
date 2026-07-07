@@ -13,12 +13,26 @@ class VodApiService {
   final http.Client _client;
   static const _base = 'https://bfzyapi.com/api.php/provide/vod';
 
+  /// 安全解析 JSON，失败时返回 null
+  Map<String, dynamic>? _safeJsonDecode(String body) {
+    try {
+      return json.decode(body) as Map<String, dynamic>?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// 获取分类列表
   Future<List<Map<String, dynamic>>> getCategories() async {
     final uri = Uri.parse('$_base?ac=list&t=1');
-    final res = await _client.get(uri).timeout(const Duration(seconds: 15));
-    final data = json.decode(res.body) as Map<String, dynamic>;
-    return (data['class'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+    try {
+      final res = await _client.get(uri).timeout(const Duration(seconds: 15));
+      final data = _safeJsonDecode(res.body);
+      if (data == null) return [];
+      return (data['class'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
+    } catch (_) {
+      return [];
+    }
   }
 
   /// 获取指定分类的列表 (无海报/播放URL)
@@ -35,7 +49,8 @@ class VodApiService {
     if (typeId != null) params['t'] = '$typeId';
     final uri = Uri.parse('$_base').replace(queryParameters: params);
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
-    final data = json.decode(res.body) as Map<String, dynamic>;
+    final data = _safeJsonDecode(res.body);
+    if (data == null) return [];
     return (data['list'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
   }
 
@@ -44,7 +59,8 @@ class VodApiService {
     if (ids.isEmpty) return [];
     final uri = Uri.parse('$_base?ac=detail&ids=${ids.join(",")}');
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
-    final data = json.decode(res.body) as Map<String, dynamic>;
+    final data = _safeJsonDecode(res.body);
+    if (data == null) return [];
     return (data['list'] as List<dynamic>?)?.cast<Map<String, dynamic>>() ?? [];
   }
 

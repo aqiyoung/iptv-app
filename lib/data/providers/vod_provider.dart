@@ -11,7 +11,7 @@ final vodApiServiceProvider = Provider<VodApiService>((ref) {
 });
 
 /// 分类 ID 常量
-const _typeIdMovie = 1;       // 电影 (包含所有子分类如动作/喜剧/爱情等)
+const _typeIdMovie = 20;      // 电影 (type_id=20 是 API 实际分类, 1 不存在)
 const _typeIdSeries = 30;     // 电视剧 (包含国产剧/欧美剧/日韩剧等)
 const _typeIdVariety = 45;    // 综艺片
 const _typeIdAnime = 39;      // 动漫
