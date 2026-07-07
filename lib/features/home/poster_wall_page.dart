@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../data/mock/mock_contents.dart';
+import '../../../data/providers/vod_provider.dart';
 import '../../../data/models/channel.dart';
 import '../../../data/models/content.dart';
 import '../../../data/repositories/channel_repository.dart';
@@ -44,17 +44,23 @@ class PosterWallPage extends ConsumerWidget {
                         error: snapshot.error,
                       ),
                       const SizedBox(height: 20),
-                      _ContentSection(
+                      _VodSection(
                         title: '今日推荐',
-                        items: kMockRecommended,
+                        provider: vodRecommendedProvider,
                         badges: const ['HOT', 'VIP', '独播'],
                       ),
                       const SizedBox(height: 18),
                       const _FilterPills(),
                       const SizedBox(height: 14),
-                      _ContentSection(
+                      _VodSection(
+                        title: '热播电影',
+                        provider: vodMoviesProvider,
+                        badges: const ['热播', '独播', 'VIP'],
+                      ),
+                      const SizedBox(height: 18),
+                      _VodSection(
                         title: '热播剧集',
-                        items: kMockSeries,
+                        provider: vodSeriesProvider,
                         badges: const ['独播', 'VIP', '更新'],
                       ),
                       const SizedBox(height: 20),
@@ -634,4 +640,66 @@ class _Shortcut {
   final IconData icon;
   final Color color;
   final String? route;
+}
+
+/// v0.3.11.64: VOD 动态内容区 — 用 Riverpod provider 替换 mock 数据
+class _VodSection extends ConsumerWidget {
+  const _VodSection({required this.title, required this.provider, required this.badges});
+
+  final String title;
+  final AutoDisposeFutureProvider<List<Content>> provider;
+  final List<String> badges;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(provider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => context.go('/search'),
+                child: Row(
+                  children: [
+                    Text('更多', style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13)),
+                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.55), size: 18),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 194,
+          child: async.when(
+            loading: () => const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('加载失败: ${e.toString().split("\n").first}', style: const TextStyle(color: Colors.white54, fontSize: 13)),
+              ),
+            ),
+            data: (items) {
+              if (items.isEmpty) {
+                return const Center(child: Text('暂无内容', style: TextStyle(color: Colors.white54)));
+              }
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) => _PosterCard(content: items[index], badge: badges[index % badges.length]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }
