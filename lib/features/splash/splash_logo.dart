@@ -101,7 +101,7 @@ class _SplashLogo extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE53935).withOpacity(0.35),
+              color: const Color(0xFFE53935).withValues(alpha: 0.35),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),

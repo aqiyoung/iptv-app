@@ -103,8 +103,8 @@ class _StreamingBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF151515).withOpacity(0.94),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.06))),
+        color: const Color(0xFF151515).withValues(alpha: 0.94),
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
       ),
       child: ClipRRect(
         child: BackdropFilter(
@@ -186,20 +186,20 @@ class _MinePage extends ConsumerWidget {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      SizedBox(height: 12),
-                      Text(
+                      const SizedBox(height: 12),
+                      const Text(
                         '视界',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.6,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
+                      const SizedBox(height: 4),
+                      const Text(
                         '全新品牌升级 • 直播 + 影视',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           letterSpacing: 0.4,
@@ -238,7 +238,7 @@ class _MinePage extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white.withOpacity(0.06)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +252,7 @@ class _MinePage extends ConsumerWidget {
                           child: Center(
                             child: Icon(
                               isLive ? Icons.live_tv_rounded : Icons.movie_rounded,
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               size: 28,
                             ),
                           ),
@@ -264,7 +264,7 @@ class _MinePage extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE53935).withOpacity(0.2),
+                                  color: const Color(0xFFE53935).withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: Text(
@@ -330,7 +330,7 @@ class _ActionHubPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1A1A),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withOpacity(0.06)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -371,14 +371,14 @@ class _MineTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        splashColor: Colors.white.withOpacity(0.05),
-        highlightColor: Colors.white.withOpacity(0.03),
+        splashColor: Colors.white.withValues(alpha: 0.05),
+        highlightColor: Colors.white.withValues(alpha: 0.03),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
             color: const Color(0xFF1A1A1A),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.06)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
           ),
           child: Row(
             children: [
@@ -442,7 +442,7 @@ class _SecondaryButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF242424),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
         ),
         child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
       ),

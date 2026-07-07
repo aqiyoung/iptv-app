@@ -45,7 +45,7 @@ class VodApiService {
       'pg': '$page',
       'pagesize': '$pageSize',
     };
-    if (typeId != null) params['t'] = '$typeId';
+    if (typeId != null) params['t'] = typeId;
     final uri = Uri.parse('$_base').replace(queryParameters: params);
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
     final data = _safeJsonDecode(res.body);
@@ -56,7 +56,7 @@ class VodApiService {
   /// 批量获取详情 (含海报、播放URL)
   Future<List<Map<String, dynamic>>> getDetail(List<int> ids) async {
     if (ids.isEmpty) return [];
-    final uri = Uri.parse('$_base?ac=detail&ids=${ids.join(",")}');
+    final uri = Uri.parse('$_base?ac=detail&ids=${ids.join(',')}');
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
     final data = _safeJsonDecode(res.body);
     if (data == null) return [];

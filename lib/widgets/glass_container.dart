@@ -70,7 +70,7 @@ class _GlassContainerState extends State<GlassContainer>
           decoration: BoxDecoration(
             // 半透明白底 — 让 blur 效果可见
             color:
-                Colors.white.withOpacity(0.06), // ignore: deprecated_member_use
+                Colors.white.withValues(alpha: 0.06), // ignore: deprecated_member_use
             borderRadius: BorderRadius.circular(widget.borderRadius),
             // v0.3.7+69 (6/19): 边框用 theme.outlineVariant 0.4 alpha,  浅色
             // 主题下能看见 (之前 Colors.white 0.12 在浅米色背景上几乎透明,

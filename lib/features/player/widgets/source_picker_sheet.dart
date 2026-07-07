@@ -84,7 +84,7 @@ class _SourcePickerContent extends StatelessWidget {
                             backgroundColor: Theme.of(context)
                                 .colorScheme
                                 .primary
-                                .withOpacity(0.12),
+                                .withValues(alpha: 0.12),
                             foregroundColor:
                                 Theme.of(context).colorScheme.primary,
                             child: Text('${i + 1}'),

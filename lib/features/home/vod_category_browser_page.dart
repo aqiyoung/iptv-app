@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../data/providers/vod_provider.dart';
-import '../../../data/models/content.dart';
 
 /// 分类 ID 与子分类映射
 const _categoryMap = {
@@ -107,7 +106,7 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
                       decoration: BoxDecoration(
                         color: active ? const Color(0x22E53935) : const Color(0xFF242424),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: active ? const Color(0xFFE53935) : Colors.white.withOpacity(0.04)),
+                        border: Border.all(color: active ? const Color(0xFFE53935) : Colors.white.withValues(alpha: 0.04)),
                       ),
                       child: Text(
                         subList[i],

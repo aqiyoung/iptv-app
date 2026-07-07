@@ -56,7 +56,9 @@ class PlaybackHistoryService {
       0,
       PlaybackHistoryEntry(url: url, title: title, posterUrl: posterUrl, playedAt: DateTime.now()),
     );
-    while (list.length > _maxItems) list.removeLast();
+    while (list.length > _maxItems) {
+      list.removeLast();
+    }
     await prefs.setString(_key, jsonEncode(list.map((e) => e.toJson()).toList()));
   }
 }

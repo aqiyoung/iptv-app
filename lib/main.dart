@@ -247,7 +247,7 @@ Future<void> _prewarmRemoteSources() async {
 void _applySystemUiOverlay(SharedPreferences prefs) {
   // v0.3.11.54: app 已锁死深色，状态栏也固定深色
   SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
+    const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       statusBarBrightness: Brightness.dark,

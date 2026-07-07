@@ -113,7 +113,7 @@ class _HomeTopBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFF252525),
                   borderRadius: BorderRadius.circular(19),
-                  border: Border.all(color: Colors.white.withOpacity(0.06)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                 ),
                 child: const Row(
                   children: [
@@ -167,7 +167,7 @@ class _HeroBannerState extends State<_HeroBanner> {
   late final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<_PosterItem> _posters = [
+  final List<_PosterItem> _posters = const [
     _PosterItem(
       gradientColors: const [Color(0xFF4B1F1D), Color(0xFF151515), Color(0xFF2C1A12)],
       circleColor: const Color(0xFFE8A449),
@@ -241,7 +241,7 @@ class _HeroBannerState extends State<_HeroBanner> {
                         decoration: BoxDecoration(
                           color: _currentPage == i
                               ? Colors.white
-                              : Colors.white.withOpacity(0.35),
+                              : Colors.white.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(8),
                         ),
                       )),
@@ -302,8 +302,8 @@ class _PosterSlide extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    item.circleColor.withOpacity(0.45),
-                    item.circleColor.withOpacity(0.12),
+                    item.circleColor.withValues(alpha: 0.45),
+                    item.circleColor.withValues(alpha: 0.12),
                     Colors.transparent,
                   ],
                 ),
@@ -320,8 +320,8 @@ class _PosterSlide extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => context.go('/search'),
-                splashColor: Colors.white.withOpacity(0.06),
-                highlightColor: Colors.white.withOpacity(0.03),
+                splashColor: Colors.white.withValues(alpha: 0.06),
+                highlightColor: Colors.white.withValues(alpha: 0.03),
               ),
             ),
           ),
@@ -351,7 +351,7 @@ class _CategoryShortcutBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shortcuts = [
+    const shortcuts = [
       _Shortcut('电视直播', Icons.live_tv_rounded, const Color(0xFFE53935), '/category/live'),
       _Shortcut('电影', Icons.movie_creation_rounded, const Color(0xFF8E44AD), '/vod-category?cat=movie'),
       _Shortcut('电视剧', Icons.tv_rounded, const Color(0xFF3D7CFF), '/vod-category?cat=series'),
@@ -382,7 +382,7 @@ class _CategoryShortcutBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF1F1F1F),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withOpacity(0.06)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                     ),
                     child: Icon(item.icon, color: item.color, size: 27),
                   ),
@@ -409,7 +409,7 @@ class _LiveTvModule extends StatelessWidget {
   Widget build(BuildContext context) {
     // 首页整体是深色设计，直播模块也保持深色
     final bgColor = const Color(0xFF1A1A1A);
-    final borderColor = Colors.white.withOpacity(0.06);
+    final borderColor = Colors.white.withValues(alpha: 0.06);
     final textColor = Colors.white;
 
     final primary = channels.isNotEmpty ? channels.first : null;
@@ -475,7 +475,7 @@ class _LiveTvModule extends StatelessWidget {
                                           value: 0.62,
                                           minHeight: 3,
                                           color: const Color(0xFFE53935),
-                                          backgroundColor: Colors.white.withOpacity(0.20),
+                                          backgroundColor: Colors.white.withValues(alpha: 0.20),
                                         ),
                                       ),
                                     ),
@@ -580,7 +580,7 @@ class _PosterCard extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [const Color(0xFF343434), badgeColor.withOpacity(0.32), const Color(0xFF171717)],
+                  colors: [const Color(0xFF343434), badgeColor.withValues(alpha: 0.32), const Color(0xFF171717)],
                 ),
               ),
               child: Stack(
@@ -677,8 +677,8 @@ class _VodSection extends ConsumerWidget {
                 onTap: () => context.go('/search'),
                 child: Row(
                   children: [
-                    Text('更多', style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13)),
-                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.55), size: 18),
+                    Text('更多', style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13)),
+                    Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.55), size: 18),
                   ],
                 ),
               ),

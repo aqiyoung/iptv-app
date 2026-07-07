@@ -172,7 +172,7 @@ class SettingsPage extends ConsumerWidget {
                   return ListTile(
                     leading: const Icon(Icons.tag_outlined),
                     title: const Text('版本号'),
-                    subtitle: Text('$displayVersion'),
+                    subtitle: Text(displayVersion),
                   );
                 },
               ),
@@ -188,7 +188,7 @@ class SettingsPage extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: scheme.onSurfaceVariant.withOpacity(0.6),
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -243,7 +243,7 @@ class SettingsPage extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest.withOpacity(0.4),
+                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
