@@ -212,39 +212,6 @@ class _MinePage extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: () => context.go('/settings'),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1A1A1A),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
-                          ),
-                          child: const Icon(Icons.system_update_alt_rounded, color: Colors.white, size: 20),
-                        ),
-                        Positioned(
-                          top: 6,
-                          right: 6,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFE53935),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 16),
