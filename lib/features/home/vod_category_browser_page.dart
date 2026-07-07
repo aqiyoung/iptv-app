@@ -171,9 +171,9 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF242424),
                                   borderRadius: BorderRadius.circular(8),
-                                  image: item.posterUrl.isNotEmpty
+                                  image: item.hasPoster
                                       ? DecorationImage(
-                                          image: NetworkImage(item.posterUrl),
+                                          image: NetworkImage(item.posterUrl!),
                                           fit: BoxFit.cover,
                                           onError: (_, __) {},
                                         )
