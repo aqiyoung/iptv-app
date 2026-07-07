@@ -133,7 +133,7 @@ class _HomeTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _TopIcon(icon: Icons.history_rounded, onTap: () => context.go('/favorites')),
+          _TopIcon(icon: Icons.history_rounded, onTap: () => context.go('/playback-history')),
         ],
       ),
     );

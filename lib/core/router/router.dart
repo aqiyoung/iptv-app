@@ -6,6 +6,7 @@ import '../../features/category/category_page.dart';
 import '../../features/favorites/favorites_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/home/vod_category_browser_page.dart';
+import '../../features/home/playback_history_page.dart';
 import '../../features/player/player_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/settings/settings_page.dart';
@@ -61,6 +62,11 @@ GoRouter buildRouter({NavigatorObserver? playerObserver}) {
               final cat = state.uri.queryParameters['cat'] ?? 'movie';
               return VodCategoryBrowserPage(category: cat);
             },
+          ),
+          GoRoute(
+            path: 'playback-history',
+            name: 'playback-history',
+            builder: (context, state) => const PlaybackHistoryPage(),
           ),
           GoRoute(
             path: 'player/:channelId',

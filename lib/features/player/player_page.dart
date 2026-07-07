@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../services/playback_history_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -309,6 +310,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
       final title = widget.vodTitle ?? '影视点播';
       unawaited(ref.read(playerServiceProvider).playSingleSource(url,
           channel: Channel.fromVod(url, title: title)));
+      unawaited(PlaybackHistoryService.record(url: url, title: title));
       return;
     }
     final channels = await ref.read(channelsProvider.future);
