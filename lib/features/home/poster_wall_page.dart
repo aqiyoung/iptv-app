@@ -32,13 +32,13 @@ class PosterWallPage extends ConsumerWidget {
                         provider: vodRecommendedProvider,
                         badges: const ['HOT', 'VIP', '独播'],
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
                       _VodSection(
                         title: '热播电影',
                         provider: vodMoviesProvider,
                         badges: const ['热播', '独播', 'VIP'],
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
                       _VodSection(
                         title: '热播剧集',
                         provider: vodSeriesProvider,
@@ -393,60 +393,35 @@ class _VodCategoryTabBarState extends ConsumerState<_VodCategoryTabBar> {
 class _VodSection extends ConsumerWidget {
   const _VodSection({required this.title, required this.provider, required this.badges});
 
-  final String title;
   final FutureProvider<List<Content>> provider;
   final List<String> badges;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(provider);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
-              const Spacer(),
-              GestureDetector(
-                onTap: () => context.go('/search'),
-                child: Row(
-                  children: [
-                    Text('更多', style: TextStyle(color: Colors.white.withOpacity(0.55), fontSize: 13)),
-                    Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.55), size: 18),
-                  ],
-                ),
-              ),
-            ],
+    return SizedBox(
+      height: 194,
+      child: async.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('加载失败: ${e.toString().split("\n").first}', style: const TextStyle(color: Colors.white54, fontSize: 13)),
           ),
         ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 194,
-          child: async.when(
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
-            error: (e, _) => Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('加载失败: ${e.toString().split("\n").first}', style: const TextStyle(color: Colors.white54, fontSize: 13)),
-              ),
-            ),
-            data: (items) {
-              if (items.isEmpty) {
-                return const Center(child: Text('暂无内容', style: TextStyle(color: Colors.white54)));
-              }
-              return ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) => _PosterCard(content: items[index], badge: badges[index % badges.length]),
-              );
-            },
-          ),
-        ),
-      ],
+        data: (items) {
+          if (items.isEmpty) {
+            return const Center(child: Text('暂无内容', style: TextStyle(color: Colors.white54)));
+          }
+          return ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) => _PosterCard(content: items[index], badge: badges[index % badges.length]),
+          );
+        },
+      ),
     );
   }
 }
