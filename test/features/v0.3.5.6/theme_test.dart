@@ -35,9 +35,7 @@ import 'package:sanyelive/data/repositories/channel_repository.dart';
 import 'package:sanyelive/features/category/category_page.dart';
 import 'package:sanyelive/features/favorites/favorites_page.dart';
 import 'package:sanyelive/features/favorites/favorites_service.dart';
-import 'package:sanyelive/features/home/home_page.dart';
 import 'package:sanyelive/features/search/search_page.dart';
-import 'package:sanyelive/services/startup_service.dart';
 
 class _FakeRepo implements ChannelRepository {
   const _FakeRepo(this._channels);
@@ -67,25 +65,6 @@ const _channels = <Channel>[
   ),
 ];
 
-GoRouter _homeRouter() => GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(path: '/', builder: (_, __) => const HomePage()),
-        GoRoute(
-          path: '/search',
-          builder: (_, __) => const Scaffold(body: Text('SEARCH')),
-        ),
-        GoRoute(
-          path: '/favorites',
-          builder: (_, __) => const Scaffold(body: Text('FAVORITES')),
-        ),
-        GoRoute(
-          path: '/settings',
-          builder: (_, __) => const Scaffold(body: Text('SETTINGS')),
-        ),
-      ],
-    );
-
 Future<void> _pump(
   WidgetTester tester, {
   required ThemeData theme,
@@ -104,10 +83,6 @@ Future<void> _pump(
       FavoritesService(store: InMemoryFavoritesStore()),
     ),
   ];
-  // homePage 额外需要 startupService
-  if (child is HomePage) {
-    overrides.add(startupServiceProvider.overrideWithValue(StartupService()));
-  }
 
   final app = useRouter && router != null
       ? MaterialApp.router(theme: theme, routerConfig: router)
@@ -283,20 +258,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
     expect(find.text('CCTV-1 综合'), findsOneWidget);
-  });
-
-  testWidgets('v0.3.5.6: home_page 暗色主题 — smoke test 主页渲染 OK', (tester) async {
-    await _pump(
-      tester,
-      theme: IptvTheme.dark(),
-      child: const HomePage(),
-      router: _homeRouter(),
-      useRouter: true,
-    );
-    // 主页 3 大分类 (央视/卫视/地方)
-    expect(find.text('央视'), findsOneWidget);
-    expect(find.text('卫视'), findsOneWidget);
-    expect(find.text('地方'), findsOneWidget);
   });
 
   // ────────── 13. 反向验证: 浅色主题下 4 widget 文件应该 0 IptvColors.* 残留 ──────────

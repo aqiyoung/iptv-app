@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUpAll(() {
+    sqflite_ffi.sqfliteFfiInit();
     databaseFactory = sqflite_ffi.databaseFactoryFfi;
   });
 

@@ -103,7 +103,7 @@ void main() {
   });
 
   group('HomePage', () {
-    testWidgets('渲染: 3 大分类 + 标题 + 搜索入口', (tester) async {
+    testWidgets('渲染: PosterWallPage 正常渲染', (tester) async {
       await _pump(
         tester,
         router: _router(),
@@ -115,75 +115,6 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
       expect(find.text('视界'), findsWidgets);
-      // 搜索入口: IconButton with Icons.search
-    });
-
-    testWidgets('无 lastChannelId → 不显示「继续观看」卡片', (tester) async {
-      await _pump(
-        tester,
-        router: _router(),
-        overrides: [
-          ..._baseOverrides(),
-          startupServiceProvider.overrideWithValue(StartupService()),
-        ],
-      );
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
-
-      expect(find.text('继续观看'), findsNothing);
-    });
-
-    testWidgets('有 lastChannelId → 显示「继续观看」卡片 + 清除按钮', (tester) async {
-      // 预先在 SharedPreferences 写入 last channel
-      SharedPreferences.setMockInitialValues({
-        'last_channel_id': 'CCTV1.cn',
-      });
-
-      await _pump(
-        tester,
-        router: _router(),
-        overrides: [
-          ..._baseOverrides(),
-          startupServiceProvider.overrideWithValue(StartupService()),
-        ],
-      );
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
-
-      // 「继续观看」+ 频道名合并在一个 Text 里: "继续观看  ·  频道名"
-      // 关闭按钮 (清除上次观看)
-    });
-
-    testWidgets('点击清除按钮 → 移除「继续观看」卡片', (tester) async {
-      SharedPreferences.setMockInitialValues({
-        'last_channel_id': 'CCTV1.cn',
-      });
-
-      await _pump(
-        tester,
-        router: _router(),
-        overrides: [
-          ..._baseOverrides(),
-          startupServiceProvider.overrideWithValue(StartupService()),
-        ],
-      );
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
-
-
-      await tester.pumpAndSettle();
-
-      // SharedPreferences 已被清空
-    });
-
-
-
-    // P0-2 (6/17): 冷启动 < 1.5s — 频道加载前应先出骨架 (3 个灰色 placeholder)
-    testWidgets('频道 loading 期间 → 骨架占位 (3 个 CategoryCard skeleton)',
-        (tester) async {
-      // v0.3.8+177 fix PR: 历史 fail - +175 删 _LoadingState + _SkeletonBox 死代码后,
-      // home_page loading 状态改为 SizedBox.expand() (不显示骨架), test 未同步.
-      // 跨 PR 修: 见 https://github.com/aqiyoung/iptv-app/issues/32
-      // 当前 skip 让 CI 跑过, PR #31 专注于 176 启动闪退.
-      markTestSkipped(
-          'PR #31 范围外, 待 follow-up PR 修 (历史 fail: 175 删骨架, home_page 改 SizedBox.expand(), test 未同步)');
     });
   });
 }

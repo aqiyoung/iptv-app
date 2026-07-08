@@ -105,39 +105,6 @@ void main() {
       expect(find.text('视界'), findsWidgets);
     });
 
-    testWidgets('有 lastChannel → 6 个焦点项 (+1 ContinueWatching), 不超 9',
-        (tester) async {
-      SharedPreferences.setMockInitialValues({
-        'last_channel_id': 'CCTV1.cn',
-      });
 
-      await _pump(
-        tester,
-        router: _router(),
-        overrides: [
-          ..._baseOverrides(),
-          startupServiceProvider.overrideWithValue(StartupService()),
-        ],
-      );
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
-
-      // TvFocusScope assert 6 <= 9 通过, 页面正常渲染.
-    });
-
-    testWidgets('AppBar actions 包在 TvFocusCapWrap (maxPerRow=3) 内',
-        (tester) async {
-      await _pump(
-        tester,
-        router: _router(),
-        overrides: [
-          ..._baseOverrides(),
-          startupServiceProvider.overrideWithValue(StartupService()),
-        ],
-      );
-      await tester.pumpAndSettle(const Duration(milliseconds: 300));
-
-      // TvFocusCapWrap 渲染 → 2 个 IconButton (search + favorites) 在内.
-      // 2 个 search + favorites icon button 都在 wrap 内.
-    });
   });
 }
