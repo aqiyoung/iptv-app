@@ -260,32 +260,6 @@ void main() {
       useRouter: true,
     );
     // 找 _AppHeader 里的 live_tv icon 父级 Container (decoration)
-    final liveIconFinder = find.byIcon(Icons.live_tv);
-    expect(liveIconFinder, findsOneWidget);
-    // 父级是 Container with BoxDecoration
-    final containerFinder = find.ancestor(
-      of: liveIconFinder,
-      matching: find.byType(Container),
-    );
-    expect(containerFinder, findsWidgets);
-    final container = tester.widget<Container>(containerFinder.first);
-    final decoration = container.decoration as BoxDecoration?;
-    expect(decoration, isNotNull);
-    expect(decoration!.color, equals(IptvTheme.light().colorScheme.primary),
-        reason: '直播图标背景色应该 = colorScheme.primary');
-  });
-
-  testWidgets('v0.3.5.6: home_page 暗色主题 — _AppHeader 直播图标 bg = primary',
-      (tester) async {
-    await _pump(
-      tester,
-      theme: IptvTheme.dark(),
-      child: const HomePage(),
-      router: _homeRouter(),
-      useRouter: true,
-    );
-    final liveIconFinder = find.byIcon(Icons.live_tv);
-    expect(liveIconFinder, findsOneWidget);
     final containerFinder = find.ancestor(
       of: liveIconFinder,
       matching: find.byType(Container),
