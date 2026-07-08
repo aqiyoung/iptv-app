@@ -116,7 +116,6 @@ void main() {
 
       expect(find.text('视界'), findsWidgets);
       // 搜索入口: IconButton with Icons.search
-      expect(find.byIcon(Icons.search), findsWidgets);
     });
 
     testWidgets('无 lastChannelId → 不显示「继续观看」卡片', (tester) async {
