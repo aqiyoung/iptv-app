@@ -356,6 +356,7 @@ Future<void> _pumpPlayerPage(
             .overrideWithValue(_FakeVideoController()),
         ps.mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
         startupServiceProvider.overrideWithValue(StartupService()),
+        sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
         favoritesServiceProvider.overrideWithValue(
           FavoritesService(store: InMemoryFavoritesStore()),
         ),
