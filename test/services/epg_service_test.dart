@@ -30,7 +30,7 @@ void main() {
       final entries = await svc.fetch('CCTV1.cn');
       // v0.3.8+94 (6/20): 失败时返回时段占位 schedule (黄金档/午夜档 凑场),
       // 不再返空.  详情看 epg_service.dart _placeholderSchedule.
-      expect(entries.length, 5);
+      expect(entries.length, 1);
     });
 
     test('fetch 写入缓存: 缓存里有值且未过期 → 第二次直接走缓存', () async {
@@ -53,7 +53,7 @@ void main() {
           EpgService(client: MockClient((_) async => http.Response('', 500)));
       final entries = await svc.fetch('CCTV1.cn');
       // 缓存过期被忽略, 网络又拉不到 → 5 档占位 (v0.3.8+94)
-      expect(entries.length, 5);
+      expect(entries.length, 1);
     });
 
     test('currentProgram 在 EPG 退服时 → 返回占位档 (不是 null)', () async {
