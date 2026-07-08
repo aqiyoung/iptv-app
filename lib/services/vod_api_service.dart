@@ -45,7 +45,7 @@ class VodApiService {
       'pg': '$page',
       'pagesize': '$pageSize',
     };
-    if (typeId != null) params['t'] = typeId;
+    if (typeId != null) params['t'] = '$typeId';
     final uri = Uri.parse('$_base').replace(queryParameters: params);
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
     final data = _safeJsonDecode(res.body);

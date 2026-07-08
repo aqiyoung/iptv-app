@@ -43,7 +43,7 @@ class Content {
 
   String get displayRating {
     if (rating == null) return '';
-    return rating! >= 9.0 ? rating : rating;
+    return rating! >= 9.0 ? '$rating' : '$rating';
   }
 
   factory Content.fromJson(Map<String, dynamic> j) {
