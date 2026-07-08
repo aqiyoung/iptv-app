@@ -81,10 +81,10 @@ void main() {
       expect(sch, equals(IptvColors.bgElevated));
     });
 
-    test('surfaceContainer == bgParchment (米色一致)', () {
+    test('surfaceContainer == bgElevated (卡片/容器背景跟 DESIGN.md 对齐)', () {
       final light = IptvTheme.light();
       expect(
-          light.colorScheme.surfaceContainer, equals(IptvColors.bgParchment));
+          light.colorScheme.surfaceContainer, equals(IptvColors.bgElevated));
     });
 
     test('onSurface == textPrimary (深棕字跟米色底对比度)', () {
