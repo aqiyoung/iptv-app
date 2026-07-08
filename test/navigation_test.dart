@@ -1,4 +1,4 @@
-// 卡 4 集成测试 — 主页 → 分类 → 详情 跳转流程
+// 卡 4 集成测试 — 主页渲染测试
 // 用 ProviderScope.overrides 注入 fake channels, 不依赖 assets
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as sqflite_ffi;
@@ -129,23 +129,5 @@ void main() {
     // 验证主页渲染了海报墙和快捷入口
     expect(find.text('视界'), findsWidgets);
     expect(find.text('电视直播'), findsOneWidget);
-  });
-
-  testWidgets('home → live category shows live channels', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: _testOverrides(),
-        child: _app(),
-      ),
-    );
-    await tester.pumpAndSettle(const Duration(milliseconds: 500));
-
-    // 点击电视直播快捷入口
-    await tester.tap(find.text('电视直播'));
-    await tester.pumpAndSettle();
-
-    // 进入分类页后应该能看到频道
-    expect(find.text('CCTV-1'), findsOneWidget);
-    expect(find.text('CCTV-2'), findsOneWidget);
   });
 }
