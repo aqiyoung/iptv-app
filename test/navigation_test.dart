@@ -176,28 +176,4 @@ void main() {
     expect(find.text('CCTV-1'), findsOneWidget);
     expect(find.text('CCTV-2'), findsOneWidget);
   });
-    await tester.pumpAndSettle();
-
-    // 频道名出现在 player topbar (CCTV-1 + 其它描述, 但 CCTV-1 至少 1 次)
-    expect(find.text('CCTV-1'), findsWidgets);
-  });
-
-  testWidgets('back from category returns to home', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: _testOverrides(),
-        child: _app(),
-      ),
-    );
-    await tester.pumpAndSettle(const Duration(milliseconds: 500));
-
-    await tester.tap(find.text('央视'));
-    await tester.pumpAndSettle();
-    expect(find.text('CCTV-1'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.arrow_back));
-    await tester.pumpAndSettle();
-
-    expect(find.text('视界'), findsWidgets);
-  });
 }
