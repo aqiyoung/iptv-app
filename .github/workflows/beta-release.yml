@@ -152,7 +152,7 @@ jobs:
           tag_name: beta-${{ env.VERSION }}-${{ github.run_number }}
           name: "Beta ${{ env.VERSION }} (#${{ github.run_number }})"
           body: |
-            ## 三页直播 Beta ${{ env.VERSION }}
+            ## 视界 Beta ${{ env.VERSION }}
 
             ⚠️ **Beta 版本** — 仅供测试, 可能有 bug. 稳定版请用 [Latest Release](https://github.com/aqiyoung/iptv-app/releases/latest).
 
