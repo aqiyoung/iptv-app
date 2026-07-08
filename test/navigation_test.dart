@@ -51,47 +51,31 @@ const List<Channel> _kFixtureChannels = <Channel>[
   ),
 ];
 
-/// VideoController fake — 测试环境不能 instantiate 真 Player
 class _FakeVideoController implements VideoController {
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// 6/17 修声音残留: PlayerService 拿 Player 实例后, 测试环境需提供一个 fake.
-///  Player() 调 libmpv native, 测试 env 没有.  noSuchMethod 让大多数调用走
-///  default 路径, 但 stop() / dispose() 必须返回 Future<void>, 不然
-///  PlayerService.dispose() 里 unawaited() 会报 type error.
 class _FakePlayer implements Player {
   @override
   Future<void> stop() async {}
-
   @override
   Future<void> dispose() async {}
-
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
-/// 空的 StreamOpener — 让 player 页面顺利 mount (不实际 open)
 class _NoopOpener implements StreamOpener {
   @override
   Future<bool> open(String url, {required Duration timeout}) async => false;
-
   @override
   Future<void> cancel(String url) async {}
 }
 
-/// ChannelRepository fake — 返回预置频道, 避免 assets 加载
-/// v0.3.10.8: channelsProvider body 走远端 enrich, 测试不连 HTTP + sqflite.
-/// 返空 bundle → _enrichWithRemoteSources 走 fallback (保持本地).
 class _FakeEmptyRemoteSourcesNotifier extends RemoteSourcesNotifier {
   @override
   Future<RemoteSourcesBundle> build() async {
-    return const RemoteSourcesBundle(
-      meta: {},
-      known: {},
-      dead: {},
-    );
+    return const RemoteSourcesBundle(meta: {}, known: {}, dead: {});
   }
 }
 
@@ -107,15 +91,11 @@ List<Override> _testOverrides() => <Override>[
       channelsStreamProvider.overrideWith((ref) async* {
         yield _kFixtureChannels;
       }),
-      channelRepositoryProvider
-          .overrideWithValue(const _FakeRepo(_kFixtureChannels)),
+      channelRepositoryProvider.overrideWithValue(const _FakeRepo(_kFixtureChannels)),
       mediaKitVideoControllerProvider.overrideWithValue(_FakeVideoController()),
-      // 6/17 修声音残留: PlayerService 现在会读 mediaKitPlayerProvider,
-      // 测试环境注入 fake,  避免 instantiate 真 native player.
       mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
       streamOpenerProvider.overrideWithValue(_NoopOpener()),
       remoteSourcesProvider.overrideWith(_FakeEmptyRemoteSourcesNotifier.new),
-      // 卡 6: HomePage 现在需要 StartupService + FavoritesService
       startupServiceProvider.overrideWithValue(StartupService()),
       favoritesServiceProvider.overrideWithValue(
         FavoritesService(store: InMemoryFavoritesStore()),
@@ -137,7 +117,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('home renders category cards', (tester) async {
+  testWidgets('home renders poster wall with shortcuts', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: _testOverrides(),
@@ -146,12 +126,12 @@ void main() {
     );
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
-    // 验证主页渲染了分类卡片
-    expect(find.text('央视'), findsOneWidget);
-    expect(find.text('卫视'), findsOneWidget);
+    // 验证主页渲染了海报墙和快捷入口
+    expect(find.text('视界'), findsWidgets);
+    expect(find.text('电视直播'), findsOneWidget);
   });
 
-  testWidgets('home → category (cctv) shows CCTV channels', (tester) async {
+  testWidgets('home → live category shows live channels', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: _testOverrides(),
@@ -160,13 +140,12 @@ void main() {
     );
     await tester.pumpAndSettle(const Duration(milliseconds: 500));
 
-    // 点击央视分类
-    await tester.tap(find.text('央视'));
+    // 点击电视直播快捷入口
+    await tester.tap(find.text('电视直播'));
     await tester.pumpAndSettle();
 
-    // 进入分类页后应该能看到 CCTV 频道
+    // 进入分类页后应该能看到频道
     expect(find.text('CCTV-1'), findsOneWidget);
     expect(find.text('CCTV-2'), findsOneWidget);
-    expect(find.text('Hunan Satellite TV'), findsNothing);
   });
 }
