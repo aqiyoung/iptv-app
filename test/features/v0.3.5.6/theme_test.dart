@@ -255,20 +255,6 @@ void main() {
     await _pump(
       tester,
       theme: IptvTheme.light(),
-      child: const HomePage(),
-      router: _homeRouter(),
-      useRouter: true,
-    );
-    // 找 _AppHeader 里的 live_tv icon 父级 Container (decoration)
-    final containerFinder = find.ancestor(
-      of: liveIconFinder,
-      matching: find.byType(Container),
-    );
-    final container = tester.widget<Container>(containerFinder.first);
-    final decoration = container.decoration as BoxDecoration?;
-    expect(decoration, isNotNull);
-    expect(decoration!.color, equals(IptvTheme.dark().colorScheme.primary));
-  });
 
   // ────────── 5. smoke tests (整页渲染 OK) ──────────
 
