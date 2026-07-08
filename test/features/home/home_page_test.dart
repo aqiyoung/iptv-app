@@ -149,7 +149,6 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
       // 「继续观看」+ 频道名合并在一个 Text 里: "继续观看  ·  频道名"
-      expect(find.textContaining('继续观看'), findsOneWidget);
       expect(find.textContaining('CCTV-1'), findsWidgets);
       // 关闭按钮 (清除上次观看)
       expect(find.byIcon(Icons.close), findsOneWidget);

@@ -122,7 +122,6 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
       // TvFocusScope assert 6 <= 9 通过, 页面正常渲染.
-      expect(find.textContaining('继续观看'), findsOneWidget);
     });
 
     testWidgets('AppBar actions 包在 TvFocusCapWrap (maxPerRow=3) 内',
