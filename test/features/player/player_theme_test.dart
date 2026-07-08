@@ -125,6 +125,7 @@ Future<void> _pumpPlayer(
         // v0.3.10.8: 防止 channelsProvider body 走真实 HTTP.  返空 bundle
         // → _enrichWithRemoteSources fallback 本地 (不做 merge).
         remoteSourcesProvider.overrideWith(_FakeEmptyRemoteSourcesNotifier.new),
+        sharedPreferencesProvider.overrideWithValue(SharedPreferences()),
         mediaKitVideoControllerProvider
             .overrideWithValue(_FakeVideoController()),
         mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
