@@ -44,7 +44,7 @@ const double _kScale = _kLogoSize / 192.0;
 
 double _s(double v) => v * _kScale;
 
-/// 三页直播 splash: 暗色背景 + 红圆角 logo plate + 完整动画 + 淡出.
+/// 视界 splash: 暗色背景 + 红圆角 logo plate + 完整动画 + 淡出.
 class SanyeliveSplash extends StatefulWidget {
   const SanyeliveSplash({super.key, required this.child});
 

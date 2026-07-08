@@ -1,14 +1,14 @@
-# 三页直播 (Sanyelive)
+# 视界 (Sanyelive)
 
-> 个人使用 / 学习项目 — Flutter IPTV 直播 APP
+> 个人使用 / 学习项目 — Flutter 直播 + 影视综合平台
 
-极简新中式 IPTV 直播 APP — Flutter 全平台 — 个人自用 + Flutter / Dart 学习用途。
+极简新中式设计 — Flutter 全平台 — 个人自用 + Flutter / Dart 学习用途。
 
 ## ⚠️ 使用须知
 
 - **个人学习项目**，不公开发布、不提供下载分发
-- **数据源来自第三方公开 IPTV**，频道版权归原电视台所有
-- 仅供学习 Flutter / Riverpod / media_kit / IPTV 协议使用
+- **数据源来自第三方公开平台**，频道版权归原电视台所有
+- 仅供学习 Flutter / Riverpod / media_kit 使用
 - 不存储任何流媒体内容，所有流地址均实时从第三方源获取
 
 ## 技术栈
@@ -21,7 +21,7 @@
 
 - [iptv-org/iptv](https://github.com/iptv-org/iptv) — M3U 频道列表
 - [iptv-org/database](https://github.com/iptv-org/database) — 频道元数据
-- 第三方公开 IPTV 平台源（健康度评分后动态选源）
+- 第三方公开平台源（健康度评分后动态选源）
 
 ## 本地开发
 
@@ -47,4 +47,4 @@ git push origin main
 
 仅供学习参考，不提供任何形式的授权或担保。
 
-<sub>Built by threely (Young) — 个人项目 — 不公开分发</sub>
+<Built by threely (Young) — 个人项目 — 不公开分发>

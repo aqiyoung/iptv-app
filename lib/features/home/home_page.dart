@@ -241,7 +241,7 @@ class _AppHeader extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           const Text(
-            '三页直播',
+            '视界',
             style: IptvTypography.serifTitle,
           ),
           const Spacer(),
