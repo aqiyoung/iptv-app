@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/category/category_page.dart';
 import '../../features/favorites/favorites_page.dart';
 import '../../features/home/home_page.dart';
+import '../../features/home/vod_category_browser_page.dart';
+import '../../features/home/playback_history_page.dart';
 import '../../features/player/player_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/settings/settings_page.dart';
@@ -54,11 +56,27 @@ GoRouter buildRouter({NavigatorObserver? playerObserver}) {
             },
           ),
           GoRoute(
+            path: 'vod-category',
+            name: 'vod-category',
+            builder: (context, state) {
+              final cat = state.uri.queryParameters['cat'] ?? 'movie';
+              return VodCategoryBrowserPage(category: cat);
+            },
+          ),
+          GoRoute(
+            path: 'playback-history',
+            name: 'playback-history',
+            builder: (context, state) => const PlaybackHistoryPage(),
+          ),
+          GoRoute(
             path: 'player/:channelId',
             name: 'player',
             builder: (context, state) {
               final channelId = state.pathParameters['channelId']!;
-              return PlayerPage(channelId: channelId);
+              // v0.3.11.62: VOD 点播 — url 和 title 从 query 参数拿
+              final vodUrl = state.uri.queryParameters['url'];
+              final vodTitle = state.uri.queryParameters['title'];
+              return PlayerPage(channelId: channelId, vodUrl: vodUrl, vodTitle: vodTitle);
             },
           ),
           GoRoute(

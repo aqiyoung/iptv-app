@@ -4,21 +4,21 @@
 // 复用 theme_provider, 切换后立即持久化 (SharedPreferences),
 // main.dart 的 ConsumerWidget 监听 themeModeProvider 同步给 MaterialApp.themeMode.
 //
-// v0.3.7+80 (6/19): 加 2 个 tile — "检查更新" + "关于三页直播".
+// v0.3.7+80 (6/19): 加 2 个 tile — "检查更新" + "关于视界".
 //  关于: 描述项目 + 贴 GitHub 地址 + 一键复制按钮.  不用 url_launcher 包
 //  (省 1MB + Android query intent 配置),  复制 URL 让老板自己粘贴到浏览器看.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:flutter/services.dart' show Clipboard, ClipboardData, SystemUiOverlayStyle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// v0.3.11 Beta 分支
+
 // v0.3.7.2 (6/19): 不再 import main.dart (主 dart 写死 const 没用),  用 Provider 读运行时版本号.
-import '../../core/theme/colors.dart';
 import '../../services/version_checker.dart'
     show
         currentVersionStringProvider,
-        currentVersionCodeProvider,
         versionCheckerProvider,
         VersionCheckState,
         VersionCheckUpToDate,
@@ -27,6 +27,7 @@ import '../../services/version_checker.dart'
         endpointProvider,
         kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
+import 'theme_provider.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
 
@@ -47,14 +48,19 @@ class SettingsPage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF101010),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF101010),
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         title: const Text(
           '设置',
-          // v0.3.8+103 (6/20 15:46 老板反馈): 显式 color: textPrimary.
-          // 之前 AppBar title 靠 theme.appBarTheme.titleTextStyle = serifTitle
-          // (没 hardcode color,  走 system default).  老板装 +102 后看
-          // 到"设置"是白色的看不清.  现在显式指定 color 跟 textPrimary.
-          style: TextStyle(color: IptvColors.textPrimary),
+          style: TextStyle(color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -79,9 +85,35 @@ class SettingsPage extends ConsumerWidget {
         // 参见 iOS Settings.app + Material 3 cards 设计语言.
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          // v0.3.8+102 (6/20 15:02 老板反馈): 删"外观 / 主题"卡片 (锁死浅色).
-          // 之前这里有 主题 tile + _pickTheme 对话框. 现在直接跳到"系统".
-          // ─── 卡片 1: 系统 ──────────────────────────────────────────────
+          // ─── 品牌 header: 视界 logo ──────────────────────────────────
+          // ─── 卡片 1: 外观 ──────────────────────────────────────────────
+          const _SettingsGroupLabel(label: '外观'),
+          const SizedBox(height: 6),
+          _SettingsCard(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.brightness_6_outlined),
+                title: const Text('主题模式'),
+                subtitle: Consumer(
+                  builder: (context, ref, _) {
+                    final mode = ref.watch(themeModeProvider);
+                    return Text(_modeLabel(mode));
+                  },
+                ),
+                onTap: () => _showThemeDialog(context, ref),
+              ),
+              const _SettingsGap(),
+              SwitchListTile(
+                secondary: const Icon(Icons.auto_awesome),
+                title: const Text('自动深色'),
+                subtitle: const Text('日落后自动切换深色'),
+                value: _autoDarkMode,
+                onChanged: (v) => _setAutoDark(context, ref, v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // ─── 卡片 2: 系统 ──────────────────────────────────────────────
           const _SettingsGroupLabel(label: '系统'),
           const SizedBox(height: 6),
           _SettingsCard(
@@ -127,7 +159,7 @@ class SettingsPage extends ConsumerWidget {
             children: [
               ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('关于三页直播'),
+                title: const Text('关于视界'),
                 subtitle: const Text('项目介绍 + GitHub 地址'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _showAbout(context),
@@ -136,11 +168,11 @@ class SettingsPage extends ConsumerWidget {
               Consumer(
                 builder: (context, ref, _) {
                   final version = ref.watch(currentVersionStringProvider);
-                  final code = ref.watch(currentVersionCodeProvider);
+                  final displayVersion = '$version (Beta)';
                   return ListTile(
                     leading: const Icon(Icons.tag_outlined),
                     title: const Text('版本号'),
-                    subtitle: Text('$version (build $code)'),
+                    subtitle: Text(displayVersion),
                   );
                 },
               ),
@@ -152,11 +184,11 @@ class SettingsPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: Text(
-              '三页直播 · 极简新中式 IPTV',
+              '视界 · 极简新中式 IPTV',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: scheme.onSurfaceVariant.withOpacity(0.6),
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -167,20 +199,20 @@ class SettingsPage extends ConsumerWidget {
 
   // ─── 关于对话框 ───────────────────────────────────────────────────────────
   // v0.3.7+80: 弹一个 dialog,  描述项目 (基于 Flutter + media_kit 视频播放,
-  // 极简新中式设计,  IPTV 直播).  底部贴 GitHub 地址 + 复制按钮.
+  // 极简新中式设计,  直播 + 影视).  底部贴 GitHub 地址 + 复制按钮.
   void _showAbout(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('关于三页直播'),
+        title: const Text('关于视界'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '三页直播是一款 IPTV 直播 APP, 面向家用电视 / 盒子 / 手机, 极简新中式设计。',
+                '视界是一款直播 + 影视综合平台, 面向家用电视 / 盒子 / 手机, 极简新中式设计。',
                 style: TextStyle(color: scheme.onSurface, height: 1.6),
               ),
               const SizedBox(height: 16),
@@ -211,7 +243,7 @@ class SettingsPage extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest.withOpacity(0.4),
+                    color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -410,7 +442,7 @@ class _SettingsGap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 8,
-      color: const Color(0xFFF5F4ED), // bgParchment 跟 scaffold 同色
+      color: const Color(0xFF101010),
       margin: EdgeInsets.zero,
     );
   }
@@ -427,7 +459,7 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFCF6), // bgElevated — 浅一档米色, 跟 bgParchment 区分
+        color: const Color(0xFF1A1A1A),
         borderRadius: BorderRadius.circular(12),
         // v0.3.8+97: 不画边框, 靠背景色差 + 圆角 + 阴影让卡片"浮"起来
         // boxShadow: [
@@ -495,4 +527,59 @@ class _AboutSection extends StatelessWidget {
       ],
     );
   }
+}
+
+// ─── 主题模式辅助 ───
+
+String _modeLabel(ThemeMode mode) {
+  switch (mode) {
+    case ThemeMode.system:
+      return '跟随系统';
+    case ThemeMode.light:
+      return '浅色';
+    case ThemeMode.dark:
+      return '深色';
+  }
+}
+
+bool _autoDarkMode = false;
+
+Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
+  final current = ref.read(themeModeProvider);
+  var selected = current;
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('主题模式'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: ThemeMode.values.map((mode) {
+          return RadioListTile<ThemeMode>(
+            title: Text(_modeLabel(mode)),
+            value: mode,
+            groupValue: selected,
+            onChanged: (v) => selected = v!,
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            ref.read(themeModeProvider.notifier).setMode(selected);
+            Navigator.of(ctx).pop();
+          },
+          child: const Text('确定'),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _setAutoDark(BuildContext context, WidgetRef ref, bool value) async {
+  _autoDarkMode = value;
+  // TODO: 实现自动深色 (日落检测)
 }

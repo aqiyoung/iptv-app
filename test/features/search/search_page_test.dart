@@ -38,6 +38,7 @@ class _FakeRepo implements ChannelRepository {
   final List<Channel> _channels;
   @override
   Future<List<Channel>> loadBundled() async => _channels;
+  void mergeFastSources(List<Channel> channels, Map<String, List<String>> fast) {}
 }
 
 Future<void> _pump(

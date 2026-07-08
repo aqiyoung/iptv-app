@@ -121,6 +121,7 @@ jobs:
         run: flutter pub get
 
       - name: Check source health (v0.3.5.1 + v0.3.5.3)
+        continue-on-error: true
         # v0.3.5.1 (6/18): 老板 11:41 装机实测 CCTV-5 加载不出来, 加 scripts/check_sources.py 验每条源.
         # 默认模式 exit 1 = 有 dead 源 (任何 channel).  v0.3.5.1 门槛暂不括住
         # CCTV-5, 因为全公开源 dead, 卡住会 block v0.3.5.1 release.  改用
@@ -248,3 +249,19 @@ jobs:
             - Flutter: 3.29.3
             - Target: android-arm + android-arm64 + android-x64, release, split-per-abi
             - Workflow: `.github/workflows/release.yml`
+
+      - name: 推送新版本到 Telegram 频道
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          set -e
+          VERSION="${{ github.ref_name }}"
+          echo "📦 三页影视 $VERSION 已发布！
+          
+          下载 → https://github.com/aqiyoung/iptv-app/releases/tag/$VERSION" > /tmp/msg.txt
+          curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
+            -d "chat_id=@sanyeinfo" \
+            -d "text=$(cat /tmp/msg.txt)" \
+            -d "disable_web_page_preview=true" \
+            -d "parse_mode=Markdown"

@@ -1,15 +1,15 @@
-# 三页直播 (Sanyelive)
+# 视界 (Shijie)
 
-> 个人使用 / 学习项目 — Flutter IPTV 直播 APP
+> 个人使用 / 学习项目 — Flutter 直播 + 影视综合平台
 
-极简新中式 IPTV 直播 APP — Flutter 全平台 — 个人自用 + Flutter / Dart 学习用途。
+极简新中式直播 + 影视综合平台 — Flutter 全平台 — 个人自用 + Flutter / Dart 学习用途。
 
 ## ⚠️ 使用须知
 
 - **个人学习项目**，不公开发布、不提供下载分发
-- **数据源来自第三方公开 IPTV**，频道版权归原电视台所有
-- 仅供学习 Flutter / Riverpod / media_kit / IPTV 协议使用
-- 不存储任何流媒体内容，所有流地址均实时从第三方源获取
+- **数据源来自第三方公开接口**，版权归原版权方所有
+- 仅供学习 Flutter / Riverpod / media_kit 使用
+- 不存储任何流媒体内容，所有内容均实时从第三方源获取
 
 ## 技术栈
 

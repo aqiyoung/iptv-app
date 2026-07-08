@@ -48,7 +48,7 @@ class CategoryCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   // ignore: deprecated_member_use
                   color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon,

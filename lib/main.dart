@@ -51,6 +51,7 @@ import 'utils/crash_logger.dart';
 // const currentVersion = '0.0.0+0';
 // const currentVersionCode = 0;
 
+
 void main() async {
   // v0.3.10.21: TV box 白屏闪退 — 整个 init 包在顶层 try-catch,
   // 保证任何异常都不阻塞 runApp().  之前 SharedPreferences 重试
@@ -108,7 +109,7 @@ void main() async {
     try {
       await CrashLogger.log('step5: before PackageInfo');
       final info = await PackageInfo.fromPlatform();
-      runtimeVersion = '${info.version}+${info.buildNumber}';
+      runtimeVersion = 'v${info.version}.${info.buildNumber}';
       runtimeVersionCode = int.tryParse(info.buildNumber) ?? 0;
       await CrashLogger.log('step5: PackageInfo OK: $runtimeVersion');
     } catch (e) {
@@ -244,19 +245,14 @@ Future<void> _prewarmRemoteSources() async {
 }
 
 void _applySystemUiOverlay(SharedPreferences prefs) {
-  // v0.3.7+59 (6/19): 启动时默认 overlay 跟当前主题走 — 浅色主题用深状态栏图标 +
-  // 米色导航栏; 暗色主题用白状态栏图标 + 深色导航栏.  之前 v0.3.7+50 写死浅色,
-  // 暗色主题下状态栏图标深色在深背景上看不清, 导航栏还是米色扮眼.
-  // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  之前用
-  // 持久化 themeMode 控制 status bar / nav bar 颜色,  现在强制浅色.
-  // prefs 参数保留但暂未用 (其他功能如 favorite / endpoint / version cache 还用).
+  // v0.3.11.54: app 已锁死深色，状态栏也固定深色
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
-      systemNavigationBarColor: IptvColors.bgParchment,
-      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: IptvColors.darkBg,
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
 }
@@ -275,8 +271,10 @@ class IptvApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换.  themeMode 锁死 light.
-    // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode.
+    // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换.  themeMode 锁死 dark.
+    // 整个 app 是深色流媒体风格设计，锁死不跟系统主题走。
+    // 之前 ref.watch(themeModeProvider) — 不再 watch, 直接 hardcode dark.
+    // v0.3.11.54 恢复深色锁死（之前跟随系统导致分类页/直播模块浅色）.
     // 0.3.7+20 (6/18): 后台强制更新 — 监听 versionCheckerProvider,
     // 检测到 outdated 时弹 ForceUpdateDialog.  ref.listen 的 context
     // 是 ConsumerWidget.build 提供的,  MaterialApp 已建好,  Navigator
@@ -292,17 +290,17 @@ class IptvApp extends ConsumerWidget {
       }
     });
     return MaterialApp.router(
-      title: '三页直播',
+      title: '视界',
       debugShowCheckedModeBanner: false,
       theme: IptvTheme.light(),
       darkTheme: IptvTheme.dark(),
-      themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark, // 锁死深色，不跟系统主题
       routerConfig: buildRouter(playerObserver: playerObserver),
-      // v0.3.8+178 (6/23 B+C splash fix): 换 SanyeliveSplash (SVG logo +
+      // v0.3.8+178 (6/23 B+C splash fix): 换 SplashScreen (SVG logo +
       // 完整动画).  保留 +177 的 MaterialApp.builder 架构 — context 在
       // MaterialApp 之下,  ref.listen 弹 ForceUpdateDialog 能找到 Navigator.
       builder: (context, child) => _ErrorBoundary(
-        child: SanyeliveSplash(child: child ?? const SizedBox()),
+        child: SplashScreen(child: child ?? const SizedBox()),
       ),
     );
   }
@@ -313,7 +311,7 @@ class IptvApp extends ConsumerWidget {
 /// _SplashOverlay 里,  splash 结束时渐隐.  3s 后自动消失.
 ///
 /// v0.3.8+178 (6/23 B+C splash fix): 删.  改为 lib/features/splash/splash_logo.dart
-/// 的 SanyeliveSplash — SVG logo 像素一致 + motion.css v2 完整动画时间线
+/// 的 SplashScreen — SVG logo 像素一致 + motion.css v2 完整动画时间线
 /// + Material 包裹 + BoxShadow 修复 “黄线” 问题.  MaterialApp.builder 架构不变.
 /// (以下 _SplashOverlay 旧类已删除 — 逻辑迁到 lib/features/splash/splash_logo.dart)
 
@@ -337,8 +335,25 @@ class _ErrorBoundaryState extends State<_ErrorBoundary> {
     FlutterError.onError = (details) {
       // Still call the default handler (prints to console / debugDumpApp).
       FlutterError.presentError(details);
+      // v0.3.11+28 fix: 图片加载失败 (HTTP 400/404/502) 是非致命错误,
+      // CachedNetworkImage 的 errorWidget 已兜底显示默认图标,
+      // 不要拦截到 crash screen 上.
+      if (_isNetworkImageError(details)) return;
       if (mounted) setState(() => _error = details);
     };
+  }
+
+  /// 判断是否为网络图片加载失败 (非致命, 不应触发 crash screen).
+  bool _isNetworkImageError(FlutterErrorDetails details) {
+    final exc = details.exceptionAsString().toLowerCase();
+    return exc.contains('http request failed') ||
+        exc.contains('network_image') ||
+        exc.contains('image resource') ||
+        exc.contains('httpexception') ||
+        exc.contains('无效请求方法') ||
+        exc.contains('connection refused') ||
+        exc.contains('连接被拒绝') ||
+        (details.stack?.toString().contains('network_image_io') ?? false);
   }
 
   @override

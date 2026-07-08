@@ -1,317 +1,450 @@
+import 'dart:ui';
+import 'package:flutter/services.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/typography.dart';
-import '../../core/tv/tv_focus.dart';
-import '../../data/channel_filter.dart';
-import '../../data/models/channel.dart';
-import '../../data/repositories/channel_repository.dart';
-import '../../services/startup_service.dart';
-import '../../widgets/serif_headline.dart';
-import 'widgets/category_grid.dart';
+import 'poster_wall_page.dart';
 
-/// 主页 — 3 大分类 (央视/卫视/地方) + 上次观看 CTA + 搜索入口
+/// 视界主页 — 外层统一管理底部导航
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, this.onClearLastWatched});
-
-  /// 清除上次观看的回调 (留给父级实现)
-  final VoidCallback? onClearLastWatched;
+  const HomePage({super.key});
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  String? _lastChannelId;
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadLastChannel();
+    // app 已锁死深色：首页状态栏固定白图标，不再跟随旧 theme_mode prefs。
+    _syncGlobalOverlay();
   }
 
-  Future<void> _loadLastChannel() async {
-    final svc = ref.read(startupServiceProvider);
-    final id = await svc.loadLastChannel();
-    if (mounted) setState(() => _lastChannelId = id);
-  }
-
-  Future<void> _clearLast() async {
-    final svc = ref.read(startupServiceProvider);
-    await svc.clearLastChannel();
-    if (mounted) setState(() => _lastChannelId = null);
-    widget.onClearLastWatched?.call();
+  void _syncGlobalOverlay() {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: Color(0xFF151515),
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // v0.3.8+132 (6/21 老板反馈 "启动白屏"):  之前用 channelsProvider (FutureProvider
-    // 返本地).  改用 channelsStreamProvider (StreamProvider 同步 yield 本地 → background
-    // 远端覆盖).  这样首帧拿到本地 198 频道,  UI 不空白;  远端 360 频道 (36 sat +
-    // 101 local + 44 cctv + 133 intl) 到了后 UI 刷新,  老板看到正确的分类 (卫视
-    // 36 个 vs 老 35 个 加上 HenanTVSatellite + 中文命名).
-    final asyncChannels = ref.watch(channelsStreamProvider);
-
-    return Scaffold(
-      // 6/17 v0.2.3 P1-5: TV 端 root 包 TvFocusGroup,  CategoryCard /
-      // ContinueWatchingCard 内部已经各自包了 TvFocus (deviceTier == tv
-      // 才包),  这里是方向键导航容器.  手机端 child 就是原 CustomScrollView,
-      //  零成本.
-      // 6/17 v0.3.0: 移除 AppBar title — 身体 _AppHeader 已带 logo+标题+搜索
-      // 收藏, AppBar 重复显示.  保留 AppBar 用于返回 / 状态栏 spacing.
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
+    final overlay = _resolveOverlay();
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlay,
+      child: Scaffold(
+      backgroundColor: const Color(0xFF101010),
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          const PosterWallPage(),
+          _ActionHubPage(
+            title: '短视频',
+            subtitle: '短视频频道还没接入，先为你打开搜索。',
+            icon: Icons.smart_display_rounded,
+            primaryLabel: '去搜索内容',
+            onPrimary: () => context.go('/search'),
+          ),
+          _ActionHubPage(
+            title: '会员',
+            subtitle: '会员体系暂未上线，当前所有直播入口都可直接使用。',
+            icon: Icons.workspace_premium_rounded,
+            primaryLabel: '看电视直播',
+            onPrimary: () => context.go('/category/live'),
+          ),
+          _ActionHubPage(
+            title: '发现',
+            subtitle: '发现页先聚合频道分类，后续再接专题内容。',
+            icon: Icons.explore_rounded,
+            primaryLabel: '浏览体育频道',
+            onPrimary: () => context.go('/category/体育'),
+            secondaryLabel: '浏览娱乐频道',
+            onSecondary: () => context.go('/category/娱乐'),
+          ),
+          const _MinePage(),
+        ],
       ),
-      body: SafeArea(
-        child: TvFocusGroup(
-          child: asyncChannels.when(
-            loading: () => const SizedBox.expand(),
-            error: (e, _) => _ErrorState(message: e.toString()),
-            data: (channels) => _buildContent(context, channels),
+      bottomNavigationBar: _StreamingBottomNav(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+      ),
+    ),
+    );
+  }
+
+  SystemUiOverlayStyle _resolveOverlay() {
+    return const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFF151515),
+      systemNavigationBarIconBrightness: Brightness.light,
+    );
+  }
+}
+
+class _StreamingBottomNav extends StatelessWidget {
+  const _StreamingBottomNav({required this.currentIndex, required this.onTap});
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF151515).withValues(alpha: 0.94),
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
+      ),
+      child: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: SafeArea(
+            top: false,
+            child: BottomNavigationBar(
+              currentIndex: currentIndex,
+              onTap: onTap,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              selectedItemColor: const Color(0xFFE53935),
+              unselectedItemColor: const Color(0xFF8E8E8E),
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
+              selectedFontSize: 12,
+              unselectedFontSize: 12,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined, size: 24),
+                  activeIcon: Icon(Icons.home_rounded, size: 24),
+                  label: '首页',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.smart_display_outlined, size: 24),
+                  activeIcon: Icon(Icons.smart_display_rounded, size: 24),
+                  label: '短视频',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.workspace_premium_outlined, size: 24),
+                  activeIcon: Icon(Icons.workspace_premium_rounded, size: 24),
+                  label: '会员',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.explore_outlined, size: 24),
+                  activeIcon: Icon(Icons.explore_rounded, size: 24),
+                  label: '发现',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline_rounded, size: 24),
+                  activeIcon: Icon(Icons.person_rounded, size: 24),
+                  label: '我的',
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildContent(BuildContext context, List<Channel> all) {
-    // 派生分类 — 主页是「容器」, 分类页是「真实列表」
-    final cctv = ChannelFilter.cctv(all).length;
-    final satellite = ChannelFilter.satellite(all).length;
-    final news = ChannelFilter.byCategory(all, '新闻').length;
-    final movies = ChannelFilter.byCategory(all, '影视').length;
-    final kids = ChannelFilter.byCategory(all, '少儿').length;
-    final international = ChannelFilter.international(all).length;
-    // 地方 = 总数 - 央视 - 卫视
-    final local = all.length - cctv - satellite;
+class _MinePage extends ConsumerWidget {
+  const _MinePage();
 
-    final items = [
-      const CategoryItem(
-        id: 'cctv',
-        title: '央视',
-        subtitle: 'CCTV 频道',
-        icon: Icons.tv,
-      ),
-      const CategoryItem(
-        id: 'satellite',
-        title: '卫视',
-        subtitle: '省级卫视',
-        icon: Icons.public,
-      ),
-      CategoryItem(
-        id: '新闻',
-        title: '新闻',
-        subtitle: '$news 个频道',
-        icon: Icons.newspaper,
-      ),
-      CategoryItem(
-        id: '影视',
-        title: '影视',
-        subtitle: '$movies 个频道',
-        icon: Icons.movie,
-      ),
-      CategoryItem(
-        id: '少儿',
-        title: '少儿',
-        subtitle: '$kids 个频道',
-        icon: Icons.child_care,
-      ),
-      const CategoryItem(
-        id: 'local',
-        title: '地方',
-        subtitle: '省市地方台',
-        icon: Icons.location_city,
-      ),
-      // v0.3.8+110 (6/20 老板加国际频道):  i18n 频道 (非中文区 country)
-      CategoryItem(
-        id: 'international',
-        title: '国际',
-        subtitle: '$international 个频道',
-        icon: Icons.language,
-      ),
-    ];
-
-    // 找上次的频道 (轻量查找, 500 条不算多)
-    final lastChannel = _lastChannelId == null
-        ? null
-        : all.where((c) => c.id == _lastChannelId).cast<Channel?>().firstOrNull;
-
-    // P2-1 (6/18): 一屏焦点项上限守卫 — ChatGPT 6/17 21:18 建议
-    //   当前 home_page (TV) 焦点项:
-    //     - 3 个 AppBar actions (search / favorites / settings) — 0.3.6+19 加了 settings
-    //     - 1 个 ContinueWatchingCard (当有 lastChannel 时)
-    //     - 3 个 CategoryCard
-    //   最多 7 个, 远低于 9. 但用 TvFocusScope 断言, 后续加新焦点项时
-    //   超出上限会报 assert 警告, 防止漂移.
-    final focusableCount = 3 + 3 + (lastChannel != null ? 1 : 0);
-
-    return TvFocusScope(
-      actualFocusableCount: focusableCount,
-      child: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ColoredBox(
+      color: const Color(0xFF101010),
+      child: SafeArea(
+        bottom: false,
+        top: true,
+        child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+          children: [
+            Stack(
               children: [
-                _AppHeader(
-                  onSearchTap: () => context.go('/search'),
-                  onSettingsTap: () => context.push('/settings'),
-                ),
-                // 上次观看 (有记录才显示)
-                if (lastChannel != null) ...[
-                  ContinueWatchingCard(
-                    channelName: lastChannel.displayName,
-                    channelLogo: lastChannel.logoUrl,
-                    subtitle: '继续播放',
-                    onTap: () => context.push('/player/${lastChannel.id}'),
-                    onClear: _clearLast,
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/icons/shijie_logo.png',
+                          width: 72,
+                          height: 72,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        '视界',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '全新品牌升级 • 直播 + 影视',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                ],
-                const SerifHeadline(
-                  '频道分类',
-                  // 6/17 v0.2.3 P0-1: 实事求是,  实际 bake 了 484 个 CN 频道.
-                  // 7800+ 是 iptv-org 全量,  未进 APP.  改 500+.
-                  // 未来 v0.3.0 会重 bake + 二级分类.
-                  subtitle: '500+ 国内频道 · iptv-org 数据源',
                 ),
-                const SizedBox(height: 4),
               ],
             ),
-          ),
-          SliverToBoxAdapter(
-            child: CategoryGrid(
-              items: items,
-              onItemTap: (item) {
-                final count = switch (item.id) {
-                  'cctv' => cctv,
-                  'satellite' => satellite,
-                  'local' => local,
-                  // v0.3.8+110 (6/20 老板加国际频道):  i18n 频道 count
-                  'international' => international,
-                  _ => 0,
-                };
-                context.push(
-                  '/category/${item.id}?title=${Uri.encodeComponent(item.title)}',
-                  extra: count,
-                );
-              },
+            const SizedBox(height: 16),
+            _MineTile(icon: Icons.search_rounded, title: '搜索节目', subtitle: '搜索频道、视频内容', onTap: () => context.go('/search')),
+            _MineTile(icon: Icons.favorite_border_rounded, title: '我的收藏', subtitle: '收藏的直播频道和视频', onTap: () => context.go('/favorites')),
+            _MineTile(icon: Icons.tv_rounded, title: '电视频道', subtitle: '央视 / 卫视 / 体育 / 娱乐直播', onTap: () => context.go('/category/live')),
+            _MineTile(icon: Icons.settings_rounded, title: '设置', subtitle: '主题、更新、关于', onTap: () => context.go('/settings')),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('最近浏览', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+              ),
             ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-        ],
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: 8,
+                itemBuilder: (context, index) {
+                  final isLive = index % 2 == 0;
+                  return Container(
+                    width: 110,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2A2A2A),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              isLive ? Icons.live_tv_rounded : Icons.movie_rounded,
+                              color: Colors.white.withValues(alpha: 0.2),
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE53935).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: Text(
+                                  isLive ? '直播' : '视频',
+                                  style: const TextStyle(color: Color(0xFFE53935), fontSize: 9, fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 3, 8, 6),
+                          child: Text(
+                            isLive ? '频道名称' : '视频标题',
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _AppHeader extends StatelessWidget {
-  const _AppHeader({this.onSearchTap, this.onSettingsTap});
+class _ActionHubPage extends StatelessWidget {
+  const _ActionHubPage({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.primaryLabel,
+    required this.onPrimary,
+    this.secondaryLabel,
+    this.onSecondary,
+  });
 
-  final VoidCallback? onSearchTap;
-  final VoidCallback? onSettingsTap;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String primaryLabel;
+  final VoidCallback onPrimary;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xFF101010),
+      child: SafeArea(
+        top: false,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 24),
+            child: Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: const Color(0xFFE53935), size: 52),
+                  const SizedBox(height: 14),
+                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 8),
+                  Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 14, height: 1.5)),
+                  const SizedBox(height: 18),
+                  _PrimaryButton(label: primaryLabel, onTap: onPrimary),
+                  if (secondaryLabel != null && onSecondary != null) ...[
+                    const SizedBox(height: 10),
+                    _SecondaryButton(label: secondaryLabel!, onTap: onSecondary!),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MineTile extends StatelessWidget {
+  const _MineTile({required this.icon, required this.title, required this.subtitle, required this.onTap});
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
-      child: Row(
-        children: [
-          // v0.3.7+84 (6/19 老板反馈): 恢复 home 顶部 logo 原版 (v0.3.6+41 之前).
-          // 老板 22:37 反馈 "首页的logo换回来 不要3 你理解错了 我要改的是app的图标
-          // 但是也不能是3":
-          //   - 首页 logo: 恢复 v0.3.7+64 老设计 (红底 + Icons.live_tv 白图标)
-          //   - launcher icon: 老板说 "app 的图标"  = launcher,  v0.3.7+83 已
-          //     改成 TV 直播图标 (无 "3"),  保持
-          // 总结: 首页 logo 回到红底白电视;  launcher icon 不动 (TV 直播图标).
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(
-              Icons.live_tv,
-              color: Colors.white,
-              size: 20,
-            ),
+      padding: const EdgeInsets.only(bottom: 6),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        splashColor: Colors.white.withValues(alpha: 0.05),
+        highlightColor: Colors.white.withValues(alpha: 0.03),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
           ),
-          const SizedBox(width: 12),
-          const Text(
-            '三页直播',
-            style: IptvTypography.serifTitle,
-          ),
-          const Spacer(),
-          // P2-1 (6/18 老板拍): AppBar actions 套 TvFocusCapWrap,
-          //  maxPerRow=3, 加新按钮超出上限会报 assert 警告.
-          //  Wrap 布局对 3 个 IconButton 跟原 Row 等价 (不会折行).
-          TvFocusCapWrap(
-            maxPerRow: 3,
-            spacing: 0,
-            runSpacing: 0,
+          child: Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.search),
-                // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
-                color: Theme.of(context).colorScheme.onSurface,
-                tooltip: '搜索频道',
-                onPressed: onSearchTap,
+              Icon(icon, color: const Color(0xFFE53935), size: 26),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 3),
+                    Text(subtitle, style: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 12)),
+                  ],
+                ),
               ),
-              // 6/17 v0.2.3 P1-2: 收藏页入口,  在 search 旁加 ❤️ icon
-              IconButton(
-                icon: const Icon(Icons.favorite_border),
-                // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
-                color: Theme.of(context).colorScheme.onSurface,
-                tooltip: '我的收藏',
-                onPressed: () => context.push('/favorites'),
-              ),
-              // 0.3.6+19: 暗色主题设置入口,  加齿轮 icon
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                // 6/18 v0.3.6.1 hotfix: textPrimary → onSurface
-                color: Theme.of(context).colorScheme.onSurface,
-                tooltip: '设置',
-                onPressed: onSettingsTap,
-              ),
+              const Icon(Icons.chevron_right_rounded, color: Color(0xFF555555)),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message});
-  final String message;
+class _PrimaryButton extends StatelessWidget {
+  const _PrimaryButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Theme.of(context).colorScheme.primary,
-            size: 48,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '加载频道失败',
-            style: IptvTypography.serifTitle,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            style: IptvTypography.caption,
-            textAlign: TextAlign.center,
-          ),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE53935),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+      ),
+    );
+  }
+}
+
+class _SecondaryButton extends StatelessWidget {
+  const _SecondaryButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        decoration: BoxDecoration(
+          color: const Color(0xFF242424),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        ),
+        child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
       ),
     );
   }

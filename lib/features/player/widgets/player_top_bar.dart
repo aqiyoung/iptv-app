@@ -161,9 +161,9 @@ class _StatusDot extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final color = switch (status) {
       PlayerStatus.playing => scheme.primary,
-      PlayerStatus.loading => scheme.primary.withOpacity(0.7),
+      PlayerStatus.loading => scheme.primary.withValues(alpha: 0.7),
       PlayerStatus.error => scheme.error,
-      PlayerStatus.idle => scheme.onSurfaceVariant.withOpacity(0.38),
+      PlayerStatus.idle => scheme.onSurfaceVariant.withValues(alpha: 0.38),
     };
     return Container(
       width: 8,

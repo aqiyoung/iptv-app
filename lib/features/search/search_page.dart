@@ -309,7 +309,7 @@ class _SearchResultTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected
                 // ignore: deprecated_member_use
-                ? accent.withOpacity(0.12)
+                ? accent.withValues(alpha: 0.12)
                 : const Color(0xFFFFFCF6), // bgElevated
             borderRadius: BorderRadius.circular(12),
           ),
@@ -324,7 +324,7 @@ class _SearchResultTile extends StatelessWidget {
                     color: isSelected
                         ? accent
                         // ignore: deprecated_member_use
-                        : accent.withOpacity(0.5),
+                        : accent.withValues(alpha: 0.5),
                   ),
                 ),
               ),

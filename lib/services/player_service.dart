@@ -8,6 +8,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../data/models/channel.dart';
 import '../data/source_dispatcher.dart';
+import '../features/settings/theme_provider.dart';
 import '../utils/crash_logger.dart';
 import 'smart_source_router.dart';
 import 'source_failover.dart';
@@ -156,6 +157,9 @@ class PlayerService extends ChangeNotifier {
 
   PlayerState _state = const PlayerState.idle();
   PlayerState get state => _state;
+
+  /// v0.3.10.22: 当前播放的流 URL (供 PiP 原生渲染用)
+  String? get currentUrl => _state.currentSource;
 
   /// v0.3.8+109 (6/20 老板反馈 "点频道 半天进不去 必须点第二下"):
   /// 立即让 state 进入 loading — 不等 addPostFrameCallback 也不等 channelsProvider.
@@ -557,13 +561,16 @@ class _NoopStreamOpener implements StreamOpener {
 final playerServiceProvider = ChangeNotifierProvider<PlayerService>((ref) {
   final opener = ref.watch(streamOpenerProvider);
   final player = ref.watch(mediaKitPlayerProvider);
+  // v0.3.11.61: 注入带 SharedPreferences 的 router, 让历史评分持久化
+  // (否则 SmartSourceRouter 内部 _prefs 为 null, 评分不落盘, 切台永远无缓存).
+  final router = SmartSourceRouter(prefs: ref.watch(sharedPreferencesProvider));
   // 6/17 fix: 之前 ref.onDispose(svc.dispose) 跟 ChangeNotifierProvider
   // auto-dispose 重复,  ProviderContainer 销毁时 svc.dispose() 被调两次,
   // 第二次 super.dispose() 触发 "ChangeNotifier used after being disposed".
   // ChangeNotifierProvider 会自动调 notifier.dispose(),  这里只创建.
   // PlayerService.dispose() 仍然会跑, 负责释放 native player (libmpv 实例).
   // v0.3.10.11: player==null 时 PlayerService 内部自动走 fallback.
-  return PlayerService(opener: opener, player: player);
+  return PlayerService(opener: opener, player: player, router: router);
 });
 
 /// 当前播放状态

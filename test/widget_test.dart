@@ -45,7 +45,7 @@ void main() {
     );
     // First frame: app shell renders, channels loading
     await tester.pump();
-    expect(find.text('三页直播'), findsWidgets);
+    expect(find.text('视界'), findsWidgets);
   });
 
   testWidgets('DeviceTier.thresholds', (tester) async {

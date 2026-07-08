@@ -98,7 +98,7 @@ class _TvFocusState extends State<TvFocus> {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.6),
+                          .withValues(alpha: 0.6),
                       width: 2,
                     )
                   : null,

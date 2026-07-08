@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../../services/playback_history_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,9 +27,11 @@ import 'widgets/video_area.dart';
 /// TV 端 (shortestSide >= 600) 保持
 /// v0.3.0 Stack 全屏覆盖模式, 因为 TV 整个屏幕就是视频区.
 class PlayerPage extends ConsumerStatefulWidget {
-  const PlayerPage({super.key, required this.channelId});
+  const PlayerPage({super.key, required this.channelId, this.vodUrl, this.vodTitle});
 
   final String channelId;
+  final String? vodUrl;
+  final String? vodTitle;
 
   @override
   ConsumerState<PlayerPage> createState() => _PlayerPageState();
@@ -299,6 +302,17 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
   }
 
   Future<void> _tryAutoPlay() async {
+    // v0.3.11.62: VOD 点播模式 — channelId='vod' + url 在 query 参数里,
+    // 直接播 URL，不查频道库（海报墙影视卡片点进来走这）。
+    if (widget.channelId == 'vod') {
+      final url = widget.vodUrl;
+      if (url == null || url.isEmpty) return;
+      final title = widget.vodTitle ?? '影视点播';
+      unawaited(ref.read(playerServiceProvider).playSingleSource(url,
+          channel: Channel.fromVod(url, title: title)));
+      unawaited(PlaybackHistoryService.record(url: url, title: title));
+      return;
+    }
     final channels = await ref.read(channelsProvider.future);
     if (!mounted) return;
     final ch = _findChannel(channels, widget.channelId);
@@ -365,7 +379,10 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                   ),
                 ),
                 data: (channels) {
-                  final channel = _findChannel(channels, widget.channelId);
+                  // v0.3.11.62: VOD 模式不查频道库, 用 player state 里的临时频道.
+                  final channel = widget.channelId == 'vod'
+                      ? state.channel
+                      : _findChannel(channels, widget.channelId);
                   return Column(
                     children: [
                       // 视频区 (16:9)
@@ -569,7 +586,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                         opacity: _controlsVisible ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 250),
                         child: Container(
-                          color: Colors.black.withOpacity(0.85),
+                          color: Colors.black.withValues(alpha: 0.85),
                           child: SafeArea(
                             bottom: false,
                             child: TopBar(
@@ -605,7 +622,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage> {
                           opacity: _controlsVisible ? 1.0 : 0.0,
                           duration: const Duration(milliseconds: 250),
                           child: Container(
-                            color: Colors.black.withOpacity(0.55),
+                            color: Colors.black.withValues(alpha: 0.55),
                             padding: const EdgeInsets.only(bottom: 24),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,

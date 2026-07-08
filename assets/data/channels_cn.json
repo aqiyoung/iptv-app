@@ -10,7 +10,7 @@
       "CCTV-1 综合"
     ],
     "website": "http://tv.cctv.com/cctv1/",
-    "logo": "https://i.imgur.com/TpA3cUl.png",
+    "logo": null,
     "is_nsfw": false,
     "sources": [
       "http://69.30.245.50/live/cctv1.m3u8",

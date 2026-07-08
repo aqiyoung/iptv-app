@@ -83,24 +83,39 @@ class SmartSourceRouter {
   final http.Client _client;
   final SharedPreferences? _prefs;
   static const String _prefsKey = 'smart_router.scores';
-  static const Duration _cacheMaxAge = Duration(minutes: 30);
   static const Duration _probeTimeout = Duration(seconds: 3);
 
   /// 获取评分 (从缓存或探测)
-  Future<Map<String, SourceScore>> getScores(List<String> urls) async {
+  ///
+  /// [probeIfStale] 为 false 时, 缓存过期也**不实时探测**, 直接返回过期/默认评分.
+  /// 播放路径用 false, 避免切台时阻塞等待 HEAD 探测.
+  Future<Map<String, SourceScore>> getScores(
+    List<String> urls, {
+    bool probeIfStale = true,
+  }) async {
     final cached = await _loadCachedScores();
     final now = DateTime.now();
     final result = <String, SourceScore>{};
 
     for (final url in urls) {
       final cachedScore = cached[url];
-      if (cachedScore != null &&
-          now.difference(cachedScore.lastTestedAt) < _cacheMaxAge) {
+      if (cachedScore != null) {
+        // 有历史记录就用, 不管是否过期 (播放路径不探测)
         result[url] = cachedScore;
-      } else {
-        // 缓存过期, 需要重新探测
+      } else if (probeIfStale) {
+        // 无缓存且允许探测: 探测一次
         final score = await _probeSource(url);
         result[url] = score;
+      } else {
+        // 无缓存且不探测: 用中性默认分, 保持原始顺序
+        result[url] = SourceScore(
+          url: url,
+          score: 0.5,
+          latencyMs: 0,
+          successCount: 0,
+          failCount: 0,
+          lastTestedAt: now,
+        );
       }
     }
 
@@ -159,11 +174,13 @@ class SmartSourceRouter {
   }
 
   /// 按评分排序源列表 (高分在前)
+  /// 同分时保持原始顺序 (稳定), 避免无缓存时打乱用户预期的源优先级.
   List<String> rankSources(List<String> urls, Map<String, SourceScore> scores) {
     final sorted = List<String>.from(urls);
     sorted.sort((a, b) {
       final scoreA = scores[a]?.score ?? 0.5;
       final scoreB = scores[b]?.score ?? 0.5;
+      if (scoreA == scoreB) return 0; // 保持原始相对顺序
       return scoreB.compareTo(scoreA); // 降序
     });
     return sorted;
@@ -256,8 +273,9 @@ class SmartSourceFailover extends SourceFailover {
       throw AllSourcesFailedException([(url: url, error: 'single source failed')]);
     }
 
-    // 多个源: 先探测评分, 按评分排序后尝试
-    final scores = await _router.getScores(sources);
+    // 多个源: 用**缓存的**历史评分排序 (不实时探测, 避免切台卡顿)
+    // 无缓存的源给中性默认分, 保持原始顺序
+    final scores = await _router.getScores(sources, probeIfStale: false);
     final ranked = _router.rankSources(sources, scores);
 
     final attempts = <({int index, String url, String error})>[];

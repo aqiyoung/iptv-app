@@ -131,7 +131,7 @@ class _ChannelChip extends StatelessWidget {
           // ColorScheme 里对应的 token 是 surfaceContainerHighest
           // (theme.dart: 16 行).  走 token 后主题变化能自动联动.
           color: isNext
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.12)
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
               : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
         ),

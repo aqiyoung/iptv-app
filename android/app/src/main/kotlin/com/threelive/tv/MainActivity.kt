@@ -20,48 +20,52 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/// v0.3.7+20 (6/18): 后台强制更新 — MethodChannel 调 Android installer.
-///
-/// 不用 install_plugin 2.1.0 (package 缺 namespace + JVM target 不一致,
-/// AGP 8+ 编译不过).  自己写 MethodChannel 处理 "installApk" 通道.
-///
-/// 使用:
-///   final channel = MethodChannel(messenger, 'com.threelive.iptv/install');
-///   await channel.invokeMethod('installApk', {'path': '/data/.../app.apk'});
-///
-/// Android 7+ (API 24+) 必须用 FileProvider 共享 file:// URI 给 installer.
-///
-/// v0.3.10.13: Native crash handler — 捕获 SIGSEGV/SIGABRT 等 native signal,
-/// 写到 /sdcard/Android/data/com.threelive.tv/files/native_crash.log,
-/// 老板 adb pull 即可看到 native crash stacktrace.
 class MainActivity : FlutterActivity() {
     private val channelName = "com.threelive.iptv/install"
     private val fallbackChannelName = "com.threelive.iptv/fallback_player"
     private val libmpvCheckChannelName = "com.threelive.iptv/check_libmpv"
+    private val pipChannelName = "com.threelive.iptv/pip"
     private val TAG = "SanyeliveMain"
     private val REQUEST_PERMISSIONS = 1001
 
-    // v0.3.10.22: 在 Flutter 引擎启动前就请求存储权限 —
-    // 某些 TV 盒子 ROM 会在 app 不请求权限时直接杀进程.
     override fun onCreate(savedInstanceState: Bundle?) {
         installNativeCrashHandler()
         requestStoragePermissions()
         super.onCreate(savedInstanceState)
     }
 
+    // v0.3.11: 按 Home 键 → 自动进入 PiP
+    override fun onUserLeaveHint() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                enterPictureInPictureMode()
+            } catch (e: Exception) {
+                Log.e(TAG, "onUserLeaveHint: ${e.message}")
+            }
+        }
+        super.onUserLeaveHint()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
     private fun requestStoragePermissions() {
         val perms = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             perms.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+            ) {
                 perms.add(Manifest.permission.READ_MEDIA_IMAGES)
             }
         }
@@ -85,7 +89,6 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // v0.3.10.13: 安装 native crash handler
         installNativeCrashHandler()
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
@@ -108,21 +111,11 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        // v0.3.10.13: Fallback player channel — libmpv 不可用时走 Android MediaPlayer
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, fallbackChannelName)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "play" -> {
-                        val url = call.argument<String>("url")
-                        if (url == null) {
-                            result.error("ARG_ERROR", "url is required", null)
-                            return@setMethodCallHandler
-                        }
-                        try {
-                            result.success(false) // 暂不实现, 避免 MissingPluginException
-                        } catch (e: Exception) {
-                            result.error("PLAY_ERROR", e.message, null)
-                        }
+                        result.success(false)
                     }
                     "stop" -> {
                         result.success(null)
@@ -137,9 +130,6 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
-        // v0.3.10.16: 预检 libmpv.so 是否可加载 — 在 Dart 端调 MediaKit.ensureInitialized() 之前,
-        // 先走 Android System.loadLibrary 探测.  如果 dlopen 失败 (ARM 32-bit SIGSEGV),
-        // Java 层 UnsatisfiedLinkError 能捕获到, 返回 false 给 Dart → 直接走 FallbackMediaPlayer.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, libmpvCheckChannelName)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -148,10 +138,38 @@ class MainActivity : FlutterActivity() {
                             System.loadLibrary("mpv")
                             result.success(true)
                         } catch (e: UnsatisfiedLinkError) {
-                            Log.w(TAG, "libmpv.so 不可用: ${e.message}")
+                            Log.w(TAG, "libmpv.so не доступен: ${e.message}")
                             result.success(false)
                         } catch (e: Throwable) {
-                            Log.e(TAG, "libmpv.so 加载异常: ${e.message}")
+                            Log.e(TAG, "libmpv.so ошибка загрузки: ${e.message}")
+                            result.success(false)
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // v0.3.11: PiP (画中画) 控制通道
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pipChannelName)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "enterPip" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            try {
+                                val ret = enterPictureInPictureMode()
+                                result.success(ret)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "enterPip failed: ${e.message}")
+                                result.error("PIP_ERROR", e.message, null)
+                            }
+                        } else {
+                            result.error("PIP_ERROR", "Android 8.0+ required", null)
+                        }
+                    }
+                    "isInPip" -> {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            result.success(isInPictureInPictureMode())
+                        } else {
                             result.success(false)
                         }
                     }
@@ -160,11 +178,6 @@ class MainActivity : FlutterActivity() {
             }
     }
 
-    /// v0.3.10.13: 安装 native crash handler — 用 Thread.setDefaultUncaughtExceptionHandler
-    /// 捕获未处理的 Java/Kotlin 异常,  写到 crash log 文件.
-    /// 注意: 这只能捕获 Java 层异常,  SIGSEGV 等 native signal 需要
-    /// 注册 signal handler (C/C++ 层).  但 Java 层的 UncaughtExceptionHandler
-    /// 能捕获到 libmpv JNI 调用抛出的 Java 异常 (比如 UnsatisfiedLinkError).
     private fun installNativeCrashHandler() {
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
@@ -182,7 +195,6 @@ class MainActivity : FlutterActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to write native crash log", e)
             }
-            // v0.3.10.22: 弹 CrashActivity 显示错误 — 用户不用 adb 也能看到崩溃原因
             try {
                 val sw2 = StringWriter()
                 throwable.printStackTrace(PrintWriter(sw2))
@@ -207,9 +219,6 @@ class MainActivity : FlutterActivity() {
         }
 
         val apkUri: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // Android 7+ (API 24+) — 用 FileProvider.  authority 跟
-            // AndroidManifest 里 file_paths.xml + provider 配的
-            // ${applicationId}.fileprovider 一致.
             FileProvider.getUriForFile(
                 this,
                 "$packageName.fileprovider",

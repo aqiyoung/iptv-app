@@ -117,7 +117,7 @@ void main() {
 
     testWidgets('在 dark theme 下能正常渲染 (smoke test)', (tester) async {
       await _pumpDark(tester);
-      expect(find.text('三页直播'), findsWidgets);
+      expect(find.text('视界'), findsWidgets);
       expect(find.text('央视'), findsOneWidget);
       expect(find.text('卫视'), findsOneWidget);
       expect(find.text('地方'), findsOneWidget);

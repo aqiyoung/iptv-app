@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- v0.3.0 (6/17 老板拍): APP 显示名 "三页直播" (跟 MaterialApp.title 对齐) -->
-    <string name="app_name">三页直播</string>
+    <!-- v0.3.11 (三页影视): APP 显示名 -->
+    <string name="app_name">视界</string>
 </resources>
