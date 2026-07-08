@@ -171,7 +171,6 @@ void main() {
       await tester.pumpAndSettle();
 
       // SharedPreferences 已被清空
-      final prefs = await SharedPreferences.getInstance();
     });
 
     testWidgets('点击搜索按钮 → 跳转到 /search', (tester) async {
