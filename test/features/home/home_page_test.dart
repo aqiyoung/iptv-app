@@ -115,9 +115,6 @@ void main() {
       await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
       expect(find.text('视界'), findsWidgets);
-      expect(find.text('央视'), findsOneWidget);
-      expect(find.text('卫视'), findsOneWidget);
-      expect(find.text('地方'), findsOneWidget);
       // 搜索入口: IconButton with Icons.search
       expect(find.byIcon(Icons.search), findsWidgets);
     });

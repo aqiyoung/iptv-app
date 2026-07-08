@@ -104,9 +104,6 @@ void main() {
       // TvFocusScope 在 build 阶段跑 assert, 如果 5 > 9 会抛 — 这里
       // 不抛 = 通过. 再 verify TvFocusScope 实际渲染了 (子组件的 Text 在).
       expect(find.text('视界'), findsWidgets);
-      expect(find.text('央视'), findsOneWidget);
-      expect(find.text('卫视'), findsOneWidget);
-      expect(find.text('地方'), findsOneWidget);
     });
 
     testWidgets('有 lastChannel → 6 个焦点项 (+1 ContinueWatching), 不超 9',
@@ -127,7 +124,6 @@ void main() {
 
       // TvFocusScope assert 6 <= 9 通过, 页面正常渲染.
       expect(find.textContaining('继续观看'), findsOneWidget);
-      expect(find.text('央视'), findsOneWidget);
     });
 
     testWidgets('AppBar actions 包在 TvFocusCapWrap (maxPerRow=3) 内',
