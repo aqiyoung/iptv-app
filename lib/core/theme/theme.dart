@@ -28,7 +28,7 @@ class IptvTheme {
         onSurface: IptvColors.textPrimary,
         surfaceContainerHighest: IptvColors.bgElevated,
         surfaceContainerHigh: IptvColors.bgElevated,
-        surfaceContainer: IptvColors.bgParchment,
+        surfaceContainer: IptvColors.bgElevated,
         surfaceContainerLow: IptvColors.bgParchment,
         surfaceContainerLowest: IptvColors.bgParchment,
         surfaceDim: IptvColors.bgParchment,
