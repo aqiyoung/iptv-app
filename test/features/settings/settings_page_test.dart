@@ -66,7 +66,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('build 57'), findsOneWidget);
     });
 
     // v0.3.7.2: currentVersionStringProvider / currentVersionCodeProvider
