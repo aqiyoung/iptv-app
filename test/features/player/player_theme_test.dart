@@ -16,6 +16,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sanyelive/core/theme/theme.dart';
+import 'package:sanyelive/features/settings/theme_provider.dart' show sharedPreferencesProvider;
 import 'package:sanyelive/data/models/channel.dart';
 import 'package:sanyelive/data/repositories/channel_repository.dart';
 // v0.3.10.8: channelsProvider body 会拉远端 sources,  测试不能走真实 HTTP.
@@ -129,6 +130,7 @@ Future<void> _pumpPlayer(
             .overrideWithValue(_FakeVideoController()),
         mediaKitPlayerProvider.overrideWithValue(_FakePlayer()),
         startupServiceProvider.overrideWithValue(StartupService()),
+        sharedPreferencesProvider.overrideWithValue(SharedPreferences()),
         favoritesServiceProvider.overrideWithValue(
           FavoritesService(store: InMemoryFavoritesStore()),
         ),
