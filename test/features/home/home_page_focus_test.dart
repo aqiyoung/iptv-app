@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sanyelive/core/theme/theme.dart';
-import 'package:sanyelive/core/tv/tv_focus.dart';
 import 'package:sanyelive/data/models/channel.dart';
 import 'package:sanyelive/data/repositories/channel_repository.dart';
 import 'package:sanyelive/features/favorites/favorites_service.dart';
