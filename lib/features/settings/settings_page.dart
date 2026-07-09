@@ -852,7 +852,7 @@ class _VodSourceManagementCard extends ConsumerWidget {
     }
 
     // 确认导入对话框.
-    final selected = <bool>.filled(newOnes.length, true);
+    final selected = List<bool>.filled(newOnes.length, true);
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
