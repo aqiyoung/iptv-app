@@ -29,6 +29,9 @@ import '../../services/version_checker.dart'
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
+import '../../../data/models/vod_source.dart';
+import '../../../services/tvbox_config_parser.dart';
+import '../../../services/vod_source_registry.dart';
 import 'theme_provider.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
@@ -182,6 +185,12 @@ class SettingsPage extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+
+          // ─── v0.3.13.0: 影视源管理卡片 ──────────────────────────────
+          const _SettingsGroupLabel(label: '影视源'),
+          const SizedBox(height: 6),
+          _VodSourceManagementCard(),
           const SizedBox(height: 32),
 
           // ─── 底部 footer (slogan,  跟 about 区分) ─────────────────────────
@@ -597,4 +606,298 @@ Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
 Future<void> _setAutoDark(BuildContext context, WidgetRef ref, bool value) async {
   _autoDarkMode = value;
   // TODO: 实现自动深色 (日落检测)
+}
+
+/// v0.3.13.0: VOD 源管理卡片 (设置页).
+/// 当前源 / 管理源 toggle / 导入 TVBox 源.
+class _VodSourceManagementCard extends ConsumerWidget {
+  const _VodSourceManagementCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final registry = ref.watch(vodSourceRegistryProvider);
+    final sources = registry.sources;
+    final active = registry.activeSource;
+
+    return _SettingsCard(
+      children: [
+        // 当前源.
+        ListTile(
+          leading: const Icon(Icons.play_circle_outline),
+          title: const Text('当前源'),
+          subtitle: Text(active.name),
+          trailing: Text('${sources.length} 个源'),
+          onTap: () => _showSourcePicker(context, ref, registry),
+        ),
+        const _SettingsGap(),
+        // 管理源 (toggle 列表).
+        ...sources.map((s) => SwitchListTile(
+              secondary: Icon(
+                s.builtIn ? Icons.verified : Icons.public,
+                size: 20,
+              ),
+              title: Text(s.name),
+              subtitle: Text(
+                s.host,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              value: true,
+              onChanged: s.builtIn
+                  ? null // 内置不可删
+                  : (v) {
+                      if (!v) {
+                        ref
+                            .read(vodSourceRegistryProvider)
+                            .removeSource(s.id);
+                      }
+                    },
+            )),
+        const _SettingsGap(),
+        // 操作按钮行.
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            children: [
+              // 添加自定义源.
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('添加'),
+                  onPressed: () => _showAddSourceDialog(context, ref),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // 导入 TVBox 源.
+              Expanded(
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.cloud_download_outlined, size: 18),
+                  label: const Text('导入 TVBox'),
+                  onPressed: () => _importTvBoxSources(context, ref),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 选源 bottom sheet.
+  void _showSourcePicker(
+      BuildContext context, WidgetRef ref, VodSourceRegistry registry) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('选择影视源', style: TextStyle(fontSize: 16)),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: registry.sources.map((s) {
+                  final active = s.id == registry.activeSourceId;
+                  return ListTile(
+                    leading: Icon(
+                      active ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: active ? Theme.of(ctx).colorScheme.primary : null,
+                    ),
+                    title: Text(s.name),
+                    subtitle: Text(s.host),
+                    onTap: () {
+                      registry.setActiveSource(s.id);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 添加自定义源对话框.
+  void _showAddSourceDialog(BuildContext context, WidgetRef ref) {
+    final nameCtrl = TextEditingController();
+    final urlCtrl = TextEditingController();
+    var scheme = VodTypeIdScheme.bfzyapi;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('添加影视源'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '名称',
+                    hintText: '如: 量子资源',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: urlCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'MacCMS API 地址',
+                    hintText: 'https://xxx.com/api.php/provide/vod',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text('typeId 方案:'),
+                    const SizedBox(width: 8),
+                    DropdownButton<VodTypeIdScheme>(
+                      value: scheme,
+                      items: VodTypeIdScheme.values
+                          .map((e) =>
+                              DropdownMenuItem(value: e, child: Text(e.label)))
+                          .toList(),
+                      onChanged: (v) => setLocal(() => scheme = v ?? scheme),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: _doAdd(context, ref, nameCtrl, urlCtrl, scheme, ctx),
+              child: const Text('添加'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  VoidCallback _doAdd(
+    BuildContext context,
+    WidgetRef ref,
+    TextEditingController nameCtrl,
+    TextEditingController urlCtrl,
+    VodTypeIdScheme scheme,
+    BuildDialogContext ctx,
+  ) {
+    return () {
+      final name = nameCtrl.text.trim();
+      final url = urlCtrl.text.trim();
+      if (name.isEmpty || url.isEmpty) return;
+      String host;
+      try {
+        host = Uri.parse(url).host;
+      } catch (_) {
+        host = 'vod';
+      }
+      final id = '${host}_${DateTime.now().millisecondsSinceEpoch}';
+      ref.read(vodSourceRegistryProvider).addSource(VodSource(
+            id: id,
+            name: name,
+            baseUrl: url,
+            typeIds: scheme.typeIds,
+          ));
+      Navigator.pop(ctx);
+    };
+  }
+
+  /// 导入 TVBox 源 — 拉 4 个 URL,  展示新发现数,  一键导入.
+  Future<void> _importTvBoxSources(BuildContext context, WidgetRef ref) async {
+    // 加载指示.
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    List<VodSource> found;
+    try {
+      final parser = TvBoxConfigParser();
+      found = await parser.fetchTvBoxSources();
+      parser.dispose();
+    } catch (e) {
+      found = [];
+    }
+    if (context.mounted) Navigator.pop(context); // 关加载
+
+    if (!context.mounted) return;
+    if (found.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('未发现可导入的 MacCMS 源, 请检查网络')),
+      );
+      return;
+    }
+
+    // 过滤已存在的 (同 host).
+    final registry = ref.read(vodSourceRegistryProvider);
+    final existingHosts = registry.sources.map((s) => s.host).toSet();
+    final newOnes = found.where((s) => !existingHosts.contains(s.host)).toList();
+
+    if (newOnes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('已导入全部 ${found.length} 个源, 无新增')),
+      );
+      return;
+    }
+
+    // 确认导入对话框.
+    final selected = <bool>.filled(newOnes.length, true);
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: Text('发现 ${newOnes.length} 个新源'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: newOnes.length,
+              itemBuilder: (ctx, i) => CheckboxListTile(
+                title: Text(newOnes[i].name),
+                subtitle: Text(newOnes[i].host),
+                value: selected[i],
+                onChanged: (v) => setLocal(() => selected[i] = v ?? false),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('导入'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true && context.mounted) {
+      final toImport = <VodSource>[];
+      for (var i = 0; i < newOnes.length; i++) {
+        if (selected[i]) toImport.add(newOnes[i]);
+      }
+      if (toImport.isNotEmpty) {
+        await ref.read(vodSourceRegistryProvider).addSources(toImport);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('已导入 ${toImport.length} 个影视源')),
+          );
+        }
+      }
+    }
+  }
 }

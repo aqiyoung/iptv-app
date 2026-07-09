@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../data/providers/vod_provider.dart';
+import '../../../data/models/vod_source.dart';
+import '../../../services/vod_source_registry.dart';
 
 /// 分类 ID 与子分类映射
 const _categoryMap = {
@@ -88,6 +90,8 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ─── v0.3.13.0: VOD 源选择芯片栏 ──────────────────────
+          _VodSourceChipBar(),
           // ─── 二级分类标签 ────────────────────────────────────
           Padding(
             padding: const EdgeInsets.only(left: 16, top: 8),
@@ -189,6 +193,139 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// v0.3.13.0: VOD 源选择芯片栏 — 横向滚动 + 当前活跃源高亮 + + 添加.
+class _VodSourceChipBar extends ConsumerWidget {
+  const _VodSourceChipBar();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final registry = ref.watch(vodSourceRegistryProvider);
+    final sources = registry.sources;
+    final activeId = registry.activeSourceId;
+    final scheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      height: 48,
+      child: Row(
+        children: [
+          Expanded(
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              itemCount: sources.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final s = sources[i];
+                final active = s.id == activeId;
+                return ChoiceChip(
+                  label: Text(
+                    s.name,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  selected: active,
+                  onSelected: (_) =>
+                      ref.read(vodSourceRegistryProvider).setActiveSource(s.id),
+                  selectedColor: scheme.primary,
+                  labelStyle: TextStyle(
+                    color: active ? scheme.onPrimary : scheme.onSurface,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                );
+              },
+            ),
+          ),
+          // + 按钮 — 添加自定义源.
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, size: 22),
+            tooltip: '添加影视源',
+            onPressed: () => _showAddSourceDialog(context, ref),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddSourceDialog(BuildContext context, WidgetRef ref) {
+    final nameCtrl = TextEditingController();
+    final urlCtrl = TextEditingController();
+    var scheme = VodTypeIdScheme.bfzyapi;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('添加影视源'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: '名称',
+                    hintText: '如: 量子资源',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: urlCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'MacCMS API 地址',
+                    hintText: 'https://xxx.com/api.php/provide/vod',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Text('typeId 方案:'),
+                    const SizedBox(width: 8),
+                    DropdownButton<VodTypeIdScheme>(
+                      value: scheme,
+                      items: VodTypeIdScheme.values
+                          .map((e) => DropdownMenuItem(
+                              value: e, child: Text(e.label)))
+                          .toList(),
+                      onChanged: (v) => setLocal(() => scheme = v ?? scheme),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final name = nameCtrl.text.trim();
+                final url = urlCtrl.text.trim();
+                if (name.isEmpty || url.isEmpty) return;
+                String host;
+                try {
+                  host = Uri.parse(url).host;
+                } catch (_) {
+                  host = 'vod';
+                }
+                final id = '${host}_${DateTime.now().millisecondsSinceEpoch}';
+                ref.read(vodSourceRegistryProvider).addSource(VodSource(
+                      id: id,
+                      name: name,
+                      baseUrl: url,
+                      typeIds: scheme.typeIds,
+                    ));
+                Navigator.pop(ctx);
+              },
+              child: const Text('添加'),
+            ),
+          ],
+        ),
       ),
     );
   }

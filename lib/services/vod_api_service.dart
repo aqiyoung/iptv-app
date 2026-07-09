@@ -7,10 +7,16 @@ import '../data/models/content.dart';
 /// 列表 API (ac=list): 标题/分类/备注, 无海报/播放URL (第 N+1)
 /// 详情 API (ac=detail&ids=xxx): 含海报/播放URL, 支持批量
 class VodApiService {
-  VodApiService({http.Client? client}) : _client = client ?? http.Client();
+  VodApiService({
+    required this.baseUrl,
+    http.Client? client,
+  }) : _client = client ?? http.Client();
+
+  /// v0.3.13.0: base URL 改成实例字段 — 支持多 MacCMS 源.
+  /// 例: "https://bfzyapi.com/api.php/provide/vod".
+  final String baseUrl;
 
   final http.Client _client;
-  static const _base = 'https://bfzyapi.com/api.php/provide/vod';
 
   /// 安全解析 JSON，失败时返回 null
   Map<String, dynamic>? _safeJsonDecode(String body) {
@@ -23,7 +29,7 @@ class VodApiService {
 
   /// 获取分类列表
   Future<List<Map<String, dynamic>>> getCategories() async {
-    final uri = Uri.parse('$_base?ac=list&t=1');
+    final uri = Uri.parse('$baseUrl?ac=list&t=1');
     try {
       final res = await _client.get(uri).timeout(const Duration(seconds: 15));
       final data = _safeJsonDecode(res.body);
@@ -46,7 +52,7 @@ class VodApiService {
       'pagesize': '$pageSize',
     };
     if (typeId != null) params['t'] = '$typeId';
-    final uri = Uri.parse('$_base').replace(queryParameters: params);
+    final uri = Uri.parse(baseUrl).replace(queryParameters: params);
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
     final data = _safeJsonDecode(res.body);
     if (data == null) return [];
@@ -56,7 +62,7 @@ class VodApiService {
   /// 批量获取详情 (含海报、播放URL)
   Future<List<Map<String, dynamic>>> getDetail(List<int> ids) async {
     if (ids.isEmpty) return [];
-    final uri = Uri.parse('$_base?ac=detail&ids=${ids.join(',')}');
+    final uri = Uri.parse('$baseUrl?ac=detail&ids=${ids.join(',')}');
     final res = await _client.get(uri).timeout(const Duration(seconds: 15));
     final data = _safeJsonDecode(res.body);
     if (data == null) return [];

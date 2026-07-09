@@ -28,6 +28,7 @@ import 'data/repositories/channel_repository.dart';
 // sharedPreferencesProvider 仍需 import — main.dart override + version_checker.dart 也用它.
 // 之前一轮删 import 导致 build 挂 (lib/main.dart:86 Undefined name), 这里再加回.
 import 'features/settings/theme_provider.dart';
+import 'services/vod_source_registry.dart';
 // v0.3.8+178 (6/23 B+C splash fix): 换真 logo + 完整动画. 之前 v0.3.8+177
 // 简陋版 _SplashOverlay 删掉,  改用 lib/features/splash/splash_logo.dart.
 // 见该文件 design notes + motion_spec.md / motion.css v2 时间线.
@@ -134,6 +135,7 @@ void main() async {
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        vodSharedPreferencesProvider.overrideWithValue(prefs),
         currentVersionCodeProvider.overrideWithValue(runtimeVersionCode),
         currentVersionStringProvider.overrideWithValue(runtimeVersion),
         libmpvAvailableProvider.overrideWithValue(libmpvAvailable),
