@@ -27,6 +27,7 @@ import '../../services/version_checker.dart'
         endpointProvider,
         kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
+import '../../../core/theme/colors.dart';
 import 'theme_provider.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
@@ -48,19 +49,21 @@ class SettingsPage extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF101010),
+      backgroundColor: context.bgBase,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF101010),
-        foregroundColor: Colors.white,
+        backgroundColor: context.bgBase,
+        foregroundColor: context.fgMain,
         surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: const SystemUiOverlayStyle(
+        systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
+          statusBarIconBrightness:
+              context.appBrightness == Brightness.dark ? Brightness.light : Brightness.dark,
+          statusBarBrightness:
+              context.appBrightness == Brightness.dark ? Brightness.dark : Brightness.light,
         ),
-        title: const Text(
+        title: Text(
           '设置',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: context.fgMain),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -442,7 +445,7 @@ class _SettingsGap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 8,
-      color: const Color(0xFF101010),
+      color: context.bgBase,
       margin: EdgeInsets.zero,
     );
   }
@@ -459,7 +462,7 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: context.bgCard,
         borderRadius: BorderRadius.circular(12),
         // v0.3.8+97: 不画边框, 靠背景色差 + 圆角 + 阴影让卡片"浮"起来
         // boxShadow: [

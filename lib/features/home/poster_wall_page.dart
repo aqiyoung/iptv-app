@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/colors.dart';
 import '../../../data/providers/vod_provider.dart';
 import '../../../data/models/channel.dart';
 import '../../../data/models/content.dart';
@@ -14,7 +15,7 @@ class PosterWallPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ColoredBox(
-      color: const Color(0xFF101010),
+      color: context.bgBase,
       child: SafeArea(
         bottom: false,
         top: false,
@@ -94,10 +95,10 @@ class _HomeTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
+          Text(
             '视界',
             style: TextStyle(
-              color: Colors.white,
+              color: context.fgMain,
               fontSize: 20,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.4,
@@ -111,20 +112,20 @@ class _HomeTopBar extends StatelessWidget {
                 height: 38,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF252525),
+                  color: context.bgCardHigh,
                   borderRadius: BorderRadius.circular(19),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                  border: Border.all(color: context.fgBorder),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.search_rounded, color: Color(0xFFB8B8B8), size: 18),
-                    SizedBox(width: 8),
+                    Icon(Icons.search_rounded, color: context.fgSub, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         '庆余年 第二季',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Color(0xFFE6E6E6), fontSize: 13),
+                        style: TextStyle(color: context.fgSub, fontSize: 13),
                       ),
                     ),
                   ],
@@ -150,7 +151,7 @@ class _TopIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       visualDensity: VisualDensity.compact,
-      icon: Icon(icon, color: Colors.white, size: 22),
+      icon: Icon(icon, color: context.fgMain, size: 22),
       onPressed: onTap,
     );
   }
@@ -240,8 +241,8 @@ class _HeroBannerState extends State<_HeroBanner> {
                         margin: const EdgeInsets.symmetric(horizontal: 3),
                         decoration: BoxDecoration(
                           color: _currentPage == i
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.35),
+                              ? context.fgMain
+                              : context.fgMain.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(8),
                         ),
                       )),
@@ -380,14 +381,14 @@ class _CategoryShortcutBar extends StatelessWidget {
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F1F1F),
+                      color: context.bgCard,
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                      border: Border.all(color: context.fgBorder),
                     ),
                     child: Icon(item.icon, color: item.color, size: 27),
                   ),
                   const SizedBox(height: 7),
-                  Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFEDEDED), fontSize: 12, fontWeight: FontWeight.w500)),
+                  Text(item.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgMain, fontSize: 12, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
@@ -407,10 +408,10 @@ class _LiveTvModule extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 首页整体是深色设计，直播模块也保持深色
-    final bgColor = const Color(0xFF1A1A1A);
-    final borderColor = Colors.white.withValues(alpha: 0.06);
-    final textColor = Colors.white;
+    // v0.3.13.0: 直播模块跟随 theme — 浅色米白底深棕字, 深色深棕黑底米色字.
+    final bgColor = context.bgCard;
+    final borderColor = context.fgBorder;
+    final textColor = context.fgMain;
 
     final primary = channels.isNotEmpty ? channels.first : null;
 
@@ -435,7 +436,7 @@ class _LiveTvModule extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      color: const Color(0xFF252525),
+                      color: context.bgCardHigh,
                       child: Stack(
                         children: [
                           Center(
@@ -444,15 +445,15 @@ class _LiveTvModule extends StatelessWidget {
                                     primary.logoUrl!,
                                     width: 78,
                                     fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => const Icon(Icons.live_tv_rounded, color: Colors.white70, size: 44),
+                                    errorBuilder: (_, __, ___) => Icon(Icons.live_tv_rounded, color: context.fgSub, size: 44),
                                   )
-                                : Icon(isLoading ? Icons.hourglass_empty_rounded : Icons.live_tv_rounded, color: Colors.white70, size: 44),
+                                : Icon(isLoading ? Icons.hourglass_empty_rounded : Icons.live_tv_rounded, color: context.fgSub, size: 44),
                           ),
                           const Positioned(left: 8, top: 8, child: _Badge(label: '直播中', color: Color(0xFFE53935))),
                           Positioned(
                             right: 8,
                             top: 8,
-                            child: Text(primary?.displayName ?? '视界', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                            child: Text(primary?.displayName ?? '视界', style: TextStyle(color: context.fgMain, fontSize: 11, fontWeight: FontWeight.w700)),
                           ),
                           Positioned(
                             left: 10,
@@ -462,11 +463,11 @@ class _LiveTvModule extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(primary?.displayName ?? (error == null ? '频道加载中' : '加载失败'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                                Text(primary?.displayName ?? (error == null ? '频道加载中' : '加载失败'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgMain, fontSize: 13, fontWeight: FontWeight.w700)),
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    const Text('12:00', style: TextStyle(color: Color(0xFFD0D0D0), fontSize: 10)),
+                                    Text('12:00', style: TextStyle(color: context.fgSub, fontSize: 10)),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: ClipRRect(
@@ -474,13 +475,13 @@ class _LiveTvModule extends StatelessWidget {
                                         child: LinearProgressIndicator(
                                           value: 0.62,
                                           minHeight: 3,
-                                          color: const Color(0xFFE53935),
-                                          backgroundColor: Colors.white.withValues(alpha: 0.20),
+                                          color: context.fgAccent,
+                                          backgroundColor: context.fgBorder,
                                         ),
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    const Text('12:30', style: TextStyle(color: Color(0xFFD0D0D0), fontSize: 10)),
+                                    Text('12:30', style: TextStyle(color: context.fgSub, fontSize: 10)),
                                   ],
                                 ),
                               ],
@@ -534,9 +535,9 @@ class _LiveListText extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+        Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgMain, fontSize: 13, fontWeight: FontWeight.w700)),
         const SizedBox(height: 3),
-        Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFB8B8B8), fontSize: 11)),
+        Text(subtitle.isEmpty ? '精彩节目直播中' : subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgSub, fontSize: 11)),
       ],
     );
   }
@@ -615,9 +616,9 @@ class _PosterCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 7),
-          Text(content.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+          Text(content.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgMain, fontSize: 13, fontWeight: FontWeight.w700)),
           const SizedBox(height: 2),
-          Text(content.subtitle ?? '${content.year ?? '热播'} · ${content.genres.take(2).join(' ')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF8E8E8E), fontSize: 11)),
+          Text(content.subtitle ?? '${content.year ?? '热播'} · ${content.genres.take(2).join(' ')}', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgSub, fontSize: 11)),
           ],
         ),
       ),
@@ -671,14 +672,14 @@ class _VodSection extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+              Text(title, style: TextStyle(color: context.fgMain, fontSize: 20, fontWeight: FontWeight.w900)),
               const Spacer(),
               GestureDetector(
                 onTap: () => context.go('/search'),
                 child: Row(
                   children: [
-                    Text('更多', style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 13)),
-                    Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.55), size: 18),
+                    Text('更多', style: TextStyle(color: context.fgSub, fontSize: 13)),
+                    Icon(Icons.chevron_right_rounded, color: context.fgSub, size: 18),
                   ],
                 ),
               ),
@@ -689,16 +690,16 @@ class _VodSection extends ConsumerWidget {
         SizedBox(
           height: 194,
           child: async.when(
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
+            loading: () => Center(child: CircularProgressIndicator(color: context.fgSub, strokeWidth: 2)),
             error: (e, _) => Center(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('加载失败: ${e.toString().split("\n").first}', style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                child: Text('加载失败: ${e.toString().split("\n").first}', style: TextStyle(color: context.fgSub, fontSize: 13)),
               ),
             ),
             data: (items) {
               if (items.isEmpty) {
-                return const Center(child: Text('暂无内容', style: TextStyle(color: Colors.white54)));
+                return Center(child: Text('暂无内容', style: TextStyle(color: context.fgSub)));
               }
               return ListView.separated(
                 scrollDirection: Axis.horizontal,

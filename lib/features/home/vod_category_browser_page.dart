@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/colors.dart';
 import '../../../data/providers/vod_provider.dart';
 
 /// 分类 ID 与子分类映射
@@ -74,15 +75,15 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
     final async = ref.watch(provider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF101010),
+      backgroundColor: context.bgBase,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF101010),
+        backgroundColor: context.bgBase,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          icon: Icon(Icons.arrow_back_rounded, color: context.fgMain),
           onPressed: () => context.pop(),
         ),
-        title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text(label, style: TextStyle(color: context.fgMain, fontSize: 18, fontWeight: FontWeight.w700)),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,14 +105,14 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: active ? const Color(0x22E53935) : const Color(0xFF242424),
+                        color: active ? context.fgAccent.withValues(alpha: 0.13) : context.bgCardHigh,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: active ? const Color(0xFFE53935) : Colors.white.withValues(alpha: 0.04)),
+                        border: Border.all(color: active ? context.fgAccent : context.fgBorder),
                       ),
                       child: Text(
                         subList[i],
                         style: TextStyle(
-                          color: active ? Colors.white : const Color(0xFFD6D6D6),
+                          color: active ? context.fgAccent : context.fgSub,
                           fontSize: 12,
                           fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                         ),
@@ -126,16 +127,16 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
           // ─── 内容区 ────────────────────────────────────────────
           Expanded(
             child: async.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2)),
+              loading: () => Center(child: CircularProgressIndicator(color: context.fgSub, strokeWidth: 2)),
               error: (e, _) => Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('加载失败', style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                  child: Text('加载失败', style: TextStyle(color: context.fgSub, fontSize: 13)),
                 ),
               ),
               data: (items) {
                 if (items.isEmpty) {
-                  return const Center(child: Text('暂无内容', style: TextStyle(color: Colors.white54)));
+                  return Center(child: Text('暂无内容', style: TextStyle(color: context.fgSub)));
                 }
                 return GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -160,7 +161,7 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: const Color(0xFF242424),
+                                color: context.bgCardHigh,
                                 borderRadius: BorderRadius.circular(8),
                                 image: item.hasPoster
                                     ? DecorationImage(
@@ -177,7 +178,7 @@ class _VodCategoryBrowserPageState extends ConsumerState<VodCategoryBrowserPage>
                             item.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                            style: TextStyle(color: context.fgMain, fontSize: 13, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),

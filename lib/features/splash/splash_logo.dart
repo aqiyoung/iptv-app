@@ -9,6 +9,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../../core/theme/colors.dart';
+
 const Duration kSplashMinDuration = Duration(milliseconds: 2000);
 
 class SplashScreen extends StatefulWidget {
@@ -101,7 +103,8 @@ class _SplashLogo extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFE53935).withValues(alpha: 0.35),
+              // v0.3.13.0: 阴影跟随 theme primary (赤陶), 跟 splash 背景 scheme.surface 联动.
+              color: context.fgAccent.withValues(alpha: 0.35),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),

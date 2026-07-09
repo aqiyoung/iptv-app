@@ -50,3 +50,49 @@ class IptvColors {
   /// 暗色分隔线 — 暖深灰
   static const Color darkDivider = Color(0xFF3A332C);
 }
+
+// ---------------------------------------------------------------------------
+// v0.3.13.0 全局浅色模式 (7/9 老板反馈): 语义色访问器.
+//
+// 子页面原来全部硬编码深色 (Color(0xFF101010) / Colors.white / 0xFFE53935),
+// 导致切到浅色模式后不跟 theme 走. 现在统一走 Theme.of(context).colorScheme,
+// light / dark 两套 ThemeData 在 theme.dart 里定义, 这里只定义"语义名 → token"映射.
+//
+// 用法:
+//   ColoredBox(color: context.bgBase)          // 页面/ scaffold 背景
+//   Text('..', style: TextStyle(color: context.fgMain))   // 主文字
+//   Container(color: context.bgCard)           // 卡片背景
+//   Container(color: context.bgCardHigh)       // 卡片内更深一档 (按钮 / 内嵌块)
+//   Icon(Icons.x, color: context.fgAccent)     // 强调色 (赤陶)
+//   Border.all(color: context.fgBorder)        // 边框 / 分隔线
+// ----------------------------------------------------------------------------
+
+/// 语义色 — 从当前 Theme.colorScheme 读, light/dark 自动切换.
+extension BuildThemeColors on BuildContext {
+  ColorScheme get _cs => Theme.of(this).colorScheme;
+
+  /// 页面 / scaffold 主背景.
+  Color get bgBase => _cs.surface;
+
+  /// 卡片 / 容器 背景 (比 surface 浅/深一档).
+  Color get bgCard => _cs.surfaceContainer ?? _cs.surface;
+
+  /// 卡片内更深一档 (按钮底 / 内嵌块).
+  Color get bgCardHigh =>
+      _cs.surfaceContainerHigh ?? _cs.surfaceContainer ?? _cs.surface;
+
+  /// 主文字.
+  Color get fgMain => _cs.onSurface;
+
+  /// 次文字.
+  Color get fgSub => _cs.onSurfaceVariant;
+
+  /// 强调色 — 赤陶 (主色 / 红 ICON / 直播标记).
+  Color get fgAccent => _cs.primary;
+
+  /// 边框 / 分隔线.
+  Color get fgBorder => _cs.outline;
+
+  /// 当前亮度 — 给状态栏 / AnnotatedRegion 用.
+  Brightness get appBrightness => Theme.of(this).brightness;
+}

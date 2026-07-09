@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/colors.dart';
 import '../../services/playback_history_service.dart';
 
 /// 播放历史记录页
@@ -36,30 +37,30 @@ class _PlaybackHistoryPageState extends State<PlaybackHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF101010),
+      backgroundColor: context.bgBase,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF101010),
+        backgroundColor: context.bgBase,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+          icon: Icon(Icons.arrow_back_rounded, color: context.fgMain),
           onPressed: () => context.pop(),
         ),
-        title: const Text('播放记录', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text('播放记录', style: TextStyle(color: context.fgMain, fontSize: 18, fontWeight: FontWeight.w700)),
         actions: _items.isEmpty
             ? null
             : [
                 IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, color: Colors.white54, size: 20),
+                  icon: Icon(Icons.delete_outline_rounded, color: context.fgSub, size: 20),
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        backgroundColor: const Color(0xFF1E1E1E),
-                        title: const Text('清空记录', style: TextStyle(color: Colors.white)),
-                        content: const Text('确定清空所有播放记录？', style: TextStyle(color: Colors.white70)),
+                        backgroundColor: context.bgCard,
+                        title: Text('清空记录', style: TextStyle(color: context.fgMain)),
+                        content: Text('确定清空所有播放记录？', style: TextStyle(color: context.fgSub)),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消', style: TextStyle(color: Colors.white54))),
-                          TextButton(onPressed: () { Navigator.pop(ctx); _clear(); }, child: const Text('清空', style: TextStyle(color: Color(0xFFE53935)))),
+                          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('取消', style: TextStyle(color: context.fgSub))),
+                          TextButton(onPressed: () { Navigator.pop(ctx); _clear(); }, child: Text('清空', style: TextStyle(color: context.fgAccent))),
                         ],
                       ),
                     );
@@ -68,15 +69,15 @@ class _PlaybackHistoryPageState extends State<PlaybackHistoryPage> {
               ],
       ),
       body: !_loaded
-          ? const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))
+          ? Center(child: CircularProgressIndicator(color: context.fgSub, strokeWidth: 2))
           : _items.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.history_rounded, color: Colors.white24, size: 56),
-                      SizedBox(height: 12),
-                      Text('暂无播放记录', style: TextStyle(color: Colors.white38, fontSize: 14)),
+                      Icon(Icons.history_rounded, color: context.fgSub.withValues(alpha: 0.6), size: 56),
+                      const SizedBox(height: 12),
+                      Text('暂无播放记录', style: TextStyle(color: context.fgSub.withValues(alpha: 0.5), fontSize: 14)),
                     ],
                   ),
                 )
@@ -85,7 +86,7 @@ class _PlaybackHistoryPageState extends State<PlaybackHistoryPage> {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: _items.length,
-                    separatorBuilder: (_, __) => const Divider(color: Color(0xFF1E1E1E), height: 1),
+                    separatorBuilder: (_, __) => Divider(color: context.fgBorder, height: 1),
                     itemBuilder: (_, i) {
                       final item = _items[i];
                       return ListTile(
@@ -94,7 +95,7 @@ class _PlaybackHistoryPageState extends State<PlaybackHistoryPage> {
                           width: 52,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF242424),
+                            color: context.bgCardHigh,
                             borderRadius: BorderRadius.circular(6),
                             image: item.posterUrl != null && item.posterUrl!.isNotEmpty
                                 ? DecorationImage(image: NetworkImage(item.posterUrl!), fit: BoxFit.cover, onError: (_, __) {})
@@ -102,10 +103,10 @@ class _PlaybackHistoryPageState extends State<PlaybackHistoryPage> {
                           ),
                         ),
                         title: Text(item.title, maxLines: 2, overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+                            style: TextStyle(color: context.fgMain, fontSize: 14, fontWeight: FontWeight.w500)),
                         subtitle: Text(
                           '${item.playedAt.month.toString().padLeft(2, '0')}-${item.playedAt.day.toString().padLeft(2, '0')} ${item.playedAt.hour.toString().padLeft(2, '0')}:${item.playedAt.minute.toString().padLeft(2, '0')}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          style: TextStyle(color: context.fgSub, fontSize: 11),
                         ),
                         onTap: () => context.go('/player/vod?url=${Uri.encodeComponent(item.url)}&title=${Uri.encodeComponent(item.title)}'),
                       );

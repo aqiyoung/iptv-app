@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/channel.dart';
 import '../../data/repositories/channel_repository.dart';
@@ -310,7 +311,7 @@ class _SearchResultTile extends StatelessWidget {
             color: isSelected
                 // ignore: deprecated_member_use
                 ? accent.withValues(alpha: 0.12)
-                : const Color(0xFFFFFCF6), // bgElevated
+                : context.bgCard,
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

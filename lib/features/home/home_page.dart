@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/colors.dart';
 import 'poster_wall_page.dart';
 
 /// 视界主页 — 外层统一管理底部导航
@@ -19,31 +20,13 @@ class _HomePageState extends ConsumerState<HomePage> {
   int _currentIndex = 0;
 
   @override
-  void initState() {
-    super.initState();
-    // app 已锁死深色：首页状态栏固定白图标，不再跟随旧 theme_mode prefs。
-    _syncGlobalOverlay();
-  }
-
-  void _syncGlobalOverlay() {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: Color(0xFF151515),
-        systemNavigationBarIconBrightness: Brightness.light,
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final overlay = _resolveOverlay();
+    // v0.3.13.0: 状态栏跟随 theme brightness (浅色 → 黑图标, 深色 → 白图标).
+    final overlay = _resolveOverlay(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlay,
       child: Scaffold(
-      backgroundColor: const Color(0xFF101010),
+      backgroundColor: context.bgBase,
       body: IndexedStack(
         index: _currentIndex,
         children: [
@@ -82,13 +65,16 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  SystemUiOverlayStyle _resolveOverlay() {
-    return const SystemUiOverlayStyle(
+  SystemUiOverlayStyle _resolveOverlay(BuildContext context) {
+    // v0.3.13.0: 跟随 theme brightness — 浅色黑图标 / 深色白图标.
+    final isDark = context.appBrightness == Brightness.dark;
+    return SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: Color(0xFF151515),
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: context.bgBase,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
     );
   }
 }
@@ -103,8 +89,8 @@ class _StreamingBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF151515).withValues(alpha: 0.94),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
+        color: context.bgBase.withValues(alpha: 0.94),
+        border: Border(top: BorderSide(color: context.fgBorder)),
       ),
       child: ClipRRect(
         child: BackdropFilter(
@@ -116,8 +102,8 @@ class _StreamingBottomNav extends StatelessWidget {
               onTap: onTap,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              selectedItemColor: const Color(0xFFE53935),
-              unselectedItemColor: const Color(0xFF8E8E8E),
+              selectedItemColor: context.fgAccent,
+              unselectedItemColor: context.fgSub,
               showSelectedLabels: true,
               showUnselectedLabels: true,
               type: BottomNavigationBarType.fixed,
@@ -164,7 +150,7 @@ class _MinePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ColoredBox(
-      color: const Color(0xFF101010),
+      color: context.bgBase,
       child: SafeArea(
         bottom: false,
         top: true,
@@ -187,20 +173,20 @@ class _MinePage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         '视界',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: context.fgMain,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.6,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         '全新品牌升级 • 直播 + 影视',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: context.fgSub,
                           fontSize: 12,
                           letterSpacing: 0.4,
                         ),
@@ -216,11 +202,11 @@ class _MinePage extends ConsumerWidget {
             _MineTile(icon: Icons.tv_rounded, title: '电视频道', subtitle: '央视 / 卫视 / 体育 / 娱乐直播', onTap: () => context.go('/category/live')),
             _MineTile(icon: Icons.settings_rounded, title: '设置', subtitle: '主题、更新、关于', onTap: () => context.go('/settings')),
             const SizedBox(height: 24),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('最近浏览', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                child: Text('最近浏览', style: TextStyle(color: context.fgMain, fontSize: 16, fontWeight: FontWeight.w900)),
               ),
             ),
             const SizedBox(height: 12),
@@ -236,9 +222,9 @@ class _MinePage extends ConsumerWidget {
                     width: 110,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A),
+                      color: context.bgCard,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                      border: Border.all(color: context.fgBorder),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,13 +232,13 @@ class _MinePage extends ConsumerWidget {
                         Container(
                           height: 70,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2A2A2A),
+                            color: context.bgCardHigh,
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
                           ),
                           child: Center(
                             child: Icon(
                               isLive ? Icons.live_tv_rounded : Icons.movie_rounded,
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: context.fgSub,
                               size: 28,
                             ),
                           ),
@@ -264,12 +250,12 @@ class _MinePage extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFE53935).withValues(alpha: 0.2),
+                                  color: context.fgAccent.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: Text(
                                   isLive ? '直播' : '视频',
-                                  style: const TextStyle(color: Color(0xFFE53935), fontSize: 9, fontWeight: FontWeight.w700),
+                                  style: TextStyle(color: context.fgAccent, fontSize: 9, fontWeight: FontWeight.w700),
                                 ),
                               ),
                             ],
@@ -279,7 +265,7 @@ class _MinePage extends ConsumerWidget {
                           padding: const EdgeInsets.fromLTRB(8, 3, 8, 6),
                           child: Text(
                             isLive ? '频道名称' : '视频标题',
-                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: context.fgMain, fontSize: 11, fontWeight: FontWeight.w600),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -319,7 +305,7 @@ class _ActionHubPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: const Color(0xFF101010),
+      color: context.bgBase,
       child: SafeArea(
         top: false,
         child: Center(
@@ -328,18 +314,18 @@ class _ActionHubPage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
+                color: context.bgCard,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                border: Border.all(color: context.fgBorder),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, color: const Color(0xFFE53935), size: 52),
+                  Icon(icon, color: context.fgAccent, size: 52),
                   const SizedBox(height: 14),
-                  Text(title, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                  Text(title, style: TextStyle(color: context.fgMain, fontSize: 22, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 8),
-                  Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 14, height: 1.5)),
+                  Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: context.fgSub, fontSize: 14, height: 1.5)),
                   const SizedBox(height: 18),
                   _PrimaryButton(label: primaryLabel, onTap: onPrimary),
                   if (secondaryLabel != null && onSecondary != null) ...[
@@ -371,30 +357,30 @@ class _MineTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
-        splashColor: Colors.white.withValues(alpha: 0.05),
-        highlightColor: Colors.white.withValues(alpha: 0.03),
+        splashColor: context.fgAccent.withValues(alpha: 0.08),
+        highlightColor: context.fgAccent.withValues(alpha: 0.04),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
+            color: context.bgCard,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            border: Border.all(color: context.fgBorder),
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFFE53935), size: 26),
+              Icon(icon, color: context.fgAccent, size: 26),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)),
+                    Text(title, style: TextStyle(color: context.fgMain, fontSize: 15, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 3),
-                    Text(subtitle, style: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 12)),
+                    Text(subtitle, style: TextStyle(color: context.fgSub, fontSize: 12)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Color(0xFF555555)),
+              Icon(Icons.chevron_right_rounded, color: context.fgSub),
             ],
           ),
         ),
@@ -417,7 +403,7 @@ class _PrimaryButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
-          color: const Color(0xFFE53935),
+          color: context.fgAccent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
@@ -440,11 +426,11 @@ class _SecondaryButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
-          color: const Color(0xFF242424),
+          color: context.bgCardHigh,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: context.fgBorder),
         ),
-        child: Text(label, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+        child: Text(label, textAlign: TextAlign.center, style: TextStyle(color: context.fgMain, fontSize: 14, fontWeight: FontWeight.w800)),
       ),
     );
   }

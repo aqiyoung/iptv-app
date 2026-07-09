@@ -245,16 +245,37 @@ Future<void> _prewarmRemoteSources() async {
 }
 
 void _applySystemUiOverlay(SharedPreferences prefs) {
-  // v0.3.11.54: app 已锁死深色，状态栏也固定深色
+  // v0.3.13.0: 启动时状态栏跟随 theme_mode (不再锁死深色).
+  //   - prefs 里 theme_mode == 'light' → 黑图标
+  //   - prefs 里 theme_mode == 'dark'  → 白图标
+  //   - prefs 里 theme_mode == 'system' / 未设置 → 跟 platformBrightness
+  // runApp 之后各页面用 AnnotatedRegion 再覆盖一次, 这里只是首屏启动兜底.
+  final brightness = _resolvedBrightness(prefs);
+  final isDark = brightness == Brightness.dark;
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
+    SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
-      systemNavigationBarColor: IptvColors.darkBg,
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor:
+          isDark ? IptvColors.darkBg : IptvColors.bgParchment,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
     ),
   );
+}
+
+/// 根据 prefs theme_mode + 系统亮度, 解析当前应该是亮/暗.
+Brightness _resolvedBrightness(SharedPreferences prefs) {
+  switch (prefs.getString(ThemeModeNotifier.kThemeModeKey)) {
+    case 'light':
+      return Brightness.light;
+    case 'dark':
+      return Brightness.dark;
+    case 'system':
+    default:
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness;
+  }
 }
 
 /// 0.3.6+19: 拿 SharedPreferences.  生产等异步 init,  测试时调用方
