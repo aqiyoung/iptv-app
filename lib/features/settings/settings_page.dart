@@ -790,7 +790,7 @@ class _VodSourceManagementCard extends ConsumerWidget {
     TextEditingController nameCtrl,
     TextEditingController urlCtrl,
     VodTypeIdScheme scheme,
-    BuildDialogContext ctx,
+    BuildContext ctx,
   ) {
     return () {
       final name = nameCtrl.text.trim();

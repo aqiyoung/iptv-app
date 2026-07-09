@@ -608,7 +608,7 @@ Future<List<Channel>> _enrichWithRemoteLogos({
       website: c.website,
       logoUrl: remoteLogo,
       sources: c.sources,
-      cctvSource: c.ctvSource,
+      cctvSource: c.cctvSource,
       isNsfw: c.isNsfw,
     );
   }).toList(growable: false);
