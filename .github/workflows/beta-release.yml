@@ -181,7 +181,7 @@ jobs:
       - name: 推送新版本到 Telegram 频道
         if: success()
         env:
-          TOKEN: *** secrets.TELEGRAM_BOT_TOKEN }}
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           set -e
           VERSION="beta-${{ env.VERSION }}-${{ github.run_number }}"
