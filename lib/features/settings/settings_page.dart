@@ -28,6 +28,7 @@ import '../../services/version_checker.dart'
         kDefaultEndpointUrl;
 import '../update/force_update_dialog.dart' show ForceUpdateDialog;
 import '../../../core/theme/colors.dart';
+import '../../../core/theme/typography.dart';
 import 'theme_provider.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
@@ -474,9 +475,18 @@ class _SettingsCard extends StatelessWidget {
         // ],
       ),
       clipBehavior: Clip.antiAlias, // 让内部 ListTile ripple 不溢出圆角
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: children,
+      // v0.3.13.0: 标题字体跟 _MineTile 一致 (15sp / w900 Roboto — 老板要求
+      // 设置页和我的页 UI 字体保持一致). DefaultTextStyle 让内部所有 ListTile
+      // title 自动继承, 不再用 ListTile 默认的 16sp/w500 Material 样式.
+      child: DefaultTextStyle(
+        style: IptvTypography.sansTitle.copyWith(
+          fontSize: 15,
+          fontWeight: FontWeight.w900,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        ),
       ),
     );
   }
@@ -552,7 +562,8 @@ Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
   var selected = current;
   await showDialog<void>(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setLocal) => AlertDialog(
       title: const Text('主题模式'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -561,7 +572,7 @@ Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
             title: Text(_modeLabel(mode)),
             value: mode,
             groupValue: selected,
-            onChanged: (v) => selected = v!,
+            onChanged: (v) => setLocal(() => selected = v!),
           );
         }).toList(),
       ),
@@ -578,6 +589,7 @@ Future<void> _showThemeDialog(BuildContext context, WidgetRef ref) async {
           child: const Text('确定'),
         ),
       ],
+    ),
     ),
   );
 }
