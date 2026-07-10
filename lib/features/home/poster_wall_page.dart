@@ -54,17 +54,12 @@ class PosterWallPage extends ConsumerWidget {
                         provider: vodRecommendedProvider,
                         badges: const ['HOT', 'VIP', '独播'],
                       ),
-                      const SizedBox(height: 18),
-                      _VodSection(
-                        title: '热播电影',
-                        provider: vodMoviesProvider,
-                        badges: const ['热播', '独播', 'VIP'],
-                      ),
-                      const SizedBox(height: 18),
-                      _VodSection(
+                      const SizedBox(height: 20),
+                      _VodSectionWithTabs(
                         title: '热播剧集',
                         provider: vodSeriesProvider,
-                        badges: const ['独播', 'VIP', '更新'],
+                        badges: const ['热播', 'VIP', '热播', 'VIP', 'VIP'],
+                        tabs: const ['全部', '古装', '都市', '悬疑', '爱情'],
                       ),
                       const SizedBox(height: 20),
                     ],
@@ -442,7 +437,7 @@ class _LiveTvModule extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
-                      color: context.bgCardHigh,
+                      color: Colors.black,
                       child: Stack(
                         children: [
                           Center(
@@ -459,7 +454,14 @@ class _LiveTvModule extends StatelessWidget {
                           Positioned(
                             right: 8,
                             top: 8,
-                            child: Text(primary?.displayName ?? '视界', style: TextStyle(color: context.fgMain, fontSize: 11, fontWeight: FontWeight.w700)),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(primary?.displayName ?? '视界', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                            ),
                           ),
                           Positioned(
                             left: 10,
@@ -469,25 +471,34 @@ class _LiveTvModule extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(primary?.displayName ?? (error == null ? '频道加载中' : '加载失败'), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.fgMain, fontSize: 13, fontWeight: FontWeight.w700)),
-                                const SizedBox(height: 6),
+                                Text('正在直播 · 新闻30分', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Text('12:00', style: TextStyle(color: context.fgSub, fontSize: 10)),
+                                    Text('12:00', style: TextStyle(color: Colors.white70, fontSize: 9)),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(99),
                                         child: LinearProgressIndicator(
                                           value: 0.62,
-                                          minHeight: 3,
-                                          color: context.fgAccent,
-                                          backgroundColor: context.fgBorder,
+                                          minHeight: 2.5,
+                                          color: const Color(0xFFE53935),
+                                          backgroundColor: Colors.white24,
                                         ),
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    Text('12:30', style: TextStyle(color: context.fgSub, fontSize: 10)),
+                                    Text('12:30', style: TextStyle(color: Colors.white70, fontSize: 9)),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Icon(Icons.arrow_forward_rounded, color: Colors.white60, size: 10),
+                                    const SizedBox(width: 4),
+                                    Text('午间剧场 · 辉煌岁月', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500)),
+                                    Text('  12:30-13:30', style: TextStyle(color: Colors.white38, fontSize: 9)),
                                   ],
                                 ),
                               ],
@@ -517,7 +528,7 @@ class _LiveTvModule extends StatelessWidget {
                           onTap: () => context.go('/player/${ch.id}'),
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 11),
-                            child: _LiveListText(title: ch.displayName, subtitle: ch.categories.take(2).join(' · ')),
+                            child: _LiveListText(title: ch.displayName, subtitle: '正在直播'),
                           ),
                         )),
                 ],
@@ -713,6 +724,139 @@ class _VodSection extends ConsumerWidget {
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, index) => _PosterCard(content: items[index], badge: badges[index % badges.length]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 热播剧集 / 热播电影 — 带分类筛选标签的 VOD 横滚区.
+/// 参考图: 标题行下方是「全部 / 古装 / 都市 / 悬疑 / 爱情」筛选标签,
+/// 选中态红色描边 + 浅红底, 未选中灰字灰边.
+class _VodSectionWithTabs extends ConsumerStatefulWidget {
+  const _VodSectionWithTabs({
+    required this.title,
+    required this.provider,
+    required this.badges,
+    required this.tabs,
+  });
+
+  final String title;
+  final FutureProvider<List<Content>> provider;
+  final List<String> badges;
+  final List<String> tabs;
+
+  @override
+  ConsumerState<_VodSectionWithTabs> createState() =>
+      _VodSectionWithTabsState();
+}
+
+class _VodSectionWithTabsState extends ConsumerState<_VodSectionWithTabs> {
+  int _selectedTab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final async = ref.watch(widget.provider);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(widget.title,
+                      style: TextStyle(
+                          color: context.fgMain,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900)),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => context.go('/search'),
+                    child: Row(
+                      children: [
+                        Text('更多', style: TextStyle(color: context.fgSub, fontSize: 13)),
+                        Icon(Icons.chevron_right_rounded,
+                            color: context.fgSub, size: 18),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                height: 28,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.zero,
+                  itemCount: widget.tabs.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final isSelected = _selectedTab == index;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedTab = index),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? context.fgAccent.withValues(alpha: 0.12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected ? context.fgAccent : context.fgBorder,
+                            width: isSelected ? 1.2 : 1,
+                          ),
+                        ),
+                        child: Text(
+                          widget.tabs[index],
+                          style: TextStyle(
+                            color: isSelected ? context.fgAccent : context.fgSub,
+                            fontSize: 12,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 194,
+          child: async.when(
+            loading: () => Center(
+                child: CircularProgressIndicator(
+                    color: context.fgSub, strokeWidth: 2)),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('加载失败: ${e.toString().split("\n").first}',
+                    style: TextStyle(color: context.fgSub, fontSize: 13)),
+              ),
+            ),
+            data: (items) {
+              if (items.isEmpty) {
+                return Center(
+                    child: Text('暂无内容', style: TextStyle(color: context.fgSub)));
+              }
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) => _PosterCard(
+                  content: items[index],
+                  badge: widget.badges[index % widget.badges.length],
+                ),
               );
             },
           ),
