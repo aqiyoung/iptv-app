@@ -1,5 +1,11 @@
 import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// Riverpod provider 读取播放历史, 自动监听 SharedPreferences 变化.
+final playHistoryProvider = FutureProvider<List<PlaybackHistoryEntry>>(
+  (ref) => PlaybackHistoryService.load(),
+);
 
 class PlaybackHistoryEntry {
   final String url;

@@ -33,6 +33,7 @@ import '../../../data/models/vod_source.dart';
 import '../../../services/tvbox_config_parser.dart';
 import '../../../services/vod_source_registry.dart';
 import 'theme_provider.dart';
+import 'widgets/recent_history.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
 
@@ -196,6 +197,11 @@ class SettingsPage extends ConsumerWidget {
           const _SettingsGroupLabel(label: '影视源'),
           const SizedBox(height: 6),
           _VodSourceManagementCard(),
+          const SizedBox(height: 16),
+          // ─── 最近浏览记录 ──────────────────────────────────────────
+          const _SettingsGroupLabel(label: '最近浏览'),
+          const SizedBox(height: 6),
+          const RecentHistory(),
           const SizedBox(height: 32),
 
           // ─── 底部 footer (slogan,  跟 about 区分) ─────────────────────────
