@@ -33,7 +33,6 @@ import '../../../data/models/vod_source.dart';
 import '../../../services/tvbox_config_parser.dart';
 import '../../../services/vod_source_registry.dart';
 import 'theme_provider.dart';
-import 'widgets/recent_history.dart';
 // v0.3.8+102 (6/20 15:02 老板反馈): 删主题切换, 锁死浅色.  theme_provider
 // 保留文件 (兼容老 prefs), 但 settings_page 不再 import, 也不暴露 UI.
 
@@ -93,15 +92,6 @@ class SettingsPage extends ConsumerWidget {
         // 参见 iOS Settings.app + Material 3 cards 设计语言.
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          // ─── 品牌 header: 视界 logo ──────────────────────────────────
-          const _SettingsGroupLabel(label: '功能'),
-          const SizedBox(height: 6),
-          _FeatureCardGrid(
-                              onCheckUpdate: () => _checkUpdate(context, ref),
-                              onShowAbout: () => _showAbout(context),
-                            ),
-          const SizedBox(height: 16),
-
           // ─── 卡片 1: 外观 ──────────────────────────────────────────────
           const _SettingsGroupLabel(label: '外观'),
           const SizedBox(height: 6),
@@ -200,11 +190,6 @@ class SettingsPage extends ConsumerWidget {
           const _SettingsGroupLabel(label: '影视源'),
           const SizedBox(height: 6),
           _VodSourceManagementCard(),
-          const SizedBox(height: 16),
-          // ─── 最近浏览记录 ──────────────────────────────────────────
-          const _SettingsGroupLabel(label: '最近浏览'),
-          const SizedBox(height: 6),
-          const RecentHistory(),
           const SizedBox(height: 32),
 
           // ─── 底部 footer (slogan,  跟 about 区分) ─────────────────────────
@@ -453,164 +438,6 @@ class SettingsPage extends ConsumerWidget {
 }
 
 // ─── 内部组件 ──────────────────────────────────────────────────────────────
-
-/// 顶部功能导航网格：收藏 / 播放历史 / 检查更新 / 关于.
-class _FeatureCardGrid extends StatelessWidget {
-  const _FeatureCardGrid({
-    required this.onCheckUpdate,
-    required this.onShowAbout,
-    super.key,
-  });
-  final VoidCallback onCheckUpdate;
-  final VoidCallback onShowAbout;
-
-  void _navigate(String location, BuildContext context) {
-    if (context.mounted) {
-      context.push(location);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final cards = <_FeatureCardItem>[
-      _FeatureCardItem(
-        label: '我的收藏',
-        icon: Icons.bookmark_outline,
-        color: Colors.blue,
-        onTap: () => _navigate('/favorites', context),
-      ),
-      _FeatureCardItem(
-        label: '播放历史',
-        icon: Icons.history_outlined,
-        color: Colors.green,
-        onTap: () => _navigate('/playback-history', context),
-      ),
-      _FeatureCardItem(
-        label: '检查更新',
-        icon: Icons.system_update_outlined,
-        color: Colors.orange,
-        onTap: onCheckUpdate,
-      ),
-      _FeatureCardItem(
-        label: '关于视界',
-        icon: Icons.info_outline,
-        color: Colors.purple,
-        onTap: onShowAbout,
-      ),
-    ];
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        color: context.bgCard,
-        child: Row(
-          children: cards
-              .map((item) => Expanded(
-                    child: _FeatureCardItemView(item),
-                  ))
-              .toList(),
-        ),
-      ),
-    );
-  }
-}
-
-class _FeatureCardItemView extends StatelessWidget {
-  const _FeatureCardItemView(this.item, {super.key});
-  final _FeatureCardItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: item.onTap,
-      onTapDown: (_) => _splashController.add(SplashPosition(item.label)),
-      onTapUp: (_) => _splashController.remove(SplashPosition(item.label)),
-      onTapCancel: () => _splashController.remove(SplashPosition(item.label)),
-      child: Container(
-        color: Colors.transparent,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            _SplashOverlay(position: SplashPosition(item.label)),
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(item.icon, size: 28, color: item.color),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.label,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF333333),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-final class _SplashController {
-  final Set<SplashPosition> _positions = {};
-  void add(SplashPosition position) => _positions.add(position);
-  void remove(SplashPosition position) => _positions.remove(position);
-  bool isPressed(String key) => _positions.any((p) => p.key == key);
-}
-
-final _splashController = _SplashController();
-
-class SplashPosition {
-  SplashPosition(this.key);
-  final String key;
-}
-
-class _SplashOverlay extends StatelessWidget {
-  const _SplashOverlay({required this.position, super.key});
-  final SplashPosition position;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_splashController.isPressed(position.key)) return const SizedBox();
-    return Positioned.fill(
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.05)),
-      ),
-    );
-  }
-}
-
-class _FeatureCardItem {
-  const _FeatureCardItem({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-}
 
 /// v0.3.7+80: 细分割线,  跟设置页 ListTile 之间分隔用,  复用 0.5px outlineVariant.
 /// v0.3.8+98 (6/20 13:39 老板反馈): _SettingsGap = 卡片内部两个 ListTile
