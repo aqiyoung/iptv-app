@@ -1,4 +1,4 @@
-// v0.3.13.0 (7/9 老板要求): TVBox JSON 源文件解析 — 提取 type:1 MacCMS 源.
+// v0.3.13.1 (7/9 老板要求): TVBox JSON 源文件解析 — 提取 type:1 MacCMS 源.
 //
 // 这 4 个 URL 是行业公开的 TVBox / 影视聚合配置 (俗称 "盒子源"):
 //   - TVBox 格式顶层 { spider, sites[], lives[], rules[], parses[] }
@@ -7,6 +7,10 @@
 //               能直接用),  2/3 = Spider JS 采集 (需 JS 引擎,  Flutter 跑不了)
 //
 // 我们只取 type == 1 且 api 非空的站点,  转成 VodSource.
+//
+// v0.3.13.1: 自动检测 typeId 方案.  拉取源的 class 列表 (ac=list&t=1),  匹配
+// 常见中文分类名 (电影/连续剧/综艺/动漫/纪录片/体育/海外),  映射到 app 的
+// category keys.  检测失败则 fallback 到 bfzyapiTypeIds.
 //
 // 容错:  单个 URL 拉取失败 / 超时 / 非 JSON / 无 type:1 站点 → 跳过该 URL
 // (不抛错),  返回其他 URL 解析成功的.  跟 app 现有 IPv4 / 远程容错一致.
@@ -82,11 +86,13 @@ class TvBoxConfigParser {
         } catch (_) {
           host = 'tvbox';
         }
+        // v0.3.13.1: 自动检测 typeId 方案.
+        final detected = await _detectTypeIds(api);
         result.add(VodSource(
           id: '${host}_${result.length}',
           name: name,
           baseUrl: api,
-          typeIds: bfzyapiTypeIds, // 预设 bfzyapi 系 (采集器大多兼容)
+          typeIds: detected ?? bfzyapiTypeIds,
         ));
       }
       debugPrint('TvBoxParser: $url → ${result.length} type:1 sources');
@@ -94,6 +100,65 @@ class TvBoxConfigParser {
     } catch (e) {
       debugPrint('TvBoxParser: $url fetch failed: $e');
       return [];
+    }
+  }
+
+  /// 自动检测 typeId 方案: 拉取 class 列表, 匹配中文分类名.
+  /// 返回 null 表示检测失败 (fallback 到 bfzyapiTypeIds).
+  Future<Map<String, int>?> _detectTypeIds(String baseUrl) async {
+    try {
+      final uri = Uri.parse(baseUrl).replace(queryParameters: {
+        'ac': 'list',
+        't': '1',
+        'pg': '1',
+        'pagesize': '1',
+      });
+      final resp = await _client.get(uri).timeout(const Duration(seconds: 8));
+      if (resp.statusCode != 200) return null;
+      final cleaned = _stripComments(resp.body);
+      final decoded = json.decode(cleaned);
+      if (decoded is! Map<String, dynamic>) return null;
+      final classes = decoded['class'];
+      if (classes is! List) return null;
+
+      // 常见中文分类名 → app category key 映射.
+      // 多个关键词匹配同一个 category 时取第一个匹配的 type_id.
+      final categoryKeywords = <String, List<String>>{
+        'movie': ['电影', '电影片', '电影'],
+        'series': ['连续剧', '电视剧', '剧集', '电视剧'],
+        'variety': ['综艺', '综艺片', '综艺节目'],
+        'anime': ['动漫', '动漫片', '动画片', '动画'],
+        'documentary': ['纪录片', '纪录', '记录片'],
+        'sports': ['体育', '体育赛事', '体育节目'],
+        'overseas': ['海外', '欧美剧', '海外剧', '海外看'],
+      };
+
+      final result = <String, int>{};
+      for (final entry in classes) {
+        if (entry is! Map<String, dynamic>) continue;
+        final typeId = entry['type_id'] is int
+            ? entry['type_id'] as int
+            : (entry['type_id'] as num?)?.toInt();
+        final typeName = (entry['type_name'] as String?) ?? '';
+        if (typeId == null || typeName.isEmpty) continue;
+
+        for (final cat in categoryKeywords.entries) {
+          if (result.containsKey(cat.key)) continue; // 已有匹配
+          for (final kw in cat.value) {
+            if (typeName.contains(kw)) {
+              result[cat.key] = typeId;
+              break;
+            }
+          }
+        }
+      }
+
+      debugPrint(
+          'TvBoxParser: typeId detected for $baseUrl → $result');
+      return result.isNotEmpty ? result : null;
+    } catch (e) {
+      debugPrint('TvBoxParser: typeId detection failed for $baseUrl: $e');
+      return null;
     }
   }
 

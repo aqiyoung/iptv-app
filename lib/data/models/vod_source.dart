@@ -38,7 +38,7 @@ const Map<String, int> bfzyapiTypeIds = {
 };
 
 /// bfzyapi.com 默认源的海外剧 typeId 跟其他 bfzyapi 采集器不同 (32 vs 26),
-/// 所以单独列一档.  bfzyapiDefaultSource() 用这个.
+/// 所以单独列一档.  bfzyapiSource() 用这个.
 const Map<String, int> bfzyapiDefaultTypeIds = {
   'movie': 20,
   'series': 30,
