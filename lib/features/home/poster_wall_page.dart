@@ -56,6 +56,13 @@ class PosterWallPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 20),
                       _VodSectionWithTabs(
+                        title: '热播电影',
+                        provider: vodMoviesProvider,
+                        badges: const ['热播', 'VIP', '独播', '热播', 'VIP'],
+                        tabs: const ['全部', '动作', '科幻', '喜剧', '动画', '悬疑'],
+                      ),
+                      const SizedBox(height: 20),
+                      _VodSectionWithTabs(
                         title: '热播剧集',
                         provider: vodSeriesProvider,
                         badges: const ['热播', 'VIP', '热播', 'VIP', 'VIP'],
