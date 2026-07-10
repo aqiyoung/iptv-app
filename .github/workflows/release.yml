@@ -257,9 +257,12 @@ jobs:
         run: |
           set -e
           VERSION="${{ github.ref_name }}"
+          APK_URL="https://github.com/aqiyoung/sanyelive/releases/download/$VERSION/sanyelive-v${{ env.APK_VERSION }}-arm64-v8a.apk"
+          RELEASE_URL="https://github.com/aqiyoung/sanyelive/releases/tag/$VERSION"
           echo "📦 视界 $VERSION 已发布！
           
-          下载 → https://github.com/aqiyoung/sanyelive/releases/tag/$VERSION" > /tmp/msg.txt
+          $APK_URL
+          备用页面：$RELEASE_URL" > /tmp/msg.txt
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d "chat_id=460212872" \
             -d "text=$(cat /tmp/msg.txt)" \

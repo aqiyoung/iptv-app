@@ -185,9 +185,12 @@ jobs:
         run: |
           set -e
           VERSION="beta-${{ env.VERSION }}-${{ github.run_number }}"
+          APK_URL="https://github.com/aqiyoung/sanyelive/releases/download/$VERSION/${{ env.APK_NAME }}"
+          RELEASE_URL="https://github.com/aqiyoung/sanyelive/releases/tag/$VERSION"
           echo "📦 视界 Beta $VERSION 已发布！
           
-          下载 → https://github.com/aqiyoung/sanyelive/releases/tag/$VERSION" > /tmp/msg.txt
+          $APK_URL
+          备用页面：$RELEASE_URL" > /tmp/msg.txt
           curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
             -d "chat_id=@sanyeinfo" \
             -d "text=$(cat /tmp/msg.txt)" \
