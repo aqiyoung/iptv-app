@@ -102,8 +102,8 @@ class _StreamingBottomNav extends StatelessWidget {
               onTap: onTap,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              selectedItemColor: context.fgAccent,
-              unselectedItemColor: context.fgSub,
+              selectedItemColor: Colors.red.shade600,
+              unselectedItemColor: Colors.grey.shade400,
               showSelectedLabels: true,
               showUnselectedLabels: true,
               type: BottomNavigationBarType.fixed,
@@ -112,27 +112,27 @@ class _StreamingBottomNav extends StatelessWidget {
               items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home_outlined, size: 24),
-                  activeIcon: Icon(Icons.home_rounded, size: 24),
+                  activeIcon: Icon(Icons.home_rounded, size: 24, weight: 700),
                   label: '首页',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.smart_display_outlined, size: 24),
-                  activeIcon: Icon(Icons.smart_display_rounded, size: 24),
+                  activeIcon: Icon(Icons.smart_display_rounded, size: 24, weight: 700),
                   label: '短视频',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.workspace_premium_outlined, size: 24),
-                  activeIcon: Icon(Icons.workspace_premium_rounded, size: 24),
+                  activeIcon: Icon(Icons.workspace_premium_rounded, size: 24, weight: 700),
                   label: '会员',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.explore_outlined, size: 24),
-                  activeIcon: Icon(Icons.explore_rounded, size: 24),
+                  activeIcon: Icon(Icons.explore_rounded, size: 24, weight: 700),
                   label: '发现',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person_outline_rounded, size: 24),
-                  activeIcon: Icon(Icons.person_rounded, size: 24),
+                  activeIcon: Icon(Icons.person_rounded, size: 24, weight: 700),
                   label: '我的',
                 ),
               ],
